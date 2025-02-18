@@ -62,30 +62,13 @@ export const flattenObject = (
   );
 };
 
-// Función auxiliar para formatear fechas de manera consistente
-const formatDate = (date: Date): string => {
-  return date.toLocaleString("en-US", {
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-    hour12: true,
-  });
-};
-
 export const processValue = (value: unknown): ProcessedValue => {
   if (value === null) return { value: "null", type: "null" };
   if (value === undefined) return { value: "undefined", type: "undefined" };
 
   if (typeof value === "string") {
-    if (isDate(value)) {
-      // Usar el formato consistente para fechas
-      return {
-        value: formatDate(new Date(value)),
-        type: "fecha",
-      };
+    if (!isNaN(Date.parse(value)) && value.includes("T")) {
+      return { value: new Date(value).toLocaleString(), type: "fecha" };
     }
     return { value: value, type: "string" };
   }
@@ -250,3 +233,4 @@ export const groupColumns = (data: ProcessedItem[]) => {
     groups: Object.values(groupTree).filter((group) => group.level === 1),
   };
 };
+

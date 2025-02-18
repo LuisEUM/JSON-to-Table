@@ -1,6 +1,9 @@
-"use client";
+"use client"
 
-import { useMemo, useState } from "react";
+import { TableHeader } from "@/components/ui/table"
+
+import type React from "react"
+import { useMemo, useState, useCallback, useEffect } from "react"
 import {
   type ColumnDef,
   flexRender,
@@ -10,48 +13,96 @@ import {
   getSortedRowModel,
   type SortingState,
   type VisibilityState,
-} from "@tanstack/react-table";
+} from "@tanstack/react-table"
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/table"
+import { CardContent } from "@/components/ui/card"
+import { toast } from "sonner"
 
-import { columns } from "./columns/columns";
-import { processData } from "./data-processor";
-import { TypeLegend } from "./components/type-legend";
-import { TablePagination } from "./components/table-pagination";
-import { TableSearch } from "./components/table-search";
-import { ColumnManagerModal } from "./components/column-manager-modal";
-import type { ProcessedRow } from "./data-processor";
+import { columns } from "./columns/columns"
+import { processData } from "./data-processor"
+import { TypeLegend } from "./components/type-legend"
+import { TablePagination } from "./components/table-pagination"
+import { TableSearch } from "./components/table-search"
+import { ColumnManagerModal } from "./components/column-manager-modal"
+import { ActionButtons } from "./components/action-buttons"
+import type { ProcessedRow } from "./data-processor"
 
 interface JsonTableProps {
-  data: Record<string, unknown>[];
+  data: Record<string, unknown>[]
 }
 
 interface TableStyles extends React.CSSProperties {
-  width?: number | string;
+  width?: number | string
 }
 
 export function JsonTable({ data }: JsonTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [tableData, setTableData] = useState(() => data)
+  const [useFixedColumn, setUseFixedColumn] = useState(false)
+  const [fixedColumnId, setFixedColumnId] = useState<string | null>(null)
+  const [originalColumnOrder, setOriginalColumnOrder] = useState<string[]>([])
 
-  const processedData = useMemo(
-    () => data.map((item) => processData(item)),
-    [data]
-  );
-  const tableColumns = useMemo<ColumnDef<ProcessedRow>[]>(
-    () => columns(processedData[0]),
-    [processedData]
-  );
+  const processedData = useMemo(() => tableData.map((item) => processData(item)), [tableData])
 
-  const tableData = useMemo(
+  const handleDelete = useCallback((index: number) => {
+    setTableData((prev) => {
+      const newData = [...prev]
+      newData.splice(index, 1)
+      toast.success("Registro eliminado correctamente")
+      return newData
+    })
+  }, [])
+
+  const tableColumns = useMemo<ColumnDef<ProcessedRow>[]>(() => {
+    const baseColumns = columns(processedData[0])
+    let allColumns: ColumnDef<ProcessedRow>[] = []
+
+    const indexColumn: ColumnDef<ProcessedRow> = {
+      id: "index",
+      header: "#",
+      size: 50,
+      enableSorting: false,
+      enableHiding: false,
+      cell: ({ row }) => <div className="text-right tabular-nums text-muted-foreground">{row.index + 1}</div>,
+    }
+
+    if (!useFixedColumn || !fixedColumnId) {
+      allColumns.push(indexColumn)
+    }
+
+    if (useFixedColumn && fixedColumnId) {
+      const fixedColumnIndex = baseColumns.findIndex((col) => col.id === fixedColumnId)
+      if (fixedColumnIndex !== -1) {
+        const fixedColumn = baseColumns[fixedColumnIndex]
+        allColumns.push({ ...fixedColumn, enableHiding: false })
+        allColumns = [
+          ...allColumns,
+          ...baseColumns.slice(0, fixedColumnIndex),
+          ...baseColumns.slice(fixedColumnIndex + 1),
+        ]
+      } else {
+        allColumns = [...allColumns, ...baseColumns]
+      }
+    } else {
+      allColumns = [...allColumns, ...baseColumns]
+    }
+
+    const actionsColumn: ColumnDef<ProcessedRow> = {
+      id: "actions",
+      header: "Acciones",
+      enableSorting: false,
+      enableHiding: false,
+      size: 50,
+      cell: ({ row }) => <ActionButtons row={row.original} onDelete={() => handleDelete(row.index)} />,
+    }
+
+    allColumns.push(actionsColumn)
+    return allColumns
+  }, [processedData, handleDelete, useFixedColumn, fixedColumnId])
+
+  const processedTableData = useMemo(
     () =>
       processedData.map((items) =>
         items.reduce<ProcessedRow>(
@@ -59,14 +110,14 @@ export function JsonTable({ data }: JsonTableProps) {
             ...acc,
             [item.id]: item,
           }),
-          {}
-        )
+          {},
+        ),
       ),
-    [processedData]
-  );
+    [processedData],
+  )
 
   const table = useReactTable({
-    data: tableData,
+    data: processedTableData,
     columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -84,11 +135,127 @@ export function JsonTable({ data }: JsonTableProps) {
       size: 150,
       maxSize: 500,
     },
-  });
+  })
+
+  useEffect(() => {
+    if (!originalColumnOrder.length) {
+      setOriginalColumnOrder(table.getAllLeafColumns().map((col) => col.id))
+    }
+  }, [table, originalColumnOrder])
+
+  const toggleFixedColumn = useCallback(
+    (value: boolean) => {
+      setUseFixedColumn(value)
+      if (!value) {
+        const currentOrder = table.getState().columnOrder
+        const newOrder = ["index", ...currentOrder.filter((id) => id !== "index" && id !== fixedColumnId)]
+        table.setColumnOrder(newOrder)
+        setFixedColumnId(null)
+      }
+    },
+    [fixedColumnId, table],
+  )
+
+  const changeFixedColumn = useCallback(
+    (columnId: string | null) => {
+      setFixedColumnId(columnId)
+      if (columnId) {
+        const currentOrder = table.getState().columnOrder
+        const newOrder = [columnId, ...currentOrder.filter((id) => id !== columnId && id !== "index")]
+        table.setColumnOrder(newOrder)
+      }
+    },
+    [table],
+  )
 
   return (
-    <CardContent className='relative'>
+    <CardContent className="relative">
       <style jsx global>{`
+        .table-wrapper {
+          position: relative;
+          overflow: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .table-wrapper::-webkit-scrollbar {
+          width: 14px;
+          height: 14px;
+          display: block;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+          background: hsl(var(--muted));
+          border-radius: 0;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+          background-color: hsl(var(--muted-foreground));
+          border: 3px solid hsl(var(--muted));
+          border-radius: 7px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-corner {
+          background: hsl(var(--muted));
+        }
+
+        .table-wrapper {
+          scrollbar-width: auto;
+          scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+        }
+
+        .table-wrapper table {
+          width: fit-content;
+          min-width: 100%;
+        }
+
+        .table-cell {
+          position: relative;
+        }
+
+        .fixed-left {
+          position: sticky;
+          left: 0;
+          background-color: hsl(var(--background));
+          border-right: 1px solid hsl(var(--border));
+          z-index: 10;
+        }
+
+        .fixed-left-header {
+          position: sticky;
+          left: 0;
+          top: 0;
+          background-color: hsl(var(--background));
+          border-right: 1px solid hsl(var(--border));
+          z-index: 30;
+        }
+
+        .actions-column {
+          position: sticky;
+          right: 0;
+          background-color: hsl(var(--background));
+          border-left: 1px solid hsl(var(--border));
+          z-index: 10;
+          padding: 0 !important;
+          width: 50px !important;
+        }
+
+        .actions-header {
+          position: sticky;
+          right: 0;
+          top: 0;
+          background-color: hsl(var(--background));
+          border-left: 1px solid hsl(var(--border));
+          z-index: 30;
+          width: 50px !important;
+        }
+
+        .table-header {
+          position: sticky;
+          top: 0;
+          background-color: hsl(var(--background));
+          z-index: 20;
+        }
+
         .resizer {
           position: absolute;
           right: 0;
@@ -109,59 +276,69 @@ export function JsonTable({ data }: JsonTableProps) {
           background-color: hsl(var(--primary));
         }
 
-        .table-wrapper {
-          position: relative;
-          overflow-x: auto;
+        .table-cell > div {
+          min-width: 0;
         }
 
-        .table-wrapper table {
-          width: fit-content;
+        .fixed-column {
+          background-color: hsl(var(--muted));
         }
 
-        .table-cell {
-          position: relative;
+        @media (max-width: 640px) {
+          .table-wrapper {
+            margin: 0 -1rem;
+            width: calc(100% + 2rem);
+          }
         }
       `}</style>
 
-      <div className='flex items-center justify-between mb-4'>
-        <div className='w-72'>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
+        <div className="w-full sm:w-72">
           <TableSearch table={table} />
         </div>
-        <ColumnManagerModal table={table} />
+        <div className="flex justify-end">
+          <ColumnManagerModal
+            table={table}
+            useFixedColumn={useFixedColumn}
+            onFixedColumnChange={toggleFixedColumn}
+            fixedColumnId={fixedColumnId}
+            onFixedColumnIdChange={changeFixedColumn}
+            originalColumnOrder={originalColumnOrder}
+          />
+        </div>
       </div>
-      <div className='rounded-md border'>
-        <div className='table-wrapper'>
+      <div className="rounded-md border overflow-hidden">
+        <div className="table-wrapper" style={{ maxHeight: "600px" }}>
           <Table style={{ width: table.getCenterTotalSize() } as TableStyles}>
-            <TableHeader>
+            <TableHeader className="table-header sticky top-0 z-10 bg-background">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      style={
-                        {
+                  {headerGroup.headers.map((header) => {
+                    const isFixed = header.index === 0
+
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={{
                           width: header.getSize(),
                           position: "relative",
-                        } as TableStyles
-                      }
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      {header.column.getCanResize() && (
-                        <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
-                          className={`resizer ${
-                            header.column.getIsResizing() ? "isResizing" : ""
-                          }`}
-                        />
-                      )}
-                    </TableHead>
-                  ))}
+                        }}
+                        className={`
+                          ${header.column.id === "actions" ? "actions-header" : ""}
+                          ${header.column.id === fixedColumnId || header.column.id === "index" ? "fixed-left-header fixed-column" : ""}
+                        `}
+                      >
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.column.getCanResize() && (
+                          <div
+                            onMouseDown={header.getResizeHandler()}
+                            onTouchStart={header.getResizeHandler()}
+                            className={`resizer ${header.column.getIsResizing() ? "isResizing" : ""}`}
+                          />
+                        )}
+                      </TableHead>
+                    )
+                  })}
                 </TableRow>
               ))}
             </TableHeader>
@@ -169,30 +346,30 @@ export function JsonTable({ data }: JsonTableProps) {
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        style={
-                          {
+                    {row.getVisibleCells().map((cell) => {
+                      const isFixed = cell.column.getIndex() === 0
+
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          style={{
                             width: cell.column.getSize(),
-                          } as TableStyles
-                        }
-                        className='table-cell'
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+                          }}
+                          className={`
+                            table-cell
+                            ${cell.column.id === "actions" ? "actions-column" : ""}
+                            ${cell.column.id === fixedColumnId || cell.column.id === "index" ? "fixed-left fixed-column" : ""}
+                          `}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      )
+                    })}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={tableColumns.length}
-                    className='h-24 text-center'
-                  >
+                  <TableCell colSpan={tableColumns.length} className="h-24 text-center">
                     No results.
                   </TableCell>
                 </TableRow>
@@ -204,5 +381,6 @@ export function JsonTable({ data }: JsonTableProps) {
       <TablePagination table={table} />
       <TypeLegend />
     </CardContent>
-  );
+  )
 }
+
