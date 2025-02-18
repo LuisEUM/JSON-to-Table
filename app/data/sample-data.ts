@@ -1,112 +1,111 @@
 export const sampleData = [
   {
-    texto: "Hola mundo",
-    numero: 42,
-    decimal: 3.14159,
-    booleano: true,
-    fecha: "2024-02-17T12:00:00Z",
-    nulo: null,
-    indefinido: undefined,
-    listaNumeros: [1, 2, 3, 4, 5],
-    listaTextos: ["uno", "dos", "tres"],
-    listaMixta: [1, "dos", true, null],
-    configuracion: {
+    userId: "U001",
+    personal: {
+      nombre: "Carlos Ramírez",
+      edad: 28,
+      email: "carlos.ramirez@ejemplo.com",
+      telefono: "+34 600 123 456",
+      direccion: {
+        calle: "Calle Mayor",
+        numero: 10,
+        codigoPostal: "28004",
+        ciudad: "Madrid",
+        pais: "España",
+      },
+    },
+    cuenta: {
+      usuario: "carlosr",
+      rol: "estudiante",
+      nivelAcceso: "básico",
+      fechaRegistro: "2023-06-15T08:00:00Z",
       activo: true,
-      nombre: "Config1",
-      valor: 100,
     },
-    usuario: {
-      personal: {
-        nombre: "Juan",
-        edad: 25,
-        activo: true,
-        direccion: {
-          calle: "Calle Principal",
-          numero: 123,
-          codigoPostal: "28001",
-        },
-      },
-      preferencias: {
-        tema: "oscuro",
-        notificaciones: true,
-        idioma: "es",
-      },
+    preferencias: {
+      tema: "oscuro",
+      idioma: "es",
+      notificaciones: true,
     },
-    pedidos: [
+    cursosInscritos: [
       {
-        id: "P001",
-        fecha: "2024-01-15T10:30:00Z",
-        total: 150.75,
-        estado: "entregado",
-        items: [
-          { producto: "Camiseta", cantidad: 2, precio: 25.5 },
-          { producto: "Pantalón", cantidad: 1, precio: 99.75 },
-        ],
+        cursoId: "C101",
+        titulo: "Introducción a la Programación",
+        fechaInscripcion: "2023-07-01T10:00:00Z",
+        estado: "en curso", // otros estados: completado, abandonado
       },
       {
-        id: "P002",
-        fecha: "2024-02-01T14:45:00Z",
-        total: 50.25,
-        estado: "en proceso",
+        cursoId: "C205",
+        titulo: "Diseño Web Responsivo",
+        fechaInscripcion: "2023-08-12T14:30:00Z",
+        estado: "completado",
+      },
+    ],
+    compras: [
+      {
+        transaccionId: "T1001",
+        fecha: "2023-06-15T08:05:00Z",
+        total: 49.99,
         items: [
-          { producto: "Libro", cantidad: 1, precio: 15.99 },
-          { producto: "Lápices", cantidad: 2, precio: 17.13 },
+          {
+            tipo: "suscripción",
+            descripcion: "Plan Básico Mensual",
+            precio: 49.99,
+          },
         ],
+        metodoPago: "tarjeta de crédito",
       },
     ],
   },
   {
-    texto: "¡Adiós mundo!",
-    numero: 84,
-    decimal: 2.71828,
-    booleano: false,
-    fecha: "2024-02-18T15:30:00Z",
-    nulo: null,
-    indefinido: undefined,
-    listaNumeros: [6, 7, 8, 9, 10],
-    listaTextos: ["cuatro", "cinco", "seis"],
-    listaMixta: [2, "tres", false, null],
-    configuracion: {
-      activo: false,
-      nombre: "Config2",
-      valor: 200,
-    },
-    usuario: {
-      personal: {
-        nombre: "María",
-        edad: 30,
-        activo: true,
-        direccion: {
-          calle: "Avenida Secundaria",
-          numero: 456,
-          codigoPostal: "28002",
-        },
-      },
-      preferencias: {
-        tema: "claro",
-        notificaciones: false,
-        idioma: "en",
+    userId: "U002",
+    personal: {
+      nombre: "Lucía Gómez",
+      edad: 35,
+      email: "lucia.gomez@ejemplo.com",
+      telefono: "+34 600 654 321",
+      direccion: {
+        calle: "Avenida de la Constitución",
+        numero: 45,
+        codigoPostal: "28010",
+        ciudad: "Madrid",
+        pais: "España",
       },
     },
-    pedidos: [
+    cuenta: {
+      usuario: "lucgomez",
+      rol: "instructor",
+      nivelAcceso: "instructor",
+      fechaRegistro: "2022-03-20T09:30:00Z",
+      activo: true,
+    },
+    preferencias: {
+      tema: "claro",
+      idioma: "en",
+      notificaciones: false,
+    },
+    cursosCreados: [
       {
-        id: "P003",
-        fecha: "2024-02-10T09:15:00Z",
-        total: 75.5,
-        estado: "enviado",
-        items: [{ producto: "Zapatillas", cantidad: 1, precio: 75.5 }],
+        cursoId: "C310",
+        titulo: "Marketing Digital Avanzado",
+        fechaCreacion: "2022-05-10T12:00:00Z",
+        estado: "publicado",
       },
+    ],
+    compras: [
       {
-        id: "P004",
-        fecha: "2024-02-20T16:20:00Z",
-        total: 120.0,
-        estado: "pendiente",
+        transaccionId: "T1002",
+        fecha: "2022-03-20T09:45:00Z",
+        total: 99.99,
         items: [
-          { producto: "Bolso", cantidad: 1, precio: 85.0 },
-          { producto: "Bufanda", cantidad: 1, precio: 35.0 },
+          {
+            tipo: "suscripción",
+            descripcion: "Plan Instructor Anual",
+            precio: 99.99,
+          },
         ],
+        metodoPago: "PayPal",
       },
     ],
   },
-]
+];
 
