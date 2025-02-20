@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from "lucide-react"
 import type { Table } from "@tanstack/react-table"
-import { ColumnVisibilityToggle } from "./column-visibility-toggle"
 
 interface TablePaginationProps<TData> {
   table: Table<TData>
@@ -11,9 +10,9 @@ interface TablePaginationProps<TData> {
 
 export function TablePagination<TData>({ table }: TablePaginationProps<TData>) {
   return (
-    <div className="flex items-center justify-between px-2 py-4">
+    <div className="flex flex-wrap justify-between gap-4 px-2 py-4">
       <div className="flex items-center space-x-2">
-        <p className="text-sm font-medium">Rows per page</p>
+        <p className="text-sm font-medium whitespace-nowrap">Rows per page</p>
         <Select
           value={`${table.getState().pagination.pageSize}`}
           onValueChange={(value) => {
@@ -34,9 +33,7 @@ export function TablePagination<TData>({ table }: TablePaginationProps<TData>) {
         </Select>
       </div>
 
-      <ColumnVisibilityToggle table={table} />
-
-      <div className="flex items-center space-x-6 lg:space-x-8">
+      <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">Page</p>
           <div className="flex items-center space-x-1">
@@ -51,9 +48,10 @@ export function TablePagination<TData>({ table }: TablePaginationProps<TData>) {
               }}
               className="h-8 w-16"
             />
-            <p className="text-sm font-medium">of {table.getPageCount()}</p>
+            <p className="text-sm font-medium whitespace-nowrap">of {table.getPageCount()}</p>
           </div>
         </div>
+
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"

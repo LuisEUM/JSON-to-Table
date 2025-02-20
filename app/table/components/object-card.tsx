@@ -4,6 +4,7 @@ import type { ReactElement } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { TypeDot } from "./type-dot";
 import type { ProcessedValue } from "../data-processor";
+import { formatDateString } from "../utils/date-formatter";
 
 interface ObjectCardProps {
   value: ProcessedValue;
@@ -28,15 +29,28 @@ const renderValue = (
             <span className='text-xs text-gray-500 w-5 text-right'>
               {idx + 1}.
             </span>
-            <div className='flex-1'>{renderValue(item, level, compact)}</div>
+            <div className='flex-1 min-w-0'>
+              {renderValue(item, level, compact)}
+            </div>
           </div>
         ))}
       </div>
     );
   }
 
+  if (value.type === "fecha") {
+    const formattedDate = formatDateString(
+      value.value as string | number | Date
+    );
+    return (
+      <span className='text-sm font-mono truncate' title={formattedDate}>
+        {formattedDate}
+      </span>
+    );
+  }
+
   return (
-    <span className='text-sm font-mono'>
+    <span className='text-sm font-mono truncate'>
       {value.type === "string"
         ? `"${String(value.value)}"`
         : String(value.value)}
@@ -54,24 +68,22 @@ export function ObjectCard({
   const obj = value.value as Record<string, ProcessedValue>;
 
   return (
-    <Card
-      className={`inline-block border shadow-sm ${level > 0 ? "mt-2" : ""}`}
-    >
+    <Card className={`w-full border shadow-sm ${level > 0 ? "mt-2" : ""}`}>
       <CardContent
-        className={`p-3 space-y-2 ${
-          compact ? "max-h-[300px] overflow-y-auto" : ""
-        }`}
+        className={`p-3 space-y-2 ${compact ? "overflow-y-auto" : ""}`}
       >
         {Object.entries(obj).map(([key, val], idx) => (
           <div key={`object-prop-${key}-${idx}`} className='flex flex-col'>
-            <div className='flex items-center gap-4'>
-              <div className='flex items-center gap-1.5'>
+            <div className='flex items-center gap-4 min-w-0'>
+              <div className='flex items-center gap-1.5 shrink-0'>
                 <TypeDot type={val.type} />
                 <span className='text-sm font-medium text-slate-500'>
                   {key}:
                 </span>
               </div>
-              <div className='flex-1'>{renderValue(val, level, compact)}</div>
+              <div className='flex-1 min-w-0 overflow-hidden'>
+                {renderValue(val, level, compact)}
+              </div>
             </div>
           </div>
         ))}

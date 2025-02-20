@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 
-const getTypeColor = (type: string): string => {
+export const getTypeColor = (type: string): string => {
   const colors: { [key: string]: { bg: string; text: string; border: string } } = {
     string: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200" },
     "número entero": { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
