@@ -4,17 +4,14 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search } from "lucide-react";
-import type { FilterComponentProps, } from "./filter-types";
+import type { FilterComponentProps, FilterValue } from "./filter-types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilterFooter } from "./filter-footer";
 import { getTypeColor } from "../type-badge";
 
-interface ArrayItem {
-  cursoId?: string;
-  titulo?: string;
-  fechaInscripcion?: number;
-  estado?: string;
-  [key: string]: unknown;
+interface FilterItem {
+  value: unknown;
+  count: number;
 }
 
 export function ArrayFilter({
@@ -28,59 +25,57 @@ export function ArrayFilter({
   arrayType,
 }: FilterComponentProps & { arrayType?: string }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedValues, setSelectedValues] = useState<string[]>(
-    (initialValue?.value as string[]) || []
+  const [selectedValues, setSelectedValues] = useState<FilterValue[]>(
+    (initialValue?.value as FilterValue[]) || []
   );
 
-  // Extraer todos los objetos únicos de los arrays
-  const allUniqueItems = uniqueValues.reduce<ArrayItem[]>((acc, option) => {
-    const arrayValue = option.original as { value: ArrayItem[] };
-    if (Array.isArray(arrayValue?.value)) {
-      arrayValue.value.forEach((item) => {
-        if (
-          !acc.some(
-            (existing) => JSON.stringify(existing) === JSON.stringify(item)
-          )
-        ) {
-          acc.push(item);
-        }
-      });
-    }
-    return acc;
-  }, []);
+  // Extraer valores únicos de los arrays y contar ocurrencias
+  const allUniqueValues = uniqueValues.reduce<Map<unknown, number>>(
+    (acc, option) => {
+      const arrayValue = option.original as { value: unknown[] };
+      if (Array.isArray(arrayValue?.value)) {
+        arrayValue.value.forEach((item) => {
+          // Si el item es un objeto, procesamos cada propiedad
+          if (typeof item === "object" && item !== null) {
+            Object.entries(item).forEach(([key, value]) => {
+              const valueWithKey = `${key}: ${value}`;
+              acc.set(valueWithKey, (acc.get(valueWithKey) || 0) + 1);
+            });
+          } else {
+            // Si no es un objeto, usamos el valor directamente
+            acc.set(item, (acc.get(item) || 0) + 1);
+          }
+        });
+      }
+      return acc;
+    },
+    new Map()
+  );
 
-  const filteredItems = allUniqueItems
+  const filteredValues = Array.from(allUniqueValues.entries())
+    .map(([value, count]): FilterItem => ({ value, count }))
     .filter((item) =>
-      Object.values(item).some((value) =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      String(item.value).toLowerCase().includes(searchTerm.toLowerCase())
     )
-    .sort((a, b) => (a.titulo || "").localeCompare(b.titulo || ""));
+    .sort((a, b) => String(a.value).localeCompare(String(b.value)));
 
   const handleApply = () => {
     onApply({
       field: columnId,
-      operator: "in",
-      value: selectedValues,
+      operator: "arrIncludesSome",
+      value: selectedValues as FilterValue[],
     });
     onClose();
   };
 
-  const renderItemContent = (item: ArrayItem) => {
-    return (
-      <div className='space-y-1'>
-        <div className='font-medium'>{item.titulo}</div>
-        <div className='text-xs text-muted-foreground space-x-2'>
-          <span>ID: {item.cursoId}</span>
-          <span>•</span>
-          <span>Estado: {item.estado}</span>
-          <span>•</span>
-          <span>
-            Fecha: {new Date(item.fechaInscripcion || 0).toLocaleDateString()}
-          </span>
-        </div>
-      </div>
-    );
+  const formatValue = (value: unknown): string => {
+    if (value instanceof Date) {
+      return value.toLocaleDateString();
+    }
+    if (typeof value === "object" && value !== null) {
+      return JSON.stringify(value);
+    }
+    return String(value);
   };
 
   return (
@@ -110,31 +105,33 @@ export function ArrayFilter({
 
         <ScrollArea className='flex-grow border rounded-md bg-muted/30 p-2'>
           <div className='space-y-2'>
-            {filteredItems.map((item) => {
-              const itemString = JSON.stringify(item);
+            {filteredValues.map(({ value, count }) => {
+              const valueString = formatValue(value);
               return (
                 <div
-                  key={itemString}
-                  className='flex items-start space-x-2 p-2 hover:bg-muted/50 rounded-md'
+                  key={valueString}
+                  className='flex items-center justify-between p-2 hover:bg-muted/50 rounded-md'
                 >
-                  <Checkbox
-                    id={itemString}
-                    checked={selectedValues.includes(itemString)}
-                    onCheckedChange={(checked) => {
-                      setSelectedValues(
-                        checked
-                          ? [...selectedValues, itemString]
-                          : selectedValues.filter((v) => v !== itemString)
-                      );
-                    }}
-                    className='mt-1'
-                  />
-                  <label
-                    htmlFor={itemString}
-                    className='flex-grow cursor-pointer'
-                  >
-                    {renderItemContent(item)}
-                  </label>
+                  <div className='flex items-center space-x-2'>
+                    <Checkbox
+                      id={valueString}
+                      checked={selectedValues.includes(value as FilterValue)}
+                      onCheckedChange={(checked) => {
+                        setSelectedValues(
+                          checked
+                            ? [...selectedValues, value as FilterValue]
+                            : selectedValues.filter((v) => v !== value)
+                        );
+                      }}
+                    />
+                    <label
+                      htmlFor={valueString}
+                      className='cursor-pointer text-sm'
+                    >
+                      {valueString}
+                    </label>
+                  </div>
+                  <span className='text-sm text-muted-foreground'>{count}</span>
                 </div>
               );
             })}
@@ -142,7 +139,7 @@ export function ArrayFilter({
         </ScrollArea>
 
         <div className='pt-2 text-sm text-muted-foreground'>
-          {selectedValues.length} de {allUniqueItems.length} seleccionados
+          {selectedValues.length} de {allUniqueValues.size} seleccionados
         </div>
       </div>
 
@@ -150,3 +147,4 @@ export function ArrayFilter({
     </div>
   );
 }
+

@@ -14,7 +14,8 @@ export type FilterOperator =
   | "in"
   | "notIn"
   | "isNull"
-  | "isNotNull";
+  | "isNotNull"
+  | "arrIncludesSome";
 
 export type FilterValue =
   | string
@@ -154,3 +155,4 @@ export interface FilterFunctions {
       | string[]
   ) => boolean;
 }
+

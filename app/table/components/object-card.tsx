@@ -43,14 +43,17 @@ const renderValue = (
       value.value as string | number | Date
     );
     return (
-      <span className='text-sm font-mono truncate' title={formattedDate}>
+      <span
+        className='text-sm text-center font-mono truncate'
+        title={formattedDate}
+      >
         {formattedDate}
       </span>
     );
   }
 
   return (
-    <span className='text-sm font-mono truncate'>
+    <span className='text-sm text-center font-mono truncate'>
       {value.type === "string"
         ? `"${String(value.value)}"`
         : String(value.value)}
@@ -73,7 +76,10 @@ export function ObjectCard({
         className={`p-3 space-y-2 ${compact ? "overflow-y-auto" : ""}`}
       >
         {Object.entries(obj).map(([key, val], idx) => (
-          <div key={`object-prop-${key}-${idx}`} className='flex flex-col'>
+          <div
+            key={`object-prop-${key}-${idx}`}
+            className='flex flex-col w-full'
+          >
             <div className='flex items-center gap-4 min-w-0'>
               <div className='flex items-center gap-1.5 shrink-0'>
                 <TypeDot type={val.type} />
@@ -81,7 +87,7 @@ export function ObjectCard({
                   {key}:
                 </span>
               </div>
-              <div className='flex-1 min-w-0 overflow-hidden'>
+              <div className='flex-1 min-w-0 overflow-hidden text-left'>
                 {renderValue(val, level, compact)}
               </div>
             </div>

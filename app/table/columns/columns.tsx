@@ -184,3 +184,4 @@ export const columns = (data: ProcessedItem[]): ColumnDef<ProcessedRow>[] => {
   const groupedColumns = groups.flatMap(processGroup);
   return [...rootColumns, ...groupedColumns];
 };
+

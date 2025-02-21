@@ -6,7 +6,7 @@ export default function JsonAnalyzerPage() {
   return (
     <div className="container py-10">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>JSON Type Analyzer</CardTitle>
         </CardHeader>
         <JsonTable data={sampleData} />

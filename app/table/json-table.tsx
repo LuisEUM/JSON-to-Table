@@ -1,7 +1,7 @@
 "use client";
 
 import { TableHeader } from "@/components/ui/table";
-import type React from "react";
+import React from "react";
 import {
   useMemo,
   useState,
@@ -11,20 +11,20 @@ import {
 } from "react";
 import {
   type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  getPaginationRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
   type SortingState,
   type VisibilityState,
   type ColumnFiltersState,
-  getFacetedRowModel,
-  getFacetedMinMaxValues,
-  getFacetedUniqueValues,
   type Row,
-  type FilterFn,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFacetedMinMaxValues,
+  useReactTable,
+  Column, // Para leer info de pinning
 } from "@tanstack/react-table";
 
 import {
@@ -37,35 +37,31 @@ import {
 import { CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 
-import { columns } from "./columns/columns";
+import { columns } from "./columns/columns"; // Ajusta la ruta a tu archivo de columnas
 import {
   processData,
   type ProcessedItem,
   type ProcessedRow,
-} from "./data-processor";
-import { TypeLegend } from "./components/type-legend";
-import { TablePagination } from "./components/table-pagination";
-import { TableSearch } from "./components/table-search";
-import { ColumnManagerModal } from "./components/column-manager-modal";
-import { ActionButtons } from "./components/action-buttons";
+} from "./data-processor"; // Ajusta la ruta
+import { TypeLegend } from "./components/type-legend"; // Ajusta la ruta
+import { TablePagination } from "./components/table-pagination"; // Ajusta la ruta
+import { TableSearch } from "./components/table-search"; // Ajusta la ruta
+import { ColumnManagerModal } from "./components/column-manager-modal"; // Ajusta la ruta
+import { ActionButtons } from "./components/action-buttons"; // Ajusta la ruta
 import type { FilterCondition } from "./components/filters/filter-types";
 
-interface JsonTableProps {
-  data: Record<string, unknown>[];
-}
-
-interface TableStyles extends React.CSSProperties {
-  width?: number | string;
-}
-
-// Crear el contexto del filtro
+// --------------------
+// 1) Contexto de filtros (opcional)
+// --------------------
 export const FilterContext = createContext<{
   applyFilter: (columnId: string, filterValue: FilterCondition) => void;
 }>({
   applyFilter: () => {},
 });
 
-// Definir tipos para las funciones de filtro
+// --------------------
+// 2) Definición de filtros personalizados
+// --------------------
 interface FilterFunctions {
   [key: string]: (
     row: Row<ProcessedRow>,
@@ -111,24 +107,141 @@ const filterFns: FilterFunctions = {
         return true;
     }
   },
+  // Ejemplo de otro filtro
+  arrIncludesSome: (row, columnId, filterValue) => {
+    const value = row.getValue(columnId);
+    return (
+      Array.isArray(value) &&
+      Array.isArray(filterValue) &&
+      filterValue.some((item) => value.includes(item))
+    );
+  },
 };
 
+// --------------------
+// 3) Columnas "selección", "index" y "actions"
+// --------------------
+const selectionColumn: ColumnDef<ProcessedRow> = {
+  id: "selection",
+  header: ({ table }) => (
+    <div className='flex items-center justify-center'>
+      <input
+        type='checkbox'
+        className='h-4 w-4'
+        {...{
+          checked: table.getIsAllRowsSelected(),
+          onChange: table.getToggleAllRowsSelectedHandler(),
+        }}
+      />
+    </div>
+  ),
+  cell: ({ row }) => (
+    <div className='flex items-center justify-center'>
+      <input
+        type='checkbox'
+        className='h-4 w-4'
+        {...{
+          checked: row.getIsSelected(),
+          onChange: row.getToggleSelectedHandler(),
+        }}
+      />
+    </div>
+  ),
+  enableSorting: false,
+  enableHiding: false,
+  enableResizing: false,
+  size: 50,
+  minSize: 50,
+  maxSize: 50,
+};
+
+const indexColumn: ColumnDef<ProcessedRow> = {
+  id: "index",
+  header: ({}) => (
+    <div className='text-center text-muted-foreground w-6'>#</div>
+  ),
+  size: 50,
+  enableSorting: false,
+  enableHiding: false,
+  cell: ({ row }) => (
+    <div className='text-center text-muted-foreground w-full'>
+      {row.index + 1}
+    </div>
+  ),
+};
+
+function createActionsColumn(
+  onDelete: (index: number) => void
+): ColumnDef<ProcessedRow> {
+  return {
+    id: "actions",
+    header: ({}) => (
+      <div className='text-center text-muted-foreground w-28'>Acciones</div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+    size: 50,
+    cell: ({ row }) => (
+      <div className='flex items-center justify-center'>
+        <ActionButtons
+          row={row.original}
+          onDelete={() => onDelete(row.index)}
+        />
+      </div>
+    ),
+  };
+}
+
+// --------------------
+// 4) Funciones para pinning con TanStack (sin solaparse)
+// --------------------
+function getTanStackPinningStyles(
+  column: Column<ProcessedRow>,
+  isHeader = false
+): React.CSSProperties {
+  const isPinned = column.getIsPinned();
+
+  return {
+    position: isPinned ? "sticky" : "relative",
+    left: isPinned === "left" ? column.getStart("left") : undefined,
+    right: isPinned === "right" ? column.getStart("right") : undefined,
+    top: isHeader ? 0 : undefined,
+    zIndex: isPinned ? (isHeader ? 30 : 10) : 1,
+    backgroundColor: "oklch(.985 0 0)",
+  };
+}
+
+// --------------------
+// 5) Componente principal
+// --------------------
+interface JsonTableProps {
+  data: Record<string, unknown>[];
+}
+
 export function JsonTable({ data }: JsonTableProps) {
+  // Estado de datos
+  const [tableData, setTableData] = useState(data);
+
+  // Estados de TanStack
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [tableData, setTableData] = useState<Record<string, unknown>[]>(
-    () => data
-  );
+  const [rowSelection, setRowSelection] = useState({});
+
+  // Para permitir fijar (pin) una columna extra a la izquierda
   const [useFixedColumn, setUseFixedColumn] = useState(false);
   const [fixedColumnId, setFixedColumnId] = useState<string | null>(null);
+
+  // Guardar el orden original de columnas, si se usa en tu modal
   const [originalColumnOrder, setOriginalColumnOrder] = useState<string[]>([]);
 
+  // Procesamos los datos
   const processedData = useMemo(
     () => tableData.map((item) => processData(item)),
     [tableData]
   );
 
+  // Manejar "delete"
   const handleDelete = useCallback((index: number) => {
     setTableData((prev) => {
       const newData = [...prev];
@@ -138,81 +251,49 @@ export function JsonTable({ data }: JsonTableProps) {
     });
   }, []);
 
-  const tableColumns = useMemo<ColumnDef<ProcessedRow>[]>(() => {
-    const baseColumns = columns(processedData[0]);
-    let allColumns: ColumnDef<ProcessedRow>[] = [];
-
-    const indexColumn: ColumnDef<ProcessedRow> = {
-      id: "index",
-      header: "#",
-      size: 50,
-      enableSorting: false,
-      enableHiding: false,
-      cell: ({ row }) => (
-        <div className='text-right tabular-nums text-muted-foreground'>
-          {row.index + 1}
-        </div>
-      ),
-    };
-
-    if (!useFixedColumn || !fixedColumnId) {
-      allColumns.push(indexColumn);
-    }
-
-    if (useFixedColumn && fixedColumnId) {
-      const fixedColumnIndex = baseColumns.findIndex(
-        (col) => col.id === fixedColumnId
-      );
-      if (fixedColumnIndex !== -1) {
-        const fixedColumn = baseColumns[fixedColumnIndex];
-        allColumns.push({ ...fixedColumn, enableHiding: false });
-        allColumns = [
-          ...allColumns,
-          ...baseColumns.slice(0, fixedColumnIndex),
-          ...baseColumns.slice(fixedColumnIndex + 1),
-        ];
-      } else {
-        allColumns = [...allColumns, ...baseColumns];
-      }
-    } else {
-      allColumns = [...allColumns, ...baseColumns];
-    }
-
-    const actionsColumn: ColumnDef<ProcessedRow> = {
-      id: "actions",
-      header: "Acciones",
-      enableSorting: false,
-      enableHiding: false,
-      size: 50,
-      cell: ({ row }) => (
-        <ActionButtons
-          row={row.original}
-          onDelete={() => handleDelete(row.index)}
-        />
-      ),
-    };
-
-    allColumns.push(actionsColumn);
-    return allColumns;
-  }, [processedData, handleDelete, useFixedColumn, fixedColumnId]);
-
-  const processedTableData = useMemo(
-    () =>
-      processedData.map((items) =>
-        items.reduce<ProcessedRow>(
-          (acc, item) => ({
-            ...acc,
-            [item.id]: item,
-          }),
-          {}
-        )
-      ),
-    [processedData]
+  // Columna de acciones
+  const actionsColumn = useMemo(
+    () => createActionsColumn(handleDelete),
+    [handleDelete]
   );
 
+  // Columnas base (definidas con tu lógica)
+  const baseColumns = useMemo<ColumnDef<ProcessedRow>[]>(() => {
+    if (!processedData[0]) return [];
+    return columns(processedData[0]);
+  }, [processedData]);
+
+  // Definimos el orden "por defecto" de TODAS las columnas
+  const tableColumns = useMemo<ColumnDef<ProcessedRow>[]>(() => {
+    return [selectionColumn, indexColumn, ...baseColumns, actionsColumn];
+  }, [baseColumns, actionsColumn]);
+
+  // Convertimos ProcessedItem[] => ProcessedRow[] para la tabla
+  const processedTableData = useMemo(() => {
+    return processedData.map((items) =>
+      items.reduce<ProcessedRow>((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      }, {})
+    );
+  }, [processedData]);
+
+  // Instanciamos la tabla
   const table = useReactTable({
     data: processedTableData,
     columns: tableColumns,
+    state: {
+      sorting,
+      columnVisibility,
+      columnFilters,
+      rowSelection,
+    },
+    onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
+    onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: true,
+    filterFns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -220,65 +301,47 @@ export function JsonTable({ data }: JsonTableProps) {
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
-    onSortingChange: setSorting,
-    onColumnVisibilityChange: setColumnVisibility,
-    onColumnFiltersChange: setColumnFilters,
-    filterFns,
-    state: {
-      sorting,
-      columnVisibility,
-      columnFilters,
-    },
     columnResizeMode: "onChange",
     enableColumnResizing: true,
     defaultColumn: {
       minSize: 100,
       size: 150,
       maxSize: 500,
-      filterFn: filterFns.processedValueFilter as FilterFn<ProcessedRow>,
+      filterFn: filterFns.processedValueFilter,
     },
   });
 
+  // Guardamos el orden inicial de columnas (para tu modal, si hace falta)
   useEffect(() => {
     if (!originalColumnOrder.length) {
       setOriginalColumnOrder(table.getAllLeafColumns().map((col) => col.id));
     }
   }, [table, originalColumnOrder]);
 
-  const toggleFixedColumn = useCallback(
-    (value: boolean) => {
-      setUseFixedColumn(value);
-      if (!value) {
-        const currentOrder = table.getState().columnOrder;
-        const newOrder = [
-          "index",
-          ...currentOrder.filter(
-            (id) => id !== "index" && id !== fixedColumnId
-          ),
-        ];
-        table.setColumnOrder(newOrder);
-        setFixedColumnId(null);
-      }
-    },
-    [fixedColumnId, table]
-  );
+  // Efecto para "pinear" columnas a la izquierda/derecha
+  useEffect(() => {
+    // Si hay una columna fija, ocultamos el índice y mostramos la columna fija
+    // Si no hay columna fija, mostramos el índice
+    const indexColumn = table.getColumn("index");
+    if (indexColumn) {
+      indexColumn.toggleVisibility(!useFixedColumn);
+    }
 
-  const changeFixedColumn = useCallback(
-    (columnId: string | null) => {
-      setFixedColumnId(columnId);
-      if (columnId) {
-        const currentOrder = table.getState().columnOrder;
-        const newOrder = [
-          columnId,
-          ...currentOrder.filter((id) => id !== columnId && id !== "index"),
-        ];
-        table.setColumnOrder(newOrder);
-      }
-    },
-    [table]
-  );
+    // Configuramos el pinning
+    const leftPins = ["selection"];
+    if (useFixedColumn && fixedColumnId) {
+      leftPins.push(fixedColumnId);
+    } else {
+      leftPins.push("index");
+    }
 
-  // Método para aplicar filtros
+    table.setColumnPinning({
+      left: leftPins,
+      right: ["actions"],
+    });
+  }, [useFixedColumn, fixedColumnId, table]);
+
+  // Método para aplicar filtros (usado por tu FilterContext)
   const applyFilter = useCallback(
     (columnId: string, filterValue: FilterCondition) => {
       table.getColumn(columnId)?.setFilterValue(filterValue);
@@ -286,7 +349,6 @@ export function JsonTable({ data }: JsonTableProps) {
     [table]
   );
 
-  // Contexto del filtro
   const filterContextValue = useMemo(
     () => ({
       applyFilter,
@@ -297,129 +359,8 @@ export function JsonTable({ data }: JsonTableProps) {
   return (
     <FilterContext.Provider value={filterContextValue}>
       <CardContent className='relative'>
-        <style jsx global>{`
-          .table-wrapper {
-            position: relative;
-            overflow: auto;
-            -webkit-overflow-scrolling: touch;
-          }
-
-          .table-wrapper::-webkit-scrollbar {
-            width: 14px;
-            height: 14px;
-            display: block;
-          }
-
-          .table-wrapper::-webkit-scrollbar-track {
-            background: hsl(var(--muted));
-            border-radius: 0;
-          }
-
-          .table-wrapper::-webkit-scrollbar-thumb {
-            background-color: hsl(var(--muted-foreground));
-            border: 3px solid hsl(var(--muted));
-            border-radius: 7px;
-          }
-
-          .table-wrapper::-webkit-scrollbar-corner {
-            background: hsl(var(--muted));
-          }
-
-          .table-wrapper {
-            scrollbar-width: auto;
-            scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
-          }
-
-          .table-wrapper table {
-            width: fit-content;
-            min-width: 100%;
-          }
-
-          .table-cell {
-            position: relative;
-          }
-
-          .fixed-left {
-            position: sticky;
-            left: 0;
-            background-color: hsl(var(--background));
-            border-right: 1px solid hsl(var(--border));
-            z-index: 10;
-          }
-
-          .fixed-left-header {
-            position: sticky;
-            left: 0;
-            top: 0;
-            background-color: hsl(var(--background));
-            border-right: 1px solid hsl(var(--border));
-            z-index: 30;
-          }
-
-          .actions-column {
-            position: sticky;
-            right: 0;
-            background-color: hsl(var(--background));
-            border-left: 1px solid hsl(var(--border));
-            z-index: 10;
-            padding: 0 !important;
-            width: 50px !important;
-          }
-
-          .actions-header {
-            position: sticky;
-            right: 0;
-            top: 0;
-            background-color: hsl(var(--background));
-            border-left: 1px solid hsl(var(--border));
-            z-index: 30;
-            width: 50px !important;
-          }
-
-          .table-header {
-            position: sticky;
-            top: 0;
-            background-color: hsl(var(--background));
-            z-index: 20;
-          }
-
-          .resizer {
-            position: absolute;
-            right: 0;
-            top: 0;
-            height: 100%;
-            width: 4px;
-            cursor: col-resize;
-            user-select: none;
-            touch-action: none;
-            opacity: 0;
-            background-color: hsl(var(--border));
-            transition: opacity 0.2s, background-color 0.2s;
-          }
-
-          .resizer.isResizing,
-          *:hover > .resizer {
-            opacity: 1;
-            background-color: hsl(var(--primary));
-          }
-
-          .table-cell > div {
-            min-width: 0;
-          }
-
-          .fixed-column {
-            background-color: hsl(var(--muted));
-          }
-
-          @media (max-width: 640px) {
-            .table-wrapper {
-              margin: 0 -1rem;
-              width: calc(100% + 2rem);
-            }
-          }
-        `}</style>
-
-        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4'>
+        {/* Encabezado: barra de búsqueda y modal de columnas */}
+        <div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
           <div className='w-full sm:w-72'>
             <TableSearch table={table} />
           </div>
@@ -427,40 +368,45 @@ export function JsonTable({ data }: JsonTableProps) {
             <ColumnManagerModal
               table={table}
               useFixedColumn={useFixedColumn}
-              onFixedColumnChange={toggleFixedColumn}
+              onFixedColumnChange={setUseFixedColumn}
               fixedColumnId={fixedColumnId}
-              onFixedColumnIdChange={changeFixedColumn}
+              onFixedColumnIdChange={setFixedColumnId}
               originalColumnOrder={originalColumnOrder}
             />
           </div>
         </div>
-        <div className='rounded-md border overflow-hidden'>
-          <div className='table-wrapper' style={{ maxHeight: "600px" }}>
-            <Table style={{ width: table.getCenterTotalSize() } as TableStyles}>
-              <TableHeader className='table-header sticky top-0 z-10 bg-background'>
+
+        {/* Contenedor principal de la tabla */}
+        <div className='rounded-md border'>
+          <div
+            className='overflow-auto'
+            style={{
+              height: "calc(100vh - 400px)", // Ajusta este valor según necesites
+              minHeight: "300px",
+              maxHeight: "800px",
+            }}
+          >
+            <Table
+              className='table-auto w-full border-separate border-spacing-0'
+              style={{ width: table.getCenterTotalSize() }}
+            >
+              {/* ENCABEZADO */}
+              <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
+                      const stylePin = getTanStackPinningStyles(
+                        header.column,
+                        true
+                      );
                       return (
                         <TableHead
                           key={header.id}
+                          className='px-4 m-0 bg-background border-x-1 border-y-1 border-zinc-200 text-center font-black'
                           style={{
                             width: header.getSize(),
-                            position: "relative",
+                            ...stylePin,
                           }}
-                          className={`
-                            ${
-                              header.column.id === "actions"
-                                ? "actions-header"
-                                : ""
-                            }
-                            ${
-                              header.column.id === fixedColumnId ||
-                              header.column.id === "index"
-                                ? "fixed-left-header fixed-column"
-                                : ""
-                            }
-                          `}
                         >
                           {header.isPlaceholder
                             ? null
@@ -468,15 +414,20 @@ export function JsonTable({ data }: JsonTableProps) {
                                 header.column.columnDef.header,
                                 header.getContext()
                               )}
+
+                          {/* Resizer */}
                           {header.column.getCanResize() && (
                             <div
                               onMouseDown={header.getResizeHandler()}
                               onTouchStart={header.getResizeHandler()}
-                              className={`resizer ${
-                                header.column.getIsResizing()
-                                  ? "isResizing"
-                                  : ""
-                              }`}
+                              // Classes de Tailwind para la "resizer"
+                              className={
+                                "absolute top-0 right-0 h-full w-1 cursor-col-resize " +
+                                "opacity-0 transition-opacity duration-200 " +
+                                (header.column.getIsResizing()
+                                  ? "bg-[hsl(var(--primary))] opacity-100"
+                                  : "bg-[hsl(var(--border))] hover:opacity-100")
+                              }
                             />
                           )}
                         </TableHead>
@@ -485,31 +436,26 @@ export function JsonTable({ data }: JsonTableProps) {
                   </TableRow>
                 ))}
               </TableHeader>
+
+              {/* CUERPO */}
               <TableBody>
-                {table.getRowModel().rows?.length ? (
+                {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
+                    <TableRow key={row.id} className='hover:bg-muted/50'>
                       {row.getVisibleCells().map((cell) => {
+                        const stylePin = getTanStackPinningStyles(
+                          cell.column,
+                          false
+                        );
                         return (
                           <TableCell
                             key={cell.id}
+                            className='p-4 m-0 border-x-1 border-y-1 border-zinc-200 w-fit'
                             style={{
-                              width: cell.column.getSize(),
+                              width: "fit-content",
+                              maxWidth: cell.column.getSize(),
+                              ...stylePin,
                             }}
-                            className={`
-                              table-cell
-                              ${
-                                cell.column.id === "actions"
-                                  ? "actions-column"
-                                  : ""
-                              }
-                              ${
-                                cell.column.id === fixedColumnId ||
-                                cell.column.id === "index"
-                                  ? "fixed-left fixed-column"
-                                  : ""
-                              }
-                            `}
                           >
                             {flexRender(
                               cell.column.columnDef.cell,
@@ -534,6 +480,8 @@ export function JsonTable({ data }: JsonTableProps) {
             </Table>
           </div>
         </div>
+
+        {/* Paginación y leyenda */}
         <TablePagination table={table} />
         <TypeLegend />
       </CardContent>
