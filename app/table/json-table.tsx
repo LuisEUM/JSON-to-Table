@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { TableHeader } from "@/components/ui/table";
 import React from "react";
@@ -215,7 +215,7 @@ function getTanStackPinningStyles(
 // 5) Componente principal
 // --------------------
 interface JsonTableProps {
-  data: Record<string, unknown>[];
+  data: Record<string, unknown>[]
 }
 
 export function JsonTable({ data }: JsonTableProps) {
@@ -309,7 +309,14 @@ export function JsonTable({ data }: JsonTableProps) {
       maxSize: 500,
       filterFn: filterFns.processedValueFilter,
     },
-  });
+  })
+
+  useEffect(() => {
+    if (!originalColumnOrder.length) {
+      setOriginalColumnOrder(table.getAllLeafColumns().map((col) => col.id))
+    }
+  }, [table, originalColumnOrder])
+
 
   // Guardamos el orden inicial de columnas (para tu modal, si hace falta)
   useEffect(() => {
@@ -488,3 +495,4 @@ export function JsonTable({ data }: JsonTableProps) {
     </FilterContext.Provider>
   );
 }
+

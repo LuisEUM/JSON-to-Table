@@ -149,23 +149,23 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
       );
     },
     cell: ({ row }) => {
-      const value = row.getValue(item.id) as ProcessedItem;
+      const value = row.getValue(item.id) as ProcessedItem
       if (value?.type === "array") {
-        return <ArrayCell items={value.items || []} />;
+        return <ArrayCell items={value.items || []} />
       }
       return <span className='font-mono'>{String(value?.value)}</span>;
     },
     enableSorting: isSortable,
-  };
-};
+  }
+}
 
 const processGroup = (group: GroupedColumns): ColumnDef<ProcessedRow>[] => {
-  const itemColumns = group.items?.map(createColumnDef) || [];
-  const childColumns = (group.children || []).flatMap(processGroup);
-  const allColumns = [...itemColumns, ...childColumns];
+  const itemColumns = group.items?.map(createColumnDef) || []
+  const childColumns = (group.children || []).flatMap(processGroup)
+  const allColumns = [...itemColumns, ...childColumns]
 
   if (!allColumns.length) {
-    return [];
+    return []
   }
 
   return [
@@ -175,8 +175,8 @@ const processGroup = (group: GroupedColumns): ColumnDef<ProcessedRow>[] => {
       columns: allColumns,
       meta: { level: group.level },
     },
-  ];
-};
+  ]
+}
 
 export const columns = (data: ProcessedItem[]): ColumnDef<ProcessedRow>[] => {
   const { rootItems, groups } = groupColumns(data);
