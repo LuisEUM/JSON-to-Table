@@ -91,8 +91,18 @@ export function SecondaryTables({
         <div className='w-full flex items-center justify-between'>
           <p className='font-medium'>
             {level === 0
-              ? "Tablas secundarias disponibles:"
-              : `Tablas relacionadas con ${parentId}:`}
+              ? `Tablas secundarias disponibles (${
+                  arrayColumns.length
+                } tablas, ${arrayColumns.reduce(
+                  (total, col) => total + col.data.length,
+                  0
+                )} registros totales):`
+              : `Tablas relacionadas con ${parentId} (${
+                  arrayColumns.length
+                } tablas, ${arrayColumns.reduce(
+                  (total, col) => total + col.data.length,
+                  0
+                )} registros totales):`}
           </p>
           <div className='flex gap-4'>
             <button
@@ -111,7 +121,7 @@ export function SecondaryTables({
             </button>
           </div>
         </div>
-        {arrayColumns.map(({ id, label }) => (
+        {arrayColumns.map(({ id, label, data }) => (
           <div key={id} className='flex items-center space-x-2'>
             <Checkbox
               id={`${parentId ? `${parentId}-` : ""}${id}`}
@@ -129,7 +139,10 @@ export function SecondaryTables({
               }}
             />
             <Label htmlFor={`${parentId ? `${parentId}-` : ""}${id}`}>
-              {label}
+              {label}{" "}
+              <span className='text-xs text-muted-foreground ml-1'>
+                ({data.length} registros)
+              </span>
             </Label>
           </div>
         ))}
@@ -163,10 +176,20 @@ export function SecondaryTables({
                         />
                       </span>
                       <span className='text-muted-foreground'>/</span>
-                      {tableData.label}
+                      <span>
+                        {tableData.label}
+                        <span className='text-sm font-normal text-muted-foreground ml-2'>
+                          ({tableData.data.length} registros)
+                        </span>
+                      </span>
                     </span>
                   ) : (
-                    tableData.label
+                    <span>
+                      {tableData.label}
+                      <span className='text-sm font-normal text-muted-foreground ml-2'>
+                        ({tableData.data.length} registros)
+                      </span>
+                    </span>
                   )}
                 </CardTitle>
               </CardHeader>

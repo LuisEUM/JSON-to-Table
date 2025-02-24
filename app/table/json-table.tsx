@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/table";
 import { CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 import { columns } from "./columns/columns"; // Ajusta la ruta a tu archivo de columnas
 import {
@@ -276,7 +277,13 @@ export function JsonTable({
         if (item.type === "array" && item.items?.[0]?.type === "objeto") {
           const columnId = item.path.join(".");
 
+          // Verificar si ya existe esta columna
           if (!uniqueArrayColumns.has(columnId)) {
+            console.log("📊 Creando nueva tabla secundaria:", {
+              columnId,
+              rowId,
+            });
+
             const processedData =
               item.items?.map((subItem) => {
                 console.log("🔄 Procesando subitem:", {
@@ -298,6 +305,42 @@ export function JsonTable({
               data: processedData,
               parentTable: parentTableInfo,
             });
+          } else {
+            // Para columnas existentes, solo agregar datos si el padre es diferente
+            // Esto evita duplicación de datos en tablas secundarias
+            const existingColumn = uniqueArrayColumns.get(columnId);
+
+            if (existingColumn) {
+              // Verificar si estos datos (basados en parentId) ya están incluidos
+              const hasParentId = existingColumn.data.some(
+                (record) => record.__parentId === rowId
+              );
+
+              if (!hasParentId) {
+                console.log(
+                  "📊 Agregando datos a tabla secundaria existente:",
+                  {
+                    columnId,
+                    rowId,
+                    existingDataLength: existingColumn.data.length,
+                  }
+                );
+
+                // Procesar y agregar nuevos datos que no están duplicados
+                const newProcessedData =
+                  item.items?.map((subItem) => ({
+                    ...(subItem.value as object),
+                    __parentId: rowId,
+                    __parentTable: parentTableInfo?.id || columnId,
+                  })) || [];
+
+                // Actualizar la columna con los datos combinados
+                uniqueArrayColumns.set(columnId, {
+                  ...existingColumn,
+                  data: [...existingColumn.data, ...newProcessedData],
+                });
+              }
+            }
           }
         }
       });
@@ -368,6 +411,13 @@ export function JsonTable({
     enableGlobalFilter: true,
     globalFilterFn: (row, columnId, filterValue) => {
       const searchTerm = String(filterValue).toLowerCase();
+      if (!searchTerm) return true;
+
+      console.log("🔍 Buscando en la fila:", {
+        searchTerm,
+        rowId: row.id,
+        originalLength: Object.keys(row.original).length,
+      });
 
       // Buscar en todos los valores de la fila
       const searchInObject = (obj: unknown): boolean => {
@@ -381,12 +431,31 @@ export function JsonTable({
           "type" in obj
         ) {
           const processedItem = obj as ProcessedItem;
-          const value = String(processedItem.value).toLowerCase();
-          if (value.includes(searchTerm)) return true;
+
+          // Para string, buscar directamente
+          if (typeof processedItem.value === "string") {
+            const value = processedItem.value.toLowerCase();
+            if (value.includes(searchTerm)) return true;
+          }
+          // Para números, convertir a string y buscar
+          else if (typeof processedItem.value === "number") {
+            const value = String(processedItem.value).toLowerCase();
+            if (value.includes(searchTerm)) return true;
+          }
+          // Para fechas, buscar en el formato legible
+          else if (processedItem.type === "fecha") {
+            const value = String(processedItem.value).toLowerCase();
+            if (value.includes(searchTerm)) return true;
+          }
+          // Para booleanos, buscar por 'verdadero' o 'falso'
+          else if (processedItem.type === "boolean") {
+            const boolString = processedItem.value ? "verdadero" : "falso";
+            if (boolString.includes(searchTerm)) return true;
+          }
 
           // Si es un array, buscar en sus items
           if (
-            processedItem.type === "array" &&
+            processedItem.type.includes("array") &&
             Array.isArray(processedItem.items)
           ) {
             return processedItem.items.some((item: unknown) =>
@@ -401,11 +470,20 @@ export function JsonTable({
         }
 
         // Para valores primitivos
-        return String(obj).toLowerCase().includes(searchTerm);
+        if (obj !== undefined && obj !== null) {
+          return String(obj).toLowerCase().includes(searchTerm);
+        }
+
+        return false;
       };
 
       // Buscar en toda la fila
-      return searchInObject(row.original);
+      const found = searchInObject(row.original);
+      console.log("🔍 Resultado de búsqueda:", {
+        rowId: row.id,
+        found,
+      });
+      return found;
     },
     getColumnCanGlobalFilter: (column) => {
       // Permitir filtrado global en todas las columnas excepto acciones o columnas especiales
@@ -436,19 +514,30 @@ export function JsonTable({
     }
 
     const newArrayColumns = Array.from(uniqueArrayColumns.values());
+
+    // Deduplicar y limpiar tablas secundarias vacías
+    const validArrayColumns = newArrayColumns.filter(
+      (col) => col.data && col.data.length > 0 && col.id
+    );
+
     console.log("📊 Array columns procesadas:", {
-      count: newArrayColumns.length,
-      columns: newArrayColumns.map((col) => ({
+      count: validArrayColumns.length,
+      totalRegistros: validArrayColumns.reduce(
+        (acc, col) => acc + col.data.length,
+        0
+      ),
+      columns: validArrayColumns.map((col) => ({
         id: col.id,
+        label: col.label,
         dataLength: col.data.length,
         firstItemParentId: col.data[0]?.__parentId,
       })),
     });
 
-    setArrayColumns(newArrayColumns);
+    setArrayColumns(validArrayColumns);
 
     if (isSecondaryTable && onArrayColumnsChange) {
-      onArrayColumnsChange(newArrayColumns);
+      onArrayColumnsChange(validArrayColumns);
     }
   }, [
     processedData,
@@ -601,10 +690,29 @@ export function JsonTable({
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={tableColumns.length}
+                      colSpan={table.getAllColumns().length}
                       className='h-24 text-center'
                     >
-                      No results.
+                      {table.getFilteredRowModel().rows.length === 0 &&
+                      table.getCoreRowModel().rows.length > 0 ? (
+                        <>
+                          No se encontraron resultados con los filtros
+                          aplicados.
+                          <div className='mt-2'>
+                            <Button
+                              variant='outline'
+                              onClick={() => {
+                                table.resetColumnFilters();
+                                table.setGlobalFilter("");
+                              }}
+                            >
+                              Limpiar filtros
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        "No hay datos disponibles"
+                      )}
                     </TableCell>
                   </TableRow>
                 )}

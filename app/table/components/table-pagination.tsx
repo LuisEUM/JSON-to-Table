@@ -22,8 +22,22 @@ interface TablePaginationProps<TData> {
 }
 
 export function TablePagination<TData>({ table }: TablePaginationProps<TData>) {
-  const totalRows = table.getFilteredRowModel().rows.length;
+  // Obtenemos el total de filas desde el modelo completo (sin filtrar)
+  const totalRowsAll = table.getCoreRowModel().rows.length;
+  // Total de filas filtradas
+  const totalRowsFiltered = table.getFilteredRowModel().rows.length;
+  // Filas seleccionadas
   const selectedRows = table.getSelectedRowModel().rows.length;
+
+  // Determinar si hay filtros activos
+  const hasActiveFilters =
+    table.getState().columnFilters.length > 0 ||
+    table.getState().globalFilter !== "";
+
+  // Si hay filtros activos, mostramos el total filtrado y el total general
+  const displayTotalMessage = hasActiveFilters
+    ? `${totalRowsFiltered} de ${totalRowsAll} registros`
+    : `${totalRowsAll} registros`;
 
   return (
     <div className='flex flex-wrap justify-between gap-4 px-2 py-4'>
@@ -45,14 +59,15 @@ export function TablePagination<TData>({ table }: TablePaginationProps<TData>) {
                   {pageSize}
                 </SelectItem>
               ))}
-              <SelectItem value={`${totalRows}`}>All</SelectItem>
+              <SelectItem value={`${totalRowsAll}`}>All</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className='flex items-center text-sm text-muted-foreground'>
           <span>
-            {selectedRows} de {totalRows} seleccionados
+            {selectedRows > 0 ? `${selectedRows} seleccionados, ` : ""}
+            {displayTotalMessage}
           </span>
         </div>
       </div>
