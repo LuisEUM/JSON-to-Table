@@ -38,37 +38,52 @@ export function NumberFilter({
   console.log("NumberFilter - Valor mínimo:", minValue);
   console.log("NumberFilter - Valor máximo:", maxValue);
 
+  // Calcular min y max a partir de uniqueValues si no se proporcionan
+  const calculatedMin =
+    minValue ?? Math.min(...uniqueValues.map((opt) => Number(opt.value)));
+  const calculatedMax =
+    maxValue ?? Math.max(...uniqueValues.map((opt) => Number(opt.value)));
+
   const [operator, setOperator] = useState<FilterOperator>(
-    initialValue?.operator || "greaterThan"
+    initialValue?.operator || "equals"
   );
+
   const [value, setValue] = useState<number>(
-    Number(initialValue?.value) || minValue || 0
+    Number(initialValue?.value) || calculatedMin
   );
+
   const [additionalValue, setAdditionalValue] = useState<number>(
-    Number(initialValue?.additionalValue) || maxValue || 100
+    Number(initialValue?.additionalValue) || calculatedMax
   );
 
-  const minVal = minValue ?? 0;
-  const maxVal = maxValue ?? 100;
-
-  const handleApply = () => {
-    onApply({
-      field: columnId,
-      operator,
-      value,
-      ...(["between", "notBetween"].includes(operator)
-        ? { additionalValue }
-        : {}),
-    });
-    onClose();
-  };
+  const minVal = calculatedMin;
+  const maxVal = calculatedMax;
+  const step = (maxVal - minVal) / 100;
 
   const needsAdditionalValue = ["between", "notBetween"].includes(operator);
 
+  const handleApply = () => {
+    if (operator === "between" || operator === "notBetween") {
+      onApply({
+        field: columnId,
+        operator,
+        value: Math.min(value, additionalValue),
+        additionalValue: Math.max(value, additionalValue),
+      });
+    } else {
+      onApply({
+        field: columnId,
+        operator,
+        value: Number(value),
+      });
+    }
+    onClose();
+  };
+
   return (
-    <div className='w-full h-full min-h-[350px] flex flex-col'>
-      <div className='flex items-center justify-between mb-4'>
-        <h3 className='font-medium'>
+    <div className="w-full space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-medium">
           Filtro para:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
@@ -79,15 +94,15 @@ export function NumberFilter({
         </h3>
       </div>
 
-      <div className='space-y-4'>
-        <div className='space-y-2'>
-          <label className='text-sm font-medium'>Tipo de filtro</label>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Operador</label>
           <Select
             value={operator}
-            onValueChange={(value) => setOperator(value as FilterOperator)}
+            onValueChange={(value: FilterOperator) => setOperator(value)}
           >
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Seleccionar operador" />
             </SelectTrigger>
             <SelectContent>
               {OPERATORS.map((op) => (
@@ -99,60 +114,72 @@ export function NumberFilter({
           </Select>
         </div>
 
-        <div className='space-y-2'>
-          {needsAdditionalValue ? (
-            <>
-              <div className='space-y-2'>
-                <label className='text-sm font-medium'>Rango</label>
+        {needsAdditionalValue ? (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Rango</label>
+              <div className="pt-4">
                 <Slider
                   min={minVal}
                   max={maxVal}
-                  step={(maxVal - minVal) / 100}
+                  step={step}
                   value={[value, additionalValue]}
                   onValueChange={([newValue, newAdditionalValue]) => {
                     setValue(newValue);
                     setAdditionalValue(newAdditionalValue);
                   }}
                 />
-                <div className='flex justify-between'>
-                  <Input
-                    type='number'
-                    value={value}
-                    onChange={(e) => setValue(Number(e.target.value))}
-                    className='w-24'
-                  />
-                  <Input
-                    type='number'
-                    value={additionalValue}
-                    onChange={(e) => setAdditionalValue(Number(e.target.value))}
-                    className='w-24'
-                  />
-                </div>
               </div>
-            </>
-          ) : (
-            <div className='space-y-2'>
-              <label className='text-sm font-medium'>Valor</label>
+              <div className="flex justify-between gap-4 mt-2">
+                <Input
+                  type="number"
+                  value={value}
+                  onChange={(e) => {
+                    const newValue = Number(e.target.value);
+                    setValue(Math.max(minVal, Math.min(maxVal, newValue)));
+                  }}
+                  className="w-24"
+                />
+                <Input
+                  type="number"
+                  value={additionalValue}
+                  onChange={(e) => {
+                    const newValue = Number(e.target.value);
+                    setAdditionalValue(
+                      Math.max(minVal, Math.min(maxVal, newValue))
+                    );
+                  }}
+                  className="w-24"
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Valor</label>
+            <div className="pt-4">
               <Slider
                 min={minVal}
                 max={maxVal}
-                step={(maxVal - minVal) / 100}
+                step={step}
                 value={[value]}
                 onValueChange={([newValue]) => setValue(newValue)}
               />
-              <Input
-                type='number'
-                value={value}
-                onChange={(e) => setValue(Number(e.target.value))}
-                className='w-full'
-              />
             </div>
-          )}
-        </div>
+            <Input
+              type="number"
+              value={value}
+              onChange={(e) => {
+                const newValue = Number(e.target.value);
+                setValue(Math.max(minVal, Math.min(maxVal, newValue)));
+              }}
+              className="w-full mt-2"
+            />
+          </div>
+        )}
       </div>
 
       <FilterFooter onClear={onClear} onClose={onClose} onApply={handleApply} />
     </div>
   );
 }
-

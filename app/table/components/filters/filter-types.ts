@@ -81,15 +81,81 @@ export const filterFns = {
     filterValue: string
   ) => {
     const processedValue = row[columnId] as ProcessedItem;
-    const value = processedValue?.value as string;
+    const value = String(processedValue?.value ?? "");
     return value.toLowerCase().includes(String(filterValue).toLowerCase());
   },
-  inArray: (row: ProcessedRow, columnId: string, filterValue: string[]) => {
+
+  includesStringSensitive: (
+    row: ProcessedRow,
+    columnId: string,
+    filterValue: string
+  ) => {
     const processedValue = row[columnId] as ProcessedItem;
-    const value = processedValue?.value as string;
-    return filterValue.includes(value);
+    const value = String(processedValue?.value ?? "");
+    return value.includes(String(filterValue));
   },
-  between: (
+
+  equalsString: (row: ProcessedRow, columnId: string, filterValue: string) => {
+    const processedValue = row[columnId] as ProcessedItem;
+    const value = String(processedValue?.value ?? "");
+    return value.toLowerCase() === String(filterValue).toLowerCase();
+  },
+
+  equalsStringSensitive: (
+    row: ProcessedRow,
+    columnId: string,
+    filterValue: string
+  ) => {
+    const processedValue = row[columnId] as ProcessedItem;
+    const value = String(processedValue?.value ?? "");
+    return value === String(filterValue);
+  },
+
+  arrIncludes: (row: ProcessedRow, columnId: string, filterValue: unknown) => {
+    const processedValue = row[columnId] as ProcessedItem;
+    const value = processedValue?.value;
+    return Array.isArray(value) && value.includes(filterValue);
+  },
+
+  arrIncludesAll: (
+    row: ProcessedRow,
+    columnId: string,
+    filterValue: unknown[]
+  ) => {
+    const processedValue = row[columnId] as ProcessedItem;
+    const value = processedValue?.value;
+    return (
+      Array.isArray(value) &&
+      Array.isArray(filterValue) &&
+      filterValue.every((val) => value.includes(val))
+    );
+  },
+
+  arrIncludesSome: (
+    row: ProcessedRow,
+    columnId: string,
+    filterValue: unknown[]
+  ) => {
+    const processedValue = row[columnId] as ProcessedItem;
+    const value = processedValue?.value;
+    return (
+      Array.isArray(value) &&
+      Array.isArray(filterValue) &&
+      filterValue.some((val) => value.includes(val))
+    );
+  },
+
+  equals: (row: ProcessedRow, columnId: string, filterValue: unknown) => {
+    const processedValue = row[columnId] as ProcessedItem;
+    return Object.is(processedValue?.value, filterValue);
+  },
+
+  weakEquals: (row: ProcessedRow, columnId: string, filterValue: unknown) => {
+    const processedValue = row[columnId] as ProcessedItem;
+    return processedValue?.value == filterValue;
+  },
+
+  inNumberRange: (
     row: ProcessedRow,
     columnId: string,
     filterValue: [number, number]
@@ -98,21 +164,7 @@ export const filterFns = {
     const value = processedValue?.value as number;
     return value >= filterValue[0] && value <= filterValue[1];
   },
-  equals: (row: ProcessedRow, columnId: string, filterValue: FilterValue) => {
-    const processedValue = row[columnId] as ProcessedItem;
-    const value = processedValue?.value as FilterValue;
-    return value === filterValue;
-  },
-  dateRange: (
-    row: ProcessedRow,
-    columnId: string,
-    filterValue: [Date, Date]
-  ) => {
-    const processedValue = row[columnId] as ProcessedItem;
-    const value = processedValue?.value as string | number | Date;
-    const date = new Date(value);
-    return date >= filterValue[0] && date <= filterValue[1];
-  },
+
   processedValueFilter: (
     row: ProcessedRow,
     columnId: string,
@@ -126,15 +178,91 @@ export const filterFns = {
       return true;
     }
     const processedValue = row[columnId] as ProcessedItem;
-    const value = processedValue?.value as FilterValue;
 
+    // Si no hay valor procesado, retornar false
+    if (!processedValue) return false;
+
+    const value = processedValue.value;
+
+    // Para operaciones numéricas, asegurarse de que los valores sean números válidos
+    const isNumericOperation = [
+      "greaterThan",
+      "lessThan",
+      "between",
+      "notBetween",
+    ].includes(filterValue.operator);
+
+    if (isNumericOperation) {
+      const numericValue = Number(value);
+      const numericFilterValue = Number(filterValue.value);
+
+      if (isNaN(numericValue) || isNaN(numericFilterValue)) {
+        return false;
+      }
+
+      switch (filterValue.operator) {
+        case "greaterThan":
+          return numericValue > numericFilterValue;
+        case "lessThan":
+          return numericValue < numericFilterValue;
+        case "between":
+          const numericAdditionalValue = Number(filterValue.additionalValue);
+          return (
+            !isNaN(numericAdditionalValue) &&
+            numericValue >= numericFilterValue &&
+            numericValue <= numericAdditionalValue
+          );
+        case "notBetween":
+          const numericAddValue = Number(filterValue.additionalValue);
+          return (
+            !isNaN(numericAddValue) &&
+            (numericValue < numericFilterValue ||
+              numericValue > numericAddValue)
+          );
+      }
+    }
+
+    // Para operaciones no numéricas, usar el valor original
     switch (filterValue.operator) {
       case "equals":
         return value === filterValue.value;
-      case "between":
+      case "notEquals":
+        return value !== filterValue.value;
+      case "in":
         return (
-          (value as number) >= (filterValue.value as number) &&
-          (value as number) <= (filterValue.additionalValue as number)
+          Array.isArray(filterValue.value) &&
+          filterValue.value.includes(String(value))
+        );
+      case "notIn":
+        return (
+          Array.isArray(filterValue.value) &&
+          !filterValue.value.includes(String(value))
+        );
+      case "contains":
+        return String(value)
+          .toLowerCase()
+          .includes(String(filterValue.value).toLowerCase());
+      case "notContains":
+        return !String(value)
+          .toLowerCase()
+          .includes(String(filterValue.value).toLowerCase());
+      case "startsWith":
+        return String(value)
+          .toLowerCase()
+          .startsWith(String(filterValue.value).toLowerCase());
+      case "endsWith":
+        return String(value)
+          .toLowerCase()
+          .endsWith(String(filterValue.value).toLowerCase());
+      case "isNull":
+        return value === null;
+      case "isNotNull":
+        return value !== null;
+      case "arrIncludesSome":
+        return (
+          Array.isArray(value) &&
+          Array.isArray(filterValue.value) &&
+          filterValue.value.some((item) => value.includes(item))
         );
       default:
         return true;
@@ -155,4 +283,3 @@ export interface FilterFunctions {
       | string[]
   ) => boolean;
 }
-

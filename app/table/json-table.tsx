@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { TableHeader } from "@/components/ui/table";
 import React from "react";
@@ -77,32 +77,81 @@ interface FilterFunctions {
 
 const filterFns: FilterFunctions = {
   processedValueFilter: (row, columnId, filterValue) => {
-    if (!filterValue) return true;
+    if (
+      !filterValue ||
+      typeof filterValue !== "object" ||
+      !("operator" in filterValue)
+    ) {
+      return true;
+    }
+
     const processedValue = row.original[columnId] as ProcessedItem;
     if (!processedValue) return false;
 
+    const rawValue = processedValue.value;
+
+    // Para operaciones numéricas
+    const isNumericOperation = [
+      "greaterThan",
+      "lessThan",
+      "between",
+      "notBetween",
+      "equals",
+    ].includes(filterValue.operator);
+
+    if (isNumericOperation) {
+      // Convertir valores no numéricos a 0
+      const numericValue = (() => {
+        if (rawValue === null || rawValue === undefined) return 0;
+        const converted = Number(rawValue);
+        return isNaN(converted) ? 0 : converted;
+      })();
+
+      const numericFilterValue = Number(filterValue.value);
+
+      if (isNaN(numericFilterValue)) {
+        return false;
+      }
+
+      switch (filterValue.operator) {
+        case "equals":
+          return numericValue === numericFilterValue;
+        case "greaterThan":
+          return numericValue > numericFilterValue;
+        case "lessThan":
+          return numericValue < numericFilterValue;
+        case "between":
+          const numericAdditionalValue = Number(filterValue.additionalValue);
+          return (
+            !isNaN(numericAdditionalValue) &&
+            numericValue >= numericFilterValue &&
+            numericValue <= numericAdditionalValue
+          );
+        case "notBetween":
+          const numericAddValue = Number(filterValue.additionalValue);
+          return (
+            !isNaN(numericAddValue) &&
+            (numericValue < numericFilterValue ||
+              numericValue > numericAddValue)
+          );
+      }
+    }
+
+    // Para operaciones no numéricas
     switch (filterValue.operator) {
+      case "equals":
+        return rawValue === filterValue.value;
       case "in":
         return (
           Array.isArray(filterValue.value) &&
-          filterValue.value.includes(String(processedValue.value))
+          filterValue.value.includes(String(rawValue))
         );
-      case "equals":
-        return processedValue.value === filterValue.value;
       case "notEquals":
-        return processedValue.value !== filterValue.value;
+        return rawValue !== filterValue.value;
       case "contains":
-        return String(processedValue.value)
+        return String(rawValue)
           .toLowerCase()
           .includes(String(filterValue.value).toLowerCase());
-      case "between":
-        if (typeof processedValue.value === "number") {
-          return (
-            processedValue.value >= (filterValue.value as number) &&
-            processedValue.value <= (filterValue.additionalValue as number)
-          );
-        }
-        return false;
       default:
         return true;
     }
@@ -124,10 +173,10 @@ const filterFns: FilterFunctions = {
 const selectionColumn: ColumnDef<ProcessedRow> = {
   id: "selection",
   header: ({ table }) => (
-    <div className='flex items-center justify-center'>
+    <div className="flex items-center justify-center">
       <input
-        type='checkbox'
-        className='h-4 w-4'
+        type="checkbox"
+        className="h-4 w-4"
         {...{
           checked: table.getIsAllRowsSelected(),
           onChange: table.getToggleAllRowsSelectedHandler(),
@@ -136,10 +185,10 @@ const selectionColumn: ColumnDef<ProcessedRow> = {
     </div>
   ),
   cell: ({ row }) => (
-    <div className='flex items-center justify-center'>
+    <div className="flex items-center justify-center">
       <input
-        type='checkbox'
-        className='h-4 w-4'
+        type="checkbox"
+        className="h-4 w-4"
         {...{
           checked: row.getIsSelected(),
           onChange: row.getToggleSelectedHandler(),
@@ -158,13 +207,13 @@ const selectionColumn: ColumnDef<ProcessedRow> = {
 const indexColumn: ColumnDef<ProcessedRow> = {
   id: "index",
   header: ({}) => (
-    <div className='text-center text-muted-foreground w-6'>#</div>
+    <div className="text-center text-muted-foreground w-6">#</div>
   ),
   size: 50,
   enableSorting: false,
   enableHiding: false,
   cell: ({ row }) => (
-    <div className='text-center text-muted-foreground w-full'>
+    <div className="text-center text-muted-foreground w-full">
       {row.index + 1}
     </div>
   ),
@@ -176,13 +225,13 @@ function createActionsColumn(
   return {
     id: "actions",
     header: ({}) => (
-      <div className='text-center text-muted-foreground w-28'>Acciones</div>
+      <div className="text-center text-muted-foreground w-28">Acciones</div>
     ),
     enableSorting: false,
     enableHiding: false,
     size: 50,
     cell: ({ row }) => (
-      <div className='flex items-center justify-center'>
+      <div className="flex items-center justify-center">
         <ActionButtons
           row={row.original}
           onDelete={() => onDelete(row.index)}
@@ -215,7 +264,7 @@ function getTanStackPinningStyles(
 // 5) Componente principal
 // --------------------
 interface JsonTableProps {
-  data: Record<string, unknown>[]
+  data: Record<string, unknown>[];
 }
 
 export function JsonTable({ data }: JsonTableProps) {
@@ -309,14 +358,13 @@ export function JsonTable({ data }: JsonTableProps) {
       maxSize: 500,
       filterFn: filterFns.processedValueFilter,
     },
-  })
+  });
 
   useEffect(() => {
     if (!originalColumnOrder.length) {
-      setOriginalColumnOrder(table.getAllLeafColumns().map((col) => col.id))
+      setOriginalColumnOrder(table.getAllLeafColumns().map((col) => col.id));
     }
-  }, [table, originalColumnOrder])
-
+  }, [table, originalColumnOrder]);
 
   // Guardamos el orden inicial de columnas (para tu modal, si hace falta)
   useEffect(() => {
@@ -365,13 +413,13 @@ export function JsonTable({ data }: JsonTableProps) {
 
   return (
     <FilterContext.Provider value={filterContextValue}>
-      <CardContent className='relative'>
+      <CardContent className="relative">
         {/* Encabezado: barra de búsqueda y modal de columnas */}
-        <div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-          <div className='w-full sm:w-72'>
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="w-full sm:w-72">
             <TableSearch table={table} />
           </div>
-          <div className='flex justify-end'>
+          <div className="flex justify-end">
             <ColumnManagerModal
               table={table}
               useFixedColumn={useFixedColumn}
@@ -384,9 +432,9 @@ export function JsonTable({ data }: JsonTableProps) {
         </div>
 
         {/* Contenedor principal de la tabla */}
-        <div className='rounded-md border'>
+        <div className="rounded-md border">
           <div
-            className='overflow-auto'
+            className="overflow-auto"
             style={{
               height: "calc(100vh - 400px)", // Ajusta este valor según necesites
               minHeight: "300px",
@@ -394,7 +442,7 @@ export function JsonTable({ data }: JsonTableProps) {
             }}
           >
             <Table
-              className='table-auto w-full border-separate border-spacing-0'
+              className="table-auto w-full border-separate border-spacing-0"
               style={{ width: table.getCenterTotalSize() }}
             >
               {/* ENCABEZADO */}
@@ -409,7 +457,7 @@ export function JsonTable({ data }: JsonTableProps) {
                       return (
                         <TableHead
                           key={header.id}
-                          className='px-4 m-0 bg-background border-x-1 border-y-1 border-zinc-200 text-center font-black'
+                          className="px-4 m-0 bg-background border-x-1 border-y-1 border-zinc-200 text-center font-black"
                           style={{
                             width: header.getSize(),
                             ...stylePin,
@@ -448,7 +496,7 @@ export function JsonTable({ data }: JsonTableProps) {
               <TableBody>
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} className='hover:bg-muted/50'>
+                    <TableRow key={row.id} className="hover:bg-muted/50">
                       {row.getVisibleCells().map((cell) => {
                         const stylePin = getTanStackPinningStyles(
                           cell.column,
@@ -457,7 +505,7 @@ export function JsonTable({ data }: JsonTableProps) {
                         return (
                           <TableCell
                             key={cell.id}
-                            className='p-4 m-0 border-x-1 border-y-1 border-zinc-200 w-fit'
+                            className="p-4 m-0 border-x-1 border-y-1 border-zinc-200 w-fit"
                             style={{
                               width: "fit-content",
                               maxWidth: cell.column.getSize(),
@@ -477,7 +525,7 @@ export function JsonTable({ data }: JsonTableProps) {
                   <TableRow>
                     <TableCell
                       colSpan={tableColumns.length}
-                      className='h-24 text-center'
+                      className="h-24 text-center"
                     >
                       No results.
                     </TableCell>
@@ -495,4 +543,3 @@ export function JsonTable({ data }: JsonTableProps) {
     </FilterContext.Provider>
   );
 }
-
