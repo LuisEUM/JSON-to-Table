@@ -23,6 +23,38 @@ interface ArrayCellProps {
   items: ProcessedValue[];
 }
 
+const PrimitiveArrayDisplay = ({ items }: ArrayCellProps): ReactElement => {
+  return (
+    <div className='flex flex-wrap gap-1.5 max-w-full'>
+      {items.map((item: ProcessedValue | unknown, index) => {
+        const processedItem = isProcessedValue(item)
+          ? item
+          : processValue(item, `item-${index}`);
+
+        return (
+          <Badge
+            key={`array-item-${index}`}
+            variant='outline'
+            className={`${
+              getTypeColor(processedItem.type).split(" ")[0]
+            } text-xs font-mono whitespace-nowrap overflow-hidden text-ellipsis`}
+          >
+            {processedItem.type === "string"
+              ? `"${String(processedItem.value)}"`
+              : processedItem.type === "boolean"
+              ? processedItem.value
+                ? "verdadero"
+                : "falso"
+              : processedItem.type === "número"
+              ? Number(processedItem.value).toLocaleString()
+              : String(processedItem.value)}
+          </Badge>
+        );
+      })}
+    </div>
+  );
+};
+
 const SimpleArrayDisplay = ({ items }: ArrayCellProps): ReactElement => {
   // Verificar si el array contiene objetos
   const containsObjects = items.some(
@@ -31,35 +63,7 @@ const SimpleArrayDisplay = ({ items }: ArrayCellProps): ReactElement => {
   );
 
   if (!containsObjects) {
-    return (
-      <div className='flex flex-wrap gap-1.5 max-w-full'>
-        {items.map((item: ProcessedValue | unknown, index) => {
-          const processedItem = isProcessedValue(item)
-            ? item
-            : processValue(item, `item-${index}`);
-
-          return (
-            <Badge
-              key={`array-item-${index}`}
-              variant='outline'
-              className={`${
-                getTypeColor(processedItem.type).split(" ")[0]
-              } text-xs font-mono whitespace-nowrap overflow-hidden text-ellipsis`}
-            >
-              {processedItem.type === "string"
-                ? `"${String(processedItem.value)}"`
-                : processedItem.type === "boolean"
-                ? processedItem.value
-                  ? "verdadero"
-                  : "falso"
-                : processedItem.type === "número"
-                ? Number(processedItem.value).toLocaleString()
-                : String(processedItem.value)}
-            </Badge>
-          );
-        })}
-      </div>
-    );
+    return <PrimitiveArrayDisplay items={items} />;
   }
 
   return (
@@ -168,14 +172,34 @@ const ObjectArrayAccordion = ({ items }: ArrayCellProps): ReactElement => {
 };
 
 export function ArrayCell({ items }: ArrayCellProps): ReactElement {
-  const containsObjects = items.some(
+  // Verificar si todos los elementos son primitivos (no objetos)
+  const allPrimitives = !items.some(
     (item) =>
-      item.type === "objeto" || (item.value && typeof item.value === "object")
+      item.type === "objeto" ||
+      (item.value &&
+        typeof item.value === "object" &&
+        item.value !== null &&
+        !Array.isArray(item.value))
   );
 
-  if (!containsObjects) {
-    return <SimpleArrayDisplay items={items} />;
+  const isPrimitiveArray = items.length > 0 && allPrimitives;
+  const isObjectArray = items.length > 0 && !allPrimitives;
+
+  console.log("🔄 Renderizando ArrayCell:", {
+    itemsLength: items.length,
+    isPrimitiveArray,
+    isObjectArray,
+    firstItemType: items[0]?.type,
+  });
+
+  if (isPrimitiveArray) {
+    return <PrimitiveArrayDisplay items={items} />;
   }
 
-  return <ObjectArrayAccordion items={items} />;
+  if (isObjectArray) {
+    return <ObjectArrayAccordion items={items} />;
+  }
+
+  // Comportamiento predeterminado para arrays mixtos o casos borde
+  return <SimpleArrayDisplay items={items} />;
 }

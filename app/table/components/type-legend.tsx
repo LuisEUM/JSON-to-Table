@@ -8,6 +8,8 @@ export function TypeLegend() {
     "boolean",
     "fecha",
     "array",
+    "array[primitivo]",
+    "array[objeto]",
     "objeto",
     "null",
     "undefined",

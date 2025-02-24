@@ -211,6 +211,8 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
       if (typeof value === "object" && "type" in value) {
         switch (value.type) {
           case "array":
+          case "array[primitivo]":
+          case "array[objeto]":
             return <ArrayCell items={value.items || []} />;
           case "objeto":
             return <ObjectCard value={value} compact />;

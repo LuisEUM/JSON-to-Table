@@ -10,7 +10,7 @@ export const getTypeColor = (type: string): string => {
       text: "text-green-700",
       border: "border-green-200",
     },
-    "número": {
+    número: {
       bg: "bg-blue-200",
       text: "text-blue-700",
       border: "border-blue-200",
@@ -40,6 +40,16 @@ export const getTypeColor = (type: string): string => {
       bg: "bg-orange-200",
       text: "text-orange-700",
       border: "border-orange-200",
+    },
+    "array[primitivo]": {
+      bg: "bg-orange-100",
+      text: "text-orange-800",
+      border: "border-orange-100",
+    },
+    "array[objeto]": {
+      bg: "bg-orange-300",
+      text: "text-orange-800",
+      border: "border-orange-300",
     },
   };
   const style = colors[type] || {

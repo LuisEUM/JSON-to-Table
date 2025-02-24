@@ -274,7 +274,11 @@ export function JsonTable({
       });
 
       Object.values(row).forEach((item) => {
-        if (item.type === "array" && item.items?.[0]?.type === "objeto") {
+        // Solo procesamos arrays de objetos para tablas secundarias
+        if (
+          item.type === "array[objeto]" ||
+          (item.type === "array" && item.items?.[0]?.type === "objeto")
+        ) {
           const columnId = item.path.join(".");
 
           // Verificar si ya existe esta columna
@@ -282,6 +286,7 @@ export function JsonTable({
             console.log("📊 Creando nueva tabla secundaria:", {
               columnId,
               rowId,
+              type: item.type,
             });
 
             const processedData =
@@ -342,6 +347,18 @@ export function JsonTable({
               }
             }
           }
+        }
+        // No procesamos arrays de primitivos para tablas secundarias
+        else if (item.type === "array[primitivo]") {
+          console.log(
+            "📊 Ignorando array de primitivos para tablas secundarias:",
+            {
+              columnId: item.path.join("."),
+              rowId,
+              type: item.type,
+              values: item.items?.map((i) => i.value).slice(0, 3), // Mostrar solo los primeros 3 valores
+            }
+          );
         }
       });
 

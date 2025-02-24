@@ -8,6 +8,8 @@ export const getTypeColor = (type: string): string => {
     undefined: "bg-gray-200",
     objeto: "bg-yellow-100",
     array: "bg-orange-200",
+    "array[primitivo]": "bg-orange-100",
+    "array[objeto]": "bg-orange-300",
   };
   return colors[type] || "bg-gray-200";
 };
@@ -19,6 +21,8 @@ export const getTypeLabel = (type: string): string => {
     boolean: "Booleano",
     fecha: "Fecha",
     array: "Lista",
+    "array[primitivo]": "Lista de valores",
+    "array[objeto]": "Lista de objetos",
     objeto: "Objeto",
     null: "Nulo",
     undefined: "Indefinido",

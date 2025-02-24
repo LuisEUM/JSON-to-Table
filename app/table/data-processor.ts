@@ -23,9 +23,33 @@ export const getDetailedType = (value: unknown): string => {
   }
 
   if (Array.isArray(value)) {
-    if (value.length === 0) return "array vacío";
-    const elementTypes = new Set(value.map((item) => getDetailedType(item)));
-    return `array[${Array.from(elementTypes).join(", ")}]`;
+    console.log("🔍 Analizando tipo de array:", {
+      length: value.length,
+      firstElement: value[0],
+      firstElementType: typeof value[0],
+      isObject: typeof value[0] === "object",
+      isNull: value[0] === null,
+      isArray: Array.isArray(value[0]),
+      isDate: value[0] instanceof Date,
+    });
+
+    if (value.length === 0) return "array[primitivo]";
+
+    const firstElement = value[0];
+
+    // Corregir la lógica de detección de objetos
+    if (
+      typeof firstElement === "object" &&
+      firstElement !== null &&
+      !Array.isArray(firstElement) &&
+      !(firstElement instanceof Date)
+    ) {
+      console.log("✅ Detectado array de objetos");
+      return "array[objeto]";
+    }
+
+    console.log("✅ Detectado array de primitivos");
+    return "array[primitivo]";
   }
 
   if (typeof value === "object") {
@@ -110,6 +134,8 @@ export type ValueType =
   | "boolean"
   | "fecha"
   | "array"
+  | "array[primitivo]"
+  | "array[objeto]"
   | "objeto"
   | "referencia"
   | "null"
@@ -213,10 +239,27 @@ export const processValue = (
       firstItem: value[0],
       parentId,
     });
+
+    // Determinar si es un array de primitivos u objetos
+    const isObjectArray =
+      value.length > 0 &&
+      typeof value[0] === "object" &&
+      value[0] !== null &&
+      !Array.isArray(value[0]) &&
+      !(value[0] instanceof Date);
+
+    const arrayType = isObjectArray ? "array[objeto]" : "array[primitivo]";
+    console.log(`📊 Tipo de array detectado: ${arrayType}`, {
+      campo: fieldName,
+      primerElemento: value[0],
+      tipoPrimerElemento: typeof value[0],
+    });
+
     const items = value.map((item) => processValue(item, fieldName, parentId));
+
     return {
       value,
-      type: "array",
+      type: arrayType,
       items,
       parentId,
       path: [fieldName],
