@@ -5,7 +5,6 @@ import type { Column, AccessorFnColumnDef } from "@tanstack/react-table";
 import { DateFilter } from "./date-filter";
 import { NumberFilter } from "./number-filter";
 import { StringFilter } from "./string-filter";
-import { BooleanFilter } from "./boolean-filter";
 import { ArrayFilter } from "./array-filter";
 import type { ProcessedItem } from "../../data-processor";
 import type { FilterComponentProps, FilterCondition } from "./filter-types";
@@ -39,9 +38,10 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
 
   column.getFacetedUniqueValues().forEach((count, value) => {
     const processedValue = value as ProcessedItem;
-    const stringValue = processedValue?.value
-      ? String(processedValue.value)
-      : String(value);
+    const stringValue =
+      processedValue?.value !== undefined
+        ? String(processedValue.value)
+        : String(value);
 
     // Sumar el contador para valores iguales
     uniqueValuesMap.set(
@@ -67,7 +67,12 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
     })),
   });
 
-  const type = (accessorValue as ProcessedItem)?.type;
+  const columnType =
+    (column.columnDef.meta as { type: string })?.type ||
+    (column.getFacetedRowModel().rows[0]?.original[column.id] as ProcessedItem)
+      ?.type ||
+    "string";
+
   const columnName = column.id.split(".").pop() || column.id;
 
   // Get min and max values for number columns
@@ -79,7 +84,7 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
   const filterProps = {
     ...props,
     columnName,
-    columnType: type || "unknown",
+    columnType,
     uniqueValues,
     minValue,
     maxValue,
@@ -89,20 +94,17 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
     },
   };
 
-  return (
-    <>
-      <DialogTitle className='sr-only'>Filtro de columna</DialogTitle>
-      {type === "array" ? (
-        <ArrayFilter {...filterProps} />
-      ) : type === "fecha" ? (
-        <DateFilter {...filterProps} />
-      ) : type === "número" ? (
-        <NumberFilter {...filterProps} />
-      ) : type === "boolean" ? (
-        <BooleanFilter {...filterProps} />
-      ) : (
-        <StringFilter {...filterProps} />
-      )}
-    </>
-  );
+  // Seleccionar el componente de filtro basado en el tipo
+  switch (columnType) {
+    case "número":
+      return <NumberFilter {...filterProps} />;
+    case "fecha":
+      return <DateFilter {...filterProps} />;
+    case "array":
+      return <ArrayFilter {...filterProps} />;
+    case "boolean":
+    case "string":
+    default:
+      return <StringFilter {...filterProps} />;
+  }
 }

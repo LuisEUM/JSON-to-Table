@@ -237,7 +237,15 @@ export function JsonTable({
 
   const baseColumns = useMemo<ColumnDef<ProcessedRow>[]>(() => {
     if (!processedData[0]) return [];
-    return columns(processedData[0]);
+    const cols = columns(processedData[0]);
+    return cols.map((col) => ({
+      ...col,
+      meta: {
+        ...col.meta,
+        type:
+          processedData[0].find((item) => item.id === col.id)?.type || "string",
+      },
+    }));
   }, [processedData]);
 
   const tableColumns = useMemo<ColumnDef<ProcessedRow>[]>(() => {

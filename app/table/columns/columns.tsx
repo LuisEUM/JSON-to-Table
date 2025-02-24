@@ -9,6 +9,7 @@ import {
   type GroupedColumns,
   type ProcessedRow,
   type ProcessedValue,
+  processValue,
 } from "../data-processor";
 import { ObjectCard } from "../components/object-card";
 import { formatDateString } from "../utils/date-formatter";
@@ -21,6 +22,10 @@ import {
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { FilterFactory } from "../components/filters/filter-factory";
 import type { FilterCondition } from "../components/filters/filter-types";
+
+interface NestedRecord {
+  [key: string]: ProcessedItem | unknown | { [key: string]: NestedRecord };
+}
 
 const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
   const isReferenceColumn =
@@ -39,7 +44,18 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
 
   return {
     id: item.id,
-    accessorKey: item.id,
+    accessorFn: (row: ProcessedRow) => {
+      const directValue = row[item.id];
+      if (directValue !== undefined) return directValue;
+
+      let value: NestedRecord = row;
+      for (const key of item.path) {
+        value = value?.[key] as NestedRecord;
+        if (value === undefined) break;
+      }
+
+      return processValue(value, item.id);
+    },
     enableSorting: true,
     enableHiding: !isReferenceColumn,
     meta: {
@@ -169,11 +185,11 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
 
       console.log("🔍 Renderizando celda:", {
         columnId: item.id,
-        isReference: isReferenceColumn,
+        isReference: item.isReference,
         value,
       });
 
-      if (isReferenceColumn || value?.isReference) {
+      if (item.isReference || value?.isReference) {
         return (
           <div className='flex items-center gap-1'>
             <Link2 className='h-3 w-3 text-muted-foreground' />

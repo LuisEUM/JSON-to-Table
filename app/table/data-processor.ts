@@ -186,6 +186,17 @@ export const processValue = (
   }
 
   if (typeof value === "number") {
+    // Detectar si el número es un timestamp
+    if (String(value).length === 10 || String(value).length === 13) {
+      const date = new Date(value * (String(value).length === 10 ? 1000 : 1));
+      if (date.getTime() > 0) {
+        return {
+          value: date.toLocaleString(),
+          type: "fecha",
+          rawValue: value,
+        };
+      }
+    }
     return {
       value: value,
       type: "número",

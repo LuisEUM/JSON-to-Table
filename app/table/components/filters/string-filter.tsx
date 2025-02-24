@@ -23,13 +23,27 @@ export function StringFilter({
   const [search, setSearch] = useState("");
   const [selectedValues, setSelectedValues] = useState<string[]>(
     Array.isArray(initialValue?.value)
-      ? initialValue.value.map(String).filter(Boolean)
+      ? initialValue.value
+          .map((v) =>
+            typeof v === "boolean" ? (v ? "verdadero" : "falso") : String(v)
+          )
+          .filter(Boolean)
       : []
   );
 
-  const filteredOptions = uniqueValues.filter((option) =>
-    option.value.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredOptions = uniqueValues
+    .map((option) => ({
+      ...option,
+      value:
+        typeof option.value === "boolean"
+          ? option.value
+            ? "verdadero"
+            : "falso"
+          : String(option.value),
+    }))
+    .filter((option) =>
+      option.value.toLowerCase().includes(search.toLowerCase())
+    );
 
   const handleSelectAll = () => {
     setSelectedValues(filteredOptions.map((option) => option.value));
