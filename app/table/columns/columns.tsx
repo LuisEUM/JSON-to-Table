@@ -2,13 +2,16 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ArrayCell } from "../components/array-cell";
 import { TypeDot } from "../components/type-dot";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, Eye, Filter, Table } from "lucide-react";
+import { ArrowUp, ArrowDown, Eye, Filter, Link2 } from "lucide-react";
 import {
   groupColumns,
   type ProcessedItem,
   type GroupedColumns,
   type ProcessedRow,
+  type ProcessedValue,
 } from "../data-processor";
+import { ObjectCard } from "../components/object-card";
+import { formatDateString } from "../utils/date-formatter";
 import {
   Tooltip,
   TooltipContent,
@@ -20,22 +23,28 @@ import { FilterFactory } from "../components/filters/filter-factory";
 import type { FilterCondition } from "../components/filters/filter-types";
 
 const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
-  const isSortable = [
-    "string",
-    "número entero",
-    "número decimal",
-    "boolean",
-    "fecha",
-  ].includes(item.type);
-  const columnName = item.path.join(".");
-  const isArrayOfObjects =
-    item.type === "array" && item.items?.[0]?.type === "objeto";
+  const isReferenceColumn =
+    item.id === "__parentId" || item.id === "__parentTable";
+  const isSortable = ["string", "número", "boolean", "fecha"].includes(
+    item.type
+  );
+  const columnName = item.path[item.path.length - 1];
+
+  console.log("📊 Creando definición de columna:", {
+    columnId: item.id,
+    isReference: isReferenceColumn,
+    type: item.type,
+    path: item.path,
+  });
 
   return {
     id: item.id,
-    accessorFn: (row) => row[item.id],
-    enableGlobalFilter: true,
-    filterFn: "processedValueFilter",
+    accessorKey: item.id,
+    enableSorting: true,
+    enableHiding: !isReferenceColumn,
+    meta: {
+      type: isReferenceColumn ? "string" : item.type,
+    },
     header: ({ column }) => {
       const isSorted = column.getIsSorted();
       const isFiltered = column.getFilterValue() !== undefined;
@@ -44,52 +53,13 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
         <TooltipProvider>
           <div className='flex items-center justify-between gap-2'>
             <div className='flex items-center gap-2'>
-              <TypeDot type={item.type} />
-              <span className='whitespace-nowrap overflow-hidden text-ellipsis'>
+              <TypeDot type={isReferenceColumn ? "string" : item.type} />
+              <span className='flex items-center gap-1'>
+                {isReferenceColumn && <Link2 className='h-3 w-3' />}
                 {columnName}
               </span>
             </div>
             <div className='flex items-center'>
-              {isArrayOfObjects && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      className='h-6 w-6 p-0'
-                      onClick={() => {
-                        // Obtener todos los items del array de esta columna
-                        const allItems = column
-                          .getFacetedUniqueValues()
-                          .entries();
-                        const arrayItems = Array.from(allItems).flatMap(
-                          ([value]) => {
-                            if (!value?.items) return [];
-                            return value.items.map((item, idx) => ({
-                              ...item.value,
-                              __parentId: value.parentId || `row-${idx}`, // ID de referencia a la fila principal
-                            }));
-                          }
-                        );
-
-                        const event = new CustomEvent("showSecondaryTable", {
-                          detail: {
-                            id: item.id,
-                            label: columnName,
-                            data: arrayItems,
-                          },
-                        });
-                        window.dispatchEvent(event);
-                      }}
-                    >
-                      <Table className='h-4 w-4' />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side='top'>
-                    <p>Ver como tabla</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
               {isSortable && (
                 <div className='flex'>
                   <Tooltip>
@@ -155,15 +125,8 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
                       column={column}
                       columnId={column.id}
                       columnName={columnName}
-                      columnType={item.type}
-                      uniqueValues={Array.from(
-                        column.getFacetedUniqueValues().entries()
-                      ).map(([value, count]) => ({
-                        label: String(value?.value || value),
-                        value: value?.value || value,
-                        count,
-                        original: value,
-                      }))}
+                      columnType={isReferenceColumn ? "string" : item.type}
+                      uniqueValues={[]}
                       onApply={(condition) => {
                         column.setFilterValue(condition);
                       }}
@@ -201,17 +164,60 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
         </TooltipProvider>
       );
     },
-    cell: ({ row }) => {
-      const value = row.getValue(item.id) as ProcessedItem;
-      if (!value) return null;
+    cell: ({ getValue }) => {
+      const value = getValue() as ProcessedValue;
 
-      if (value.type === "array") {
-        return <ArrayCell items={value.items || []} />;
+      console.log("🔍 Renderizando celda:", {
+        columnId: item.id,
+        isReference: isReferenceColumn,
+        value,
+      });
+
+      if (isReferenceColumn || value?.isReference) {
+        return (
+          <div className='flex items-center gap-1'>
+            <Link2 className='h-3 w-3 text-muted-foreground' />
+            <span className='font-mono text-sm text-primary'>
+              {String(value?.value || value)}
+            </span>
+          </div>
+        );
       }
 
-      return <span className='font-mono'>{String(value.value)}</span>;
+      if (!value) {
+        console.log("⚠️ Valor nulo o indefinido en celda:", {
+          columnId: item.id,
+          value,
+        });
+        return null;
+      }
+
+      if (typeof value === "object" && "type" in value) {
+        switch (value.type) {
+          case "array":
+            return <ArrayCell items={value.items || []} />;
+          case "objeto":
+            return <ObjectCard value={value} compact />;
+          case "fecha":
+            return formatDateString(value.value as string);
+          default:
+            return (
+              <span className='font-mono text-sm'>
+                {value.type === "string"
+                  ? `"${String(value.value)}"`
+                  : String(value.value)}
+              </span>
+            );
+        }
+      }
+
+      return (
+        <span className='font-mono text-sm'>
+          {String((value as ProcessedValue)?.value || value)}
+        </span>
+      );
     },
-    enableSorting: isSortable,
+    filterFn: "processedValueFilter",
   };
 };
 
@@ -234,10 +240,37 @@ const processGroup = (group: GroupedColumns): ColumnDef<ProcessedRow>[] => {
   ];
 };
 
+// Añadir función para validar que solo haya una columna con llave
+const validateSingleKey = (items: ProcessedItem[]): ProcessedItem[] => {
+  const keyColumns = items.filter((item) => item.isId);
+
+  // Si hay más de una columna con llave, mantener solo la primera
+  if (keyColumns.length > 1) {
+    const firstKeyColumn = keyColumns[0];
+    return items.map((item) => ({
+      ...item,
+      isId: item.id === firstKeyColumn.id ? true : false,
+    }));
+  }
+
+  return items;
+};
+
 export const columns = (data: ProcessedItem[]): ColumnDef<ProcessedRow>[] => {
   if (!data?.length) return [];
   const { rootItems, groups } = groupColumns(data);
-  const rootColumns = rootItems.map(createColumnDef);
-  const groupedColumns = groups.flatMap(processGroup);
+
+  // Validar columnas raíz
+  const validatedRootItems = validateSingleKey(rootItems);
+
+  const rootColumns = validatedRootItems.map(createColumnDef);
+  const groupedColumns = groups.flatMap((group) => {
+    // Validar columnas agrupadas
+    const validatedGroupItems = group.items
+      ? validateSingleKey(group.items)
+      : [];
+    return processGroup({ ...group, items: validatedGroupItems });
+  });
+
   return [...rootColumns, ...groupedColumns];
 };

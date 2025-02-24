@@ -8,10 +8,13 @@ import type { FilterComponentProps, FilterValue } from "./filter-types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilterFooter } from "./filter-footer";
 import { getTypeColor } from "../type-badge";
+import { TypeDot } from "../type-dot";
+import { processValue } from "../../data-processor";
 
 interface FilterItem {
   value: unknown;
   count: number;
+  type?: string;
 }
 
 export function ArrayFilter({
@@ -35,16 +38,16 @@ export function ArrayFilter({
       const arrayValue = option.original as { value: unknown[] };
       if (Array.isArray(arrayValue?.value)) {
         arrayValue.value.forEach((item) => {
-          // Si el item es un objeto, procesamos cada propiedad
-          if (typeof item === "object" && item !== null) {
-            Object.entries(item).forEach(([key, value]) => {
-              const valueWithKey = `${key}: ${value}`;
-              acc.set(valueWithKey, (acc.get(valueWithKey) || 0) + 1);
-            });
-          } else {
-            // Si no es un objeto, usamos el valor directamente
-            acc.set(item, (acc.get(item) || 0) + 1);
-          }
+          // Procesar el item para obtener su valor real y tipo
+          const processedItem = processValue(item, columnId);
+          const displayValue =
+            processedItem.type === "boolean"
+              ? processedItem.value
+                ? "1"
+                : "0"
+              : processedItem.value;
+
+          acc.set(displayValue, (acc.get(displayValue) || 0) + 1);
         });
       }
       return acc;
@@ -53,7 +56,15 @@ export function ArrayFilter({
   );
 
   const filteredValues = Array.from(allUniqueValues.entries())
-    .map(([value, count]): FilterItem => ({ value, count }))
+    .map(([value, count]): FilterItem => {
+      // Procesar el valor para determinar su tipo
+      const processedValue = processValue(value, columnId);
+      return {
+        value,
+        count,
+        type: processedValue.type,
+      };
+    })
     .filter((item) =>
       String(item.value).toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -103,40 +114,45 @@ export function ArrayFilter({
           />
         </div>
 
-        <ScrollArea className='flex-grow border rounded-md bg-muted/30 p-2 max-h-[100px] overflow-auto'>
-          <div className='space-y-2'>
-            {filteredValues.map(({ value, count }) => {
-              const valueString = formatValue(value);
-              return (
-                <div
-                  key={valueString}
-                  className='flex items-center justify-between p-2 hover:bg-muted/50 rounded-md '
-                >
-                  <div className='flex items-center space-x-2'>
-                    <Checkbox
-                      id={valueString}
-                      checked={selectedValues.includes(value as FilterValue)}
-                      onCheckedChange={(checked) => {
-                        setSelectedValues(
-                          checked
-                            ? [...selectedValues, value as FilterValue]
-                            : selectedValues.filter((v) => v !== value)
-                        );
-                      }}
-                    />
-                    <label
-                      htmlFor={valueString}
-                      className='cursor-pointer text-sm'
-                    >
-                      {valueString}
-                    </label>
+        <div className='flex-grow space-y-6'>
+          <ScrollArea className='flex-1'>
+            <div className='space-y-2'>
+              {filteredValues.map(({ value, count, type }) => {
+                const valueString = formatValue(value);
+                return (
+                  <div
+                    key={valueString}
+                    className='flex items-center space-x-2 px-2 py-1.5 hover:bg-muted/50 rounded-sm'
+                  >
+                    <div className='flex items-center justify-between w-full'>
+                      <Checkbox
+                        id={valueString}
+                        checked={selectedValues.includes(value as FilterValue)}
+                        onCheckedChange={(checked) => {
+                          setSelectedValues(
+                            checked
+                              ? [...selectedValues, value as FilterValue]
+                              : selectedValues.filter((v) => v !== value)
+                          );
+                        }}
+                      />
+                      <label
+                        htmlFor={valueString}
+                        className='cursor-pointer text-sm flex-1 flex items-center gap-2 ml-2'
+                      >
+                        <TypeDot type={type || "unknown"} />
+                        <span>{valueString}</span>
+                        <span className='text-xs text-muted-foreground'>
+                          ({count})
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                  <span className='text-sm text-muted-foreground'>{count}</span>
-                </div>
-              );
-            })}
-          </div>
-        </ScrollArea>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        </div>
 
         <div className='pt-2 text-sm text-muted-foreground'>
           {selectedValues.length} de {allUniqueValues.size} seleccionados
@@ -147,4 +163,3 @@ export function ArrayFilter({
     </div>
   );
 }
-

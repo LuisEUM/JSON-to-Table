@@ -1,126 +1,181 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import type { ReactElement } from "react"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
-} from "@/components/ui/carousel";
+import * as React from "react";
+import type { ReactElement } from "react";
 import { Badge } from "@/components/ui/badge";
 import { getTypeColor } from "./type-badge";
 import { ObjectCard } from "./object-card";
 import type { ProcessedValue } from "../data-processor";
+import { processValue } from "../data-processor";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+function isProcessedValue(value: unknown): value is ProcessedValue {
+  return typeof value === "object" && value !== null && "type" in value;
+}
 
 interface ArrayCellProps {
-  items: ProcessedValue[]
+  items: ProcessedValue[];
 }
 
 const SimpleArrayDisplay = ({ items }: ArrayCellProps): ReactElement => {
-  return (
-    <div className='flex flex-wrap gap-1.5 max-w-full'>
-      {items.map((item, index) => (
-        <Badge
-          key={`array-item-${index}`}
-          variant='outline'
-          className={`${
-            getTypeColor(item.type).split(" ")[0]
-          } text-xs font-mono whitespace-nowrap overflow-hidden text-ellipsis`}
-        >
-          {item.type === "string" ? `"${String(item.value)}"` : String(item.value)}
-        </Badge>
-      ))}
-    </div>
-  )
-}
+  // Verificar si el array contiene objetos
+  const containsObjects = items.some(
+    (item) =>
+      item.type === "objeto" || (item.value && typeof item.value === "object")
+  );
 
-const ObjectArrayCarousel = ({ items }: ArrayCellProps): ReactElement => {
-  const [api, setApi] = React.useState<CarouselApi>()
-  const [current, setCurrent] = React.useState<number | null>(null)
-  const [count, setCount] = React.useState<number | null>(null)
+  if (!containsObjects) {
+    return (
+      <div className='flex flex-wrap gap-1.5 max-w-full'>
+        {items.map((item: ProcessedValue | unknown, index) => {
+          const processedItem = isProcessedValue(item)
+            ? item
+            : processValue(item, `item-${index}`);
 
-  React.useEffect(() => {
-    if (!api) return
-
-    const initializeCarousel = () => {
-      const totalSlides = api.scrollSnapList().length
-      setCount(totalSlides)
-      setCurrent(api.selectedScrollSnap() + 1)
-    }
-
-    initializeCarousel()
-
-    const handleSelect = () => {
-      setCurrent(api.selectedScrollSnap() + 1)
-    }
-
-    api.on("select", handleSelect)
-    return () => {
-      api.off("select", handleSelect)
-    }
-  }, [api])
-
-  return (
-    <div className="w-full relative">
-      <Carousel
-        setApi={setApi}
-        className="w-full"
-        opts={{
-          align: "start",
-        }}
-      >
-        <CarouselContent>
-          {items.map((item, index) => (
-            <CarouselItem
-              key={`carousel-item-${index}`}
-              className='basis-full pl-4'
+          return (
+            <Badge
+              key={`array-item-${index}`}
+              variant='outline'
+              className={`${
+                getTypeColor(processedItem.type).split(" ")[0]
+              } text-xs font-mono whitespace-nowrap overflow-hidden text-ellipsis`}
             >
-              <div
-                role='group'
-                aria-roledescription='slide'
-                className='min-w-0'
-              >
-                <div className='p-1'>
-                  <ObjectCard value={item} compact />
-                </div>
-              </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <div className='flex items-center justify-between w-full absolute top-1/2 -translate-y-1/2 px-4'>
-          <CarouselPrevious className='h-7 w-7 relative translate-y-0 left-0' />
-          <CarouselNext className='h-7 w-7 relative translate-y-0 right-0' />
-        </div>
-        {current !== null && count !== null && (
-          <div className="flex items-center gap-1 text-xs bg-white/80 px-2 py-1 rounded-md shadow-sm border absolute right-6 top-3">
-            <span>{current}</span>
-            <span>/</span>
-            <span>{count}</span>
-          </div>
-        )}
-      </Carousel>
-    </div>
-  )
-}
-
-export function ArrayCell({ items }: ArrayCellProps): ReactElement {
-  const containsObjects = items.some((item) => item.type === "objeto")
-
-  if (containsObjects) {
-    // If there's only one item, render it directly without carousel
-    if (items.length === 1) {
-      return (
-        <div className='p-1'>
-          <ObjectCard value={items[0]} compact />
-        </div>
-      );
-    }
-    return <ObjectArrayCarousel items={items} />;
+              {processedItem.type === "string"
+                ? `"${String(processedItem.value)}"`
+                : processedItem.type === "boolean"
+                ? processedItem.value
+                  ? "verdadero"
+                  : "falso"
+                : processedItem.type === "número"
+                ? Number(processedItem.value).toLocaleString()
+                : String(processedItem.value)}
+            </Badge>
+          );
+        })}
+      </div>
+    );
   }
 
-  return <SimpleArrayDisplay items={items} />
-}
+  return (
+    <div className='pl-4 border-l border-muted'>
+      {items.map((item, index) => (
+        <div
+          key={`array-item-${index}`}
+          className='flex items-center gap-2 w-full text-left py-0.5 hover:bg-muted/50 rounded px-1'
+        >
+          <ObjectCard value={item} showLabels compact={true} />
+        </div>
+      ))}
+    </div>
+  );
+};
 
+const ObjectArrayAccordion = ({ items }: ArrayCellProps): ReactElement => {
+  const processedItems = React.useMemo(() => {
+    // Obtener todas las propiedades únicas
+    const allProperties = items.reduce((props, item) => {
+      if (isProcessedValue(item) && item.type === "objeto") {
+        const itemProps = Object.keys(item.value as Record<string, unknown>);
+        itemProps.forEach((prop) => props.add(prop));
+      }
+      return props;
+    }, new Set<string>());
+
+    return items.map((item, index) => {
+      if (isProcessedValue(item) && item.type === "objeto") {
+        const processedProperties = Object.entries(
+          item.value as Record<string, unknown>
+        ).map(([key, val]) => ({
+          id: key,
+          path: [key],
+          ...processValue(val, key),
+          label: key,
+        }));
+
+        // Encontrar una propiedad única para el título
+        let title = "Item";
+        for (const prop of allProperties) {
+          const propValue = (item.value as Record<string, unknown>)[prop];
+          if (propValue) {
+            // Si la propiedad es única, usar solo el nombre de la propiedad
+            const propCount = items.filter(
+              (i) =>
+                i.type === "objeto" &&
+                (i.value as Record<string, unknown>)[prop] === propValue
+            ).length;
+
+            if (propCount === 1) {
+              title = `${prop}: ${String(propValue)}`;
+              break;
+            } else {
+              title = `${String(propValue)} (${prop})`;
+            }
+          }
+        }
+
+        return {
+          type: "objeto",
+          value: item.value,
+          items: processedProperties,
+          id: `item-${index}`,
+          path: item.path || [`item-${index}`],
+          title,
+        };
+      }
+      return item;
+    });
+  }, [items]);
+
+  return (
+    <ScrollArea className='h-[200px] w-full rounded-md border'>
+      <div className='min-w-[max-content]'>
+        <Accordion type='multiple' className='w-full'>
+          {processedItems.map((item, index) => (
+            <AccordionItem
+              key={`accordion-item-${index}`}
+              value={`item-${index}`}
+              className='border-b last:border-b-0 bg-background/50 py-0'
+            >
+              <AccordionTrigger className='py-1.5 px-3 text-sm hover:no-underline'>
+                <div className='flex items-center gap-2 w-full'>
+                  <span className='text-xs text-muted-foreground shrink-0'>
+                    {index + 1}.
+                  </span>
+                  <span className='text-sm font-medium min-w-[max-content]'>
+                    {item.title || "Item"}
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className='px-3 py-1'>
+                <ScrollArea className='w-full' type='hover'>
+                  <div className='min-w-[max-content]'>
+                    <ObjectCard value={item} compact showLabels={true} />
+                  </div>
+                </ScrollArea>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
+    </ScrollArea>
+  );
+};
+
+export function ArrayCell({ items }: ArrayCellProps): ReactElement {
+  const containsObjects = items.some(
+    (item) =>
+      item.type === "objeto" || (item.value && typeof item.value === "object")
+  );
+
+  if (!containsObjects) {
+    return <SimpleArrayDisplay items={items} />;
+  }
+
+  return <ObjectArrayAccordion items={items} />;
+}

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -14,33 +16,26 @@ export function BooleanFilter({
   columnName,
   columnType,
 }: FilterComponentProps) {
-  const [value, setValue] = useState<boolean | null>(
-    initialValue?.value === "true" || initialValue?.value === true
-      ? true
-      : initialValue?.value === "false" || initialValue?.value === false
-      ? false
-      : null
-  );
-
-  const handleApply = () => {
-    if (value === null) {
-      onClear();
-    } else {
-      onApply({
-        field: columnId,
-        operator: "equals",
-        value: String(value),
-      });
-    }
-    onClose();
-  };
+  const [value, setValue] = useState<boolean | null>(() => {
+    if (!initialValue) return null;
+    const val = initialValue.value;
+    if (typeof val === "boolean") return val;
+    if (val === 1 || val === "1") return true;
+    if (val === 0 || val === "0") return false;
+    return null;
+  });
 
   const handleSwitchChange = (newValue: boolean | null) => {
-    if (value === newValue) {
-      setValue(null);
-    } else {
-      setValue(newValue);
-    }
+    setValue(newValue === value ? null : newValue);
+  };
+
+  const handleApply = () => {
+    onApply({
+      field: columnId,
+      value: value,
+      operator: "equals",
+    });
+    onClose();
   };
 
   return (
@@ -93,7 +88,7 @@ export function BooleanFilter({
 
         <div className='text-sm text-muted-foreground'>
           Valor seleccionado:{" "}
-          {value === null ? "Todos" : value ? "Verdadero" : "Falso"}
+          {value === null ? "Todos" : value ? "Verdadero (1)" : "Falso (0)"}
         </div>
       </div>
 

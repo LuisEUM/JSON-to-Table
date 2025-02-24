@@ -1,17 +1,29 @@
-import { TypeDot } from "./type-dot"
-
-const types = ["string", "número entero", "número decimal", "boolean", "fecha", "null", "undefined", "objeto", "array"]
+import { TypeDot } from "./type-dot";
+import { getTypeLabel } from "../utils/colors";
 
 export function TypeLegend() {
+  const types = [
+    "string",
+    "número",
+    "boolean",
+    "fecha",
+    "array",
+    "objeto",
+    "null",
+    "undefined",
+  ];
+
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 px-2">
+    <div className='flex flex-wrap gap-2 mt-4'>
       {types.map((type) => (
-        <div key={type} className="flex items-center gap-2">
+        <div
+          key={type}
+          className='flex items-center gap-1 text-xs text-muted-foreground'
+        >
           <TypeDot type={type} />
-          <span className="text-sm text-slate-600 whitespace-nowrap">{type}</span>
+          <span>{getTypeLabel(type)}</span>
         </div>
       ))}
     </div>
-  )
+  );
 }
-

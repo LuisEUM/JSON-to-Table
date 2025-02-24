@@ -34,24 +34,41 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
     );
   }
 
-  const value = (accessorValue as ProcessedItem)?.value ?? firstValue;
-  const type = (accessorValue as ProcessedItem)?.type;
+  // Procesar y unificar valores únicos
+  const uniqueValuesMap = new Map<string, number>();
 
-  const columnName = column.id.split(".").pop() || column.id;
-
-  // Get unique values and their counts using faceted values
-  const uniqueValues = Array.from(
-    column.getFacetedUniqueValues().entries()
-  ).map(([value, count]) => {
+  column.getFacetedUniqueValues().forEach((count, value) => {
     const processedValue = value as ProcessedItem;
-    return {
-      value: processedValue?.value
-        ? String(processedValue.value)
-        : String(value),
+    const stringValue = processedValue?.value
+      ? String(processedValue.value)
+      : String(value);
+
+    // Sumar el contador para valores iguales
+    uniqueValuesMap.set(
+      stringValue,
+      (uniqueValuesMap.get(stringValue) || 0) + count
+    );
+  });
+
+  // Convertir el Map a array de objetos
+  const uniqueValues = Array.from(uniqueValuesMap.entries()).map(
+    ([value, count]) => ({
+      value,
       count,
       original: value,
-    };
+    })
+  );
+
+  console.log("🔍 Valores únicos procesados:", {
+    columnId: column.id,
+    uniqueValues: uniqueValues.map((v) => ({
+      value: v.value,
+      count: v.count,
+    })),
   });
+
+  const type = (accessorValue as ProcessedItem)?.type;
+  const columnName = column.id.split(".").pop() || column.id;
 
   // Get min and max values for number columns
   const [minValue, maxValue] = column.getFacetedMinMaxValues() ?? [
@@ -72,51 +89,20 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
     },
   };
 
-  console.log("FilterFactory - Columna abierta:", columnName);
-  console.log("FilterFactory - Tipo de columna:", type);
-  console.log(
-    "FilterFactory - Valores únicos:",
-    JSON.stringify(uniqueValues, null, 2)
-  );
-  console.log("FilterFactory - Valor mínimo:", minValue);
-  console.log("FilterFactory - Valor máximo:", maxValue);
-
-  const FilterComponent = (() => {
-    if (type === "fecha" || value instanceof Date) {
-      return <DateFilter {...filterProps} />;
-    }
-
-    if (
-      type === "número entero" ||
-      type === "número decimal" ||
-      typeof value === "number"
-    ) {
-      return <NumberFilter {...filterProps} />;
-    }
-
-    if (type === "boolean" || typeof value === "boolean") {
-      return <BooleanFilter {...filterProps} />;
-    }
-
-    if (type === "array") {
-      return (
-        <ArrayFilter
-          {...filterProps}
-          arrayType={(accessorValue as ProcessedItem)?.items?.[0]?.type}
-        />
-      );
-    }
-
-    return <StringFilter {...filterProps} />;
-  })();
-
   return (
     <>
-      <DialogTitle className='sr-only'>
-        Filtro para columna: {columnName}
-      </DialogTitle>
-      {FilterComponent}
+      <DialogTitle className='sr-only'>Filtro de columna</DialogTitle>
+      {type === "array" ? (
+        <ArrayFilter {...filterProps} />
+      ) : type === "fecha" ? (
+        <DateFilter {...filterProps} />
+      ) : type === "número" ? (
+        <NumberFilter {...filterProps} />
+      ) : type === "boolean" ? (
+        <BooleanFilter {...filterProps} />
+      ) : (
+        <StringFilter {...filterProps} />
+      )}
     </>
   );
 }
-

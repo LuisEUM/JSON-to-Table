@@ -159,35 +159,68 @@ function getTanStackPinningStyles(
 interface JsonTableProps {
   data: Record<string, unknown>[];
   isSecondaryTable?: boolean;
+  onArrayColumnsChange?: (
+    columns: {
+      id: string;
+      label: string;
+      data: Record<string, unknown>[];
+    }[]
+  ) => void;
+  parentTableInfo?: {
+    id: string;
+    name: string;
+  };
 }
 
-export function JsonTable({ data, isSecondaryTable = false }: JsonTableProps) {
-  // Estado de datos
+export function JsonTable({
+  data,
+  isSecondaryTable = false,
+  onArrayColumnsChange,
+  parentTableInfo,
+}: JsonTableProps) {
+  // 1. Todos los useState primero
   const [tableData, setTableData] = useState(data);
-
-  // Estados de TanStack
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
-
-  // Para permitir fijar (pin) una columna extra a la izquierda
   const [useFixedColumn, setUseFixedColumn] = useState(false);
   const [fixedColumnId, setFixedColumnId] = useState<string | null>(null);
-
-  // Guardar el orden original de columnas, si se usa en tu modal
   const [originalColumnOrder, setOriginalColumnOrder] = useState<string[]>([]);
-
-  // Añadir estado para el filtro global
   const [globalFilter, setGlobalFilter] = useState("");
+  const [arrayColumns, setArrayColumns] = useState<
+    {
+      id: string;
+      label: string;
+      data: Record<string, unknown>[];
+      parentTable?: {
+        id: string;
+        name: string;
+      };
+    }[]
+  >([]);
+  const [uniqueArrayColumns] = useState(
+    () =>
+      new Map<
+        string,
+        {
+          id: string;
+          label: string;
+          data: Record<string, unknown>[];
+          parentTable?: {
+            id: string;
+            name: string;
+          };
+        }
+      >()
+  );
 
-  // Procesamos los datos
+  // 2. Todos los useMemo
   const processedData = useMemo(
     () => tableData.map((item) => processData(item)),
     [tableData]
   );
 
-  // Manejar "delete"
   const handleDelete = useCallback((index: number) => {
     setTableData((prev) => {
       const newData = [...prev];
@@ -197,34 +230,75 @@ export function JsonTable({ data, isSecondaryTable = false }: JsonTableProps) {
     });
   }, []);
 
-  // Columna de acciones
   const actionsColumn = useMemo(
     () => createActionsColumn(handleDelete),
     [handleDelete]
   );
 
-  // Columnas base (definidas con tu lógica)
   const baseColumns = useMemo<ColumnDef<ProcessedRow>[]>(() => {
     if (!processedData[0]) return [];
     return columns(processedData[0]);
   }, [processedData]);
 
-  // Definimos el orden de las columnas
   const tableColumns = useMemo<ColumnDef<ProcessedRow>[]>(() => {
     return [selectionColumn, indexColumn, ...baseColumns, actionsColumn];
   }, [baseColumns, actionsColumn]);
 
-  // Convertimos ProcessedItem[] => ProcessedRow[] para la tabla
   const processedTableData = useMemo(() => {
-    return processedData.map((items) =>
-      items.reduce<ProcessedRow>((acc, item) => {
+    return processedData.map((items: ProcessedItem[]) => {
+      const row = items.reduce<ProcessedRow>((acc, item) => {
         acc[item.id] = item;
         return acc;
-      }, {})
-    );
-  }, [processedData]);
+      }, {});
 
-  // Instanciamos la tabla
+      const rowId =
+        row["id"]?.value ||
+        Object.values(row).find((item) => item.isId)?.value ||
+        Object.values(row).find((item) =>
+          item.path?.[item.path.length - 1].toLowerCase().includes("id")
+        )?.value;
+
+      console.log("📝 Procesando fila para arrays:", {
+        rowId,
+        hasId: !!rowId,
+        rowKeys: Object.keys(row),
+      });
+
+      Object.values(row).forEach((item) => {
+        if (item.type === "array" && item.items?.[0]?.type === "objeto") {
+          const columnId = item.path.join(".");
+
+          if (!uniqueArrayColumns.has(columnId)) {
+            const processedData =
+              item.items?.map((subItem) => {
+                console.log("🔄 Procesando subitem:", {
+                  parentId: rowId,
+                  columnId,
+                  subItemType: subItem.type,
+                });
+
+                return {
+                  ...(subItem.value as object),
+                  __parentId: rowId,
+                  __parentTable: parentTableInfo?.id || columnId,
+                };
+              }) || [];
+
+            uniqueArrayColumns.set(columnId, {
+              id: columnId,
+              label: item.path.join("."),
+              data: processedData,
+              parentTable: parentTableInfo,
+            });
+          }
+        }
+      });
+
+      return row;
+    });
+  }, [processedData, parentTableInfo, uniqueArrayColumns]);
+
+  // 3. Instancia de la tabla
   const table = useReactTable({
     data: processedTableData,
     columns: tableColumns,
@@ -331,43 +405,7 @@ export function JsonTable({ data, isSecondaryTable = false }: JsonTableProps) {
     },
   });
 
-  useEffect(() => {
-    if (!originalColumnOrder.length) {
-      setOriginalColumnOrder(table.getAllLeafColumns().map((col) => col.id));
-    }
-  }, [table, originalColumnOrder]);
-
-  // Guardamos el orden inicial de columnas (para tu modal, si hace falta)
-  useEffect(() => {
-    if (!originalColumnOrder.length) {
-      setOriginalColumnOrder(table.getAllLeafColumns().map((col) => col.id));
-    }
-  }, [table, originalColumnOrder]);
-
-  // Efecto para "pinear" columnas a la izquierda/derecha
-  useEffect(() => {
-    // Si hay una columna fija, ocultamos el índice y mostramos la columna fija
-    // Si no hay columna fija, mostramos el índice
-    const indexColumn = table.getColumn("index");
-    if (indexColumn) {
-      indexColumn.toggleVisibility(!useFixedColumn);
-    }
-
-    // Configuramos el pinning
-    const leftPins = ["selection"];
-    if (useFixedColumn && fixedColumnId) {
-      leftPins.push(fixedColumnId);
-    } else {
-      leftPins.push("index");
-    }
-
-    table.setColumnPinning({
-      left: leftPins,
-      right: ["actions"],
-    });
-  }, [useFixedColumn, fixedColumnId, table]);
-
-  // Método para aplicar filtros (usado por tu FilterContext)
+  // 4. Callbacks
   const applyFilter = useCallback(
     (columnId: string, filterValue: FilterCondition) => {
       table.getColumn(columnId)?.setFilterValue(filterValue);
@@ -382,36 +420,62 @@ export function JsonTable({ data, isSecondaryTable = false }: JsonTableProps) {
     [applyFilter]
   );
 
-  const [arrayColumns, setArrayColumns] = useState<
-    {
-      id: string;
-      label: string;
-      data: Record<string, unknown>[];
-    }[]
-  >([]);
+  // 5. Efectos
+  useEffect(() => {
+    if (!processedData.length) {
+      setArrayColumns([]);
+      return;
+    }
+
+    const newArrayColumns = Array.from(uniqueArrayColumns.values());
+    console.log("📊 Array columns procesadas:", {
+      count: newArrayColumns.length,
+      columns: newArrayColumns.map((col) => ({
+        id: col.id,
+        dataLength: col.data.length,
+        firstItemParentId: col.data[0]?.__parentId,
+      })),
+    });
+
+    setArrayColumns(newArrayColumns);
+
+    if (isSecondaryTable && onArrayColumnsChange) {
+      onArrayColumnsChange(newArrayColumns);
+    }
+  }, [
+    processedData,
+    parentTableInfo,
+    isSecondaryTable,
+    onArrayColumnsChange,
+    uniqueArrayColumns,
+  ]);
 
   useEffect(() => {
-    const handleShowSecondaryTable = (event: CustomEvent) => {
-      const { id, label, data } = event.detail;
-      setArrayColumns((prev) => {
-        const exists = prev.some((col) => col.id === id);
-        if (exists) return prev;
-        return [...prev, { id, label, data }];
-      });
-    };
+    if (!originalColumnOrder.length) {
+      setOriginalColumnOrder(table.getAllLeafColumns().map((col) => col.id));
+    }
+  }, [table, originalColumnOrder]);
 
-    window.addEventListener(
-      "showSecondaryTable",
-      handleShowSecondaryTable as EventListener
-    );
-    return () => {
-      window.removeEventListener(
-        "showSecondaryTable",
-        handleShowSecondaryTable as EventListener
-      );
-    };
-  }, []);
+  useEffect(() => {
+    const indexColumn = table.getColumn("index");
+    if (indexColumn) {
+      indexColumn.toggleVisibility(!useFixedColumn);
+    }
 
+    const leftPins = ["selection"];
+    if (useFixedColumn && fixedColumnId) {
+      leftPins.push(fixedColumnId);
+    } else {
+      leftPins.push("index");
+    }
+
+    table.setColumnPinning({
+      left: leftPins,
+      right: ["actions"],
+    });
+  }, [useFixedColumn, fixedColumnId, table]);
+
+  // 6. Render
   return (
     <FilterContext.Provider value={filterContextValue}>
       <CardContent className='relative'>
@@ -546,7 +610,9 @@ export function JsonTable({ data, isSecondaryTable = false }: JsonTableProps) {
         <TypeLegend />
 
         {/* Tablas secundarias */}
-        {!isSecondaryTable && <SecondaryTables arrayColumns={arrayColumns} />}
+        {!isSecondaryTable && arrayColumns.length > 0 && (
+          <SecondaryTables arrayColumns={arrayColumns} />
+        )}
       </CardContent>
     </FilterContext.Provider>
   );

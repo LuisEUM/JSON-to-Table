@@ -1,7 +1,12 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,65 +16,63 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { MoreHorizontal, Copy, Trash2, FileSearch } from "lucide-react"
-import { useState } from "react"
-import { toast } from "sonner"
-import type { ProcessedRow } from "../data-processor"
-import { DetailsModal } from "./details-modal"
+} from "@/components/ui/alert-dialog";
+import { MoreHorizontal, Copy, Trash2, FileSearch } from "lucide-react";
+import { useState } from "react";
+import type { ProcessedRow } from "../data-processor";
+import { DetailsModal } from "./details-modal";
 
 interface ActionButtonsProps {
-  row: ProcessedRow
-  onDelete: () => void
+  row: ProcessedRow;
+  onDelete: () => void;
 }
 
 export function ActionButtons({ row, onDelete }: ActionButtonsProps) {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  const idField = Object.values(row).find((item) => item.isId);
+  const hasId = Boolean(idField);
 
   const handleCopy = () => {
-    const idField = Object.entries(row).find(
-      ([key]) => key.toLowerCase().includes("id") || key.toLowerCase().endsWith("id"),
-    )
-
     if (idField) {
-      const idValue = String(idField[1].value)
-      navigator.clipboard
-        .writeText(idValue)
-        .then(() => {
-          toast.success("ID copiado al portapapeles")
-        })
-        .catch(() => {
-          toast.error("Error al copiar ID")
-        })
-    } else {
-      toast.error("No se encontró un campo ID para copiar")
+      navigator.clipboard.writeText(String(idField.value));
     }
-  }
+  };
 
-  const hasId = Object.keys(row).some((key) => key.toLowerCase().includes("id") || key.toLowerCase().endsWith("id"))
+  const rowAsProcessedValue = {
+    type: "objeto",
+    value: row,
+    items: Object.entries(row).map(([key, value]) => ({
+      ...value,
+      label: key,
+    })),
+  };
 
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <MoreHorizontal className="h-4 w-4" />
+          <Button variant='ghost' className='h-8 w-8 p-0'>
+            <MoreHorizontal className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align='end'>
           {hasId && (
             <DropdownMenuItem onClick={handleCopy}>
-              <Copy className="mr-2 h-4 w-4" />
+              <Copy className='mr-2 h-4 w-4' />
               <span>Copiar ID</span>
             </DropdownMenuItem>
           )}
           <DropdownMenuItem onClick={() => setShowDetailsModal(true)}>
-            <FileSearch className="mr-2 h-4 w-4" />
+            <FileSearch className='mr-2 h-4 w-4' />
             <span>Ver detalles</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive">
-            <Trash2 className="mr-2 h-4 w-4" />
+          <DropdownMenuItem
+            onClick={() => setShowDeleteDialog(true)}
+            className='text-destructive'
+          >
+            <Trash2 className='mr-2 h-4 w-4' />
             <span>Eliminar</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -80,16 +83,17 @@ export function ActionButtons({ row, onDelete }: ActionButtonsProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente este registro.
+              Esta acción no se puede deshacer. Esto eliminará permanentemente
+              este registro.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
               onClick={() => {
-                onDelete()
-                setShowDeleteDialog(false)
+                onDelete();
+                setShowDeleteDialog(false);
               }}
             >
               Eliminar
@@ -98,8 +102,12 @@ export function ActionButtons({ row, onDelete }: ActionButtonsProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <DetailsModal row={row} isOpen={showDetailsModal} onClose={() => setShowDetailsModal(false)} />
+      <DetailsModal
+        open={showDetailsModal}
+        onOpenChange={setShowDetailsModal}
+        data={rowAsProcessedValue}
+        title='Detalles del registro'
+      />
     </>
-  )
+  );
 }
-
