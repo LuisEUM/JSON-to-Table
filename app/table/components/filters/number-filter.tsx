@@ -11,6 +11,8 @@ import type { FilterComponentProps, FilterOperator } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
 import { getTypeColor } from "../type-badge";
 import { Slider } from "@/components/ui/slider";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const OPERATORS: { label: string; value: FilterOperator }[] = [
   { label: "Mayor que", value: "greaterThan" },
@@ -79,6 +81,15 @@ export function NumberFilter({
     }
     onClose();
   };
+
+  const filteredOptions = uniqueValues
+    .map((option) => ({
+      ...option,
+      value: Number(option.value),
+      isDisabled: option.value === undefined || isNaN(Number(option.value)),
+    }))
+    .filter((option) => !option.isDisabled)
+    .sort((a, b) => a.value - b.value);
 
   return (
     <div className="w-full space-y-4">
@@ -180,6 +191,37 @@ export function NumberFilter({
       </div>
 
       <FilterFooter onClear={onClear} onClose={onClose} onApply={handleApply} />
+
+      <ScrollArea className='flex-grow border rounded-md bg-muted/30 p-2'>
+        <div className='space-y-2'>
+          {filteredOptions.map((option, index) => (
+            <div
+              key={`${option.value}-${index}`}
+              className={`flex items-center justify-between ${
+                option.isDisabled ? "opacity-50" : ""
+              }`}
+            >
+              <div className='flex items-center space-x-2'>
+                <Checkbox
+                  checked={selectedValues.includes(option.value)}
+                  onCheckedChange={() => handleToggle(option.value)}
+                  disabled={option.isDisabled}
+                  aria-label={option.isDisabled ? "Valor no filtrable" : undefined}
+                />
+                <label
+                  className={`text-sm ${option.isDisabled ? "italic" : ""}`}
+                >
+                  {option.value.toLocaleString()}
+                  {option.isDisabled && " (no filtrable)"}
+                </label>
+              </div>
+              <span className='text-sm text-muted-foreground'>
+                {option.count}
+              </span>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
     </div>
   );
 }

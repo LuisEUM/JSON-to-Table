@@ -28,6 +28,7 @@ export function StringFilter({
             typeof v === "boolean" ? (v ? "verdadero" : "falso") : String(v)
           )
           .filter(Boolean)
+          .filter((v) => v !== "undefined")
       : []
   );
 
@@ -35,18 +36,25 @@ export function StringFilter({
     .map((option) => ({
       ...option,
       value:
-        typeof option.value === "boolean"
+        option.value === undefined
+          ? "undefined"
+          : typeof option.value === "boolean"
           ? option.value
             ? "verdadero"
             : "falso"
           : String(option.value),
+      isDisabled: option.value === undefined || option.value === null,
     }))
     .filter((option) =>
       option.value.toLowerCase().includes(search.toLowerCase())
     );
 
   const handleSelectAll = () => {
-    setSelectedValues(filteredOptions.map((option) => option.value));
+    setSelectedValues(
+      filteredOptions
+        .filter((option) => !option.isDisabled && option.value !== "undefined")
+        .map((option) => option.value)
+    );
   };
 
   const handleClearSelection = () => {
@@ -55,9 +63,11 @@ export function StringFilter({
 
   const handleToggle = (value: string) => {
     setSelectedValues((current) =>
-      current.includes(value)
+      current.includes(value) && value !== "undefined"
         ? current.filter((v) => v !== value)
-        : [...current, value]
+        : value !== "undefined"
+        ? [...current, value]
+        : current
     );
   };
 
@@ -68,7 +78,7 @@ export function StringFilter({
       onApply({
         field: columnId,
         operator: "in",
-        value: selectedValues,
+        value: selectedValues.filter((v) => v !== "undefined"),
       });
     }
     onClose();
@@ -113,14 +123,35 @@ export function StringFilter({
             {filteredOptions.map((option, index) => (
               <div
                 key={`${option.value}-${index}`}
-                className='flex items-center justify-between'
+                className={`flex items-center justify-between ${
+                  option.isDisabled ? "opacity-50" : ""
+                }`}
               >
                 <div className='flex items-center space-x-2'>
                   <Checkbox
-                    checked={selectedValues.includes(option.value)}
+                    checked={
+                      option.value !== "undefined" &&
+                      selectedValues.includes(option.value)
+                    }
                     onCheckedChange={() => handleToggle(option.value)}
+                    disabled={option.isDisabled || option.value === "undefined"}
+                    aria-label={
+                      option.isDisabled || option.value === "undefined"
+                        ? "Valor no filtrable"
+                        : undefined
+                    }
                   />
-                  <label className='text-sm'>{option.value}</label>
+                  <label
+                    className={`text-sm ${
+                      option.isDisabled || option.value === "undefined"
+                        ? "italic"
+                        : ""
+                    }`}
+                  >
+                    {option.value}
+                    {(option.isDisabled || option.value === "undefined") &&
+                      " (no filtrable)"}
+                  </label>
                 </div>
                 <span className='text-sm text-muted-foreground'>
                   {option.count}

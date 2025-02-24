@@ -15,6 +15,7 @@ interface FilterItem {
   value: unknown;
   count: number;
   type?: string;
+  isDisabled?: boolean;
 }
 
 export function ArrayFilter({
@@ -57,12 +58,12 @@ export function ArrayFilter({
 
   const filteredValues = Array.from(allUniqueValues.entries())
     .map(([value, count]): FilterItem => {
-      // Procesar el valor para determinar su tipo
       const processedValue = processValue(value, columnId);
       return {
         value,
         count,
         type: processedValue.type,
+        isDisabled: value === undefined || value === null,
       };
     })
     .filter((item) =>
@@ -77,6 +78,14 @@ export function ArrayFilter({
       value: selectedValues as FilterValue[],
     });
     onClose();
+  };
+
+  const handleSelectAll = () => {
+    setSelectedValues(
+      filteredValues
+        .filter((item) => !item.isDisabled)
+        .map((item) => item.value as FilterValue)
+    );
   };
 
   const formatValue = (value: unknown): string => {
@@ -117,12 +126,14 @@ export function ArrayFilter({
         <div className='flex-grow space-y-6'>
           <ScrollArea className='flex-1'>
             <div className='space-y-2'>
-              {filteredValues.map(({ value, count, type }) => {
+              {filteredValues.map(({ value, count, type, isDisabled }) => {
                 const valueString = formatValue(value);
                 return (
                   <div
                     key={valueString}
-                    className='flex items-center space-x-2 px-2 py-1.5 hover:bg-muted/50 rounded-sm'
+                    className={`flex items-center space-x-2 px-2 py-1.5 hover:bg-muted/50 rounded-sm ${
+                      isDisabled ? "opacity-50" : ""
+                    }`}
                   >
                     <div className='flex items-center justify-between w-full'>
                       <Checkbox
@@ -135,16 +146,21 @@ export function ArrayFilter({
                               : selectedValues.filter((v) => v !== value)
                           );
                         }}
+                        disabled={isDisabled}
+                        aria-label={isDisabled ? "Valor no filtrable" : undefined}
                       />
                       <label
                         htmlFor={valueString}
-                        className='cursor-pointer text-sm flex-1 flex items-center gap-2 ml-2'
+                        className={`cursor-pointer text-sm flex-1 flex items-center gap-2 ml-2 ${
+                          isDisabled ? "italic" : ""
+                        }`}
                       >
                         <TypeDot type={type || "unknown"} />
                         <span>{valueString}</span>
                         <span className='text-xs text-muted-foreground'>
                           ({count})
                         </span>
+                        {isDisabled && <span>(no filtrable)</span>}
                       </label>
                     </div>
                   </div>

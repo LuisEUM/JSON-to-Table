@@ -279,11 +279,12 @@ export function JsonTable({
           if (!uniqueArrayColumns.has(columnId)) {
             const processedData =
               item.items?.map((subItem) => {
-                console.log("🔄 Procesando subitem:", {
-                  parentId: rowId,
-                  columnId,
-                  subItemType: subItem.type,
-                });
+                /* 
+                  Procesamiento de subitem:
+                  - ID padre: ${rowId}
+                  - ID columna: ${columnId}
+                  - Tipo de subitem: ${subItem.type}
+                */
 
                 return {
                   ...(subItem.value as object),

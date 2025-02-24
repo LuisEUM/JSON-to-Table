@@ -10,7 +10,7 @@ export const getTypeColor = (type: string): string => {
       text: "text-green-700",
       border: "border-green-200",
     },
-    "número": {
+    número: {
       bg: "bg-blue-200",
       text: "text-blue-700",
       border: "border-blue-200",

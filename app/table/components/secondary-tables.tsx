@@ -26,17 +26,18 @@ export function SecondaryTables({
   level = 0,
   parentId,
 }: SecondaryTablesProps) {
-  console.log("🎯 Renderizando SecondaryTables:", {
-    level,
-    parentId,
-    arrayColumnsCount: arrayColumns.length,
-    arrayColumns: arrayColumns.map((col) => ({
+  /* 
+    Renderizado de tablas secundarias:
+    - Nivel: ${level}
+    - ID padre: ${parentId}
+    - Número de columnas array: ${arrayColumns.length}
+    - Columnas: ${arrayColumns.map((col) => ({
       id: col.id,
       label: col.label,
       dataLength: col.data.length,
       firstItemParentId: col.data[0]?.__parentId,
-    })),
-  });
+    }))}
+  */
 
   // Usar useMemo para el Set inicial
   const initialSelectedTables = useMemo(
