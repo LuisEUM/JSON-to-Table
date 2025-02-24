@@ -4,7 +4,7 @@ import { sampleData } from "./data/sample-data"
 
 export default function JsonAnalyzerPage() {
   return (
-    <div className="container py-10">
+    <div className="py-10">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>JSON Type Analyzer</CardTitle>

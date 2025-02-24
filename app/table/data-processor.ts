@@ -1,3 +1,11 @@
+import type { FilterFn } from "@tanstack/react-table";
+
+declare module "@tanstack/table-core" {
+  interface FilterFns {
+    processedValueFilter: FilterFn<ProcessedRow>;
+  }
+}
+
 export const isDate = (value: unknown): boolean => {
   return (
     typeof value === "string" &&
@@ -62,13 +70,20 @@ export const flattenObject = (
   );
 };
 
-export const processValue = (value: unknown): ProcessedValue => {
+export const processValue = (
+  value: unknown,
+  parentId?: string
+): ProcessedValue => {
   if (value === null) return { value: "null", type: "null" };
   if (value === undefined) return { value: "undefined", type: "undefined" };
 
   if (typeof value === "string") {
     if (!isNaN(Date.parse(value)) && value.includes("T")) {
-      return { value: new Date(value).toLocaleString(), type: "fecha" };
+      return {
+        value: new Date(value).toLocaleString(),
+        type: "fecha",
+        rawValue: value,
+      };
     }
     return { value: value, type: "string" };
   }
@@ -85,83 +100,93 @@ export const processValue = (value: unknown): ProcessedValue => {
   }
 
   if (Array.isArray(value)) {
+    const items = value.map((item) => processValue(item));
     return {
       value: value,
       type: "array",
-      items: value.map(processValue),
+      items,
+      parentId,
     };
   }
 
   if (typeof value === "object" && value !== null) {
-    const processed: Record<string, ProcessedValue> = {};
-    for (const [key, val] of Object.entries(value)) {
-      processed[key] = processValue(val);
-    }
-    return { value: processed, type: "objeto" };
+    return {
+      value: value,
+      type: "objeto",
+    };
   }
 
-  return { value: String(value), type: "unknown" };
+  return { value: String(value), type: "string" };
 };
 
 export interface ProcessedValue {
   value: unknown;
   type: string;
   items?: ProcessedValue[];
+  parentId?: string;
+  rawValue?: unknown;
 }
 
 export interface ProcessedItem extends ProcessedValue {
   id: string;
   path: string[];
-  groups: string[];
-  isObjectField?: boolean;
+  groups?: string[];
 }
 
 export type ProcessedRow = Record<string, ProcessedItem>;
 
+export const inferColumnType = (
+  columnName: string,
+  value: ProcessedValue
+): string => {
+  const lowerName = columnName.toLowerCase();
+
+  if (
+    lowerName.includes("fecha") ||
+    lowerName.includes("date") ||
+    lowerName.includes("time") ||
+    value.type === "fecha"
+  ) {
+    return "fecha";
+  }
+
+  if (
+    lowerName.includes("is") ||
+    lowerName.includes("has") ||
+    lowerName.includes("activo") ||
+    lowerName.includes("completado") ||
+    value.type === "boolean"
+  ) {
+    return "boolean";
+  }
+
+  if (
+    lowerName.includes("cantidad") ||
+    lowerName.includes("numero") ||
+    lowerName.includes("total") ||
+    lowerName.includes("precio") ||
+    value.type.includes("número")
+  ) {
+    return value.type.includes("entero") ? "número entero" : "número decimal";
+  }
+
+  return value.type;
+};
+
 export const processData = (data: Record<string, unknown>): ProcessedItem[] => {
   const processed: ProcessedItem[] = [];
-  const objectPaths = new Set<string>();
-
-  // 1) Identificamos todas las rutas que son objetos
-  const identifyObjects = (obj: Record<string, unknown>, prefix = ""): void => {
-    Object.entries(obj).forEach(([key, value]) => {
-      const path = prefix ? `${prefix}.${key}` : key;
-      if (
-        typeof value === "object" &&
-        value !== null &&
-        !Array.isArray(value) &&
-        !isDate(value)
-      ) {
-        objectPaths.add(path);
-        identifyObjects(value as Record<string, unknown>, path);
-      }
-    });
-  };
-  identifyObjects(data);
-
-  // 2) Aplanamos y procesamos
   const flattenedData = flattenObject(data);
 
   for (const [key, value] of Object.entries(flattenedData)) {
     const path = key.split(".");
-    const groups: string[] = [];
-    let currentPath = "";
-
-    // Construimos el array de grupos para cada propiedad
-    for (let i = 0; i < path.length - 1; i++) {
-      currentPath = currentPath ? `${currentPath}.${path[i]}` : path[i];
-      if (objectPaths.has(currentPath)) {
-        groups.push(currentPath);
-      }
-    }
-
     const processedValue = processValue(value);
+    const inferredType = inferColumnType(key, processedValue);
+
     processed.push({
       id: key,
       path,
-      groups,
       ...processedValue,
-      isObjectField: objectPaths.has(key),
+      type: inferredType,
     });
   }
 
@@ -177,19 +202,19 @@ export interface GroupedColumns {
 }
 
 export const groupColumns = (data: ProcessedItem[]) => {
+  if (!data?.length) {
+    return { rootItems: [], groups: [] };
+  }
+
   const rootItems: ProcessedItem[] = [];
   const groupTree: { [key: string]: GroupedColumns } = {};
 
-  // Identificamos root items y creamos un "árbol" de grupos
   data.forEach((item) => {
-    if (item.groups.length === 0 && !item.isObjectField) {
-      // Propiedades que no pertenecen a ningún objeto
+    if (!item.groups || item.groups.length === 0) {
       rootItems.push(item);
     } else {
       item.groups.forEach((group, index) => {
-        // IMPORTANTE: Ajustamos el "level" para que los grupos top-level empiecen en 1
         const level = index + 1;
-
         if (!groupTree[group]) {
           const path = group.split(".");
           groupTree[group] = {
@@ -204,33 +229,8 @@ export const groupColumns = (data: ProcessedItem[]) => {
     }
   });
 
-  // Asignamos los items a su último grupo
-  data.forEach((item) => {
-    if (item.groups.length > 0) {
-      const lastGroup = item.groups[item.groups.length - 1];
-      if (groupTree[lastGroup]) {
-        if (!groupTree[lastGroup].items) {
-          groupTree[lastGroup].items = [];
-        }
-        groupTree[lastGroup].items!.push(item);
-      }
-    }
-  });
-
-  // Construimos la estructura jerárquica
-  Object.values(groupTree).forEach((group) => {
-    const parentGroup = group.id.split(".").slice(0, -1).join(".");
-    if (parentGroup && groupTree[parentGroup]) {
-      if (!groupTree[parentGroup].children) {
-        groupTree[parentGroup].children = [];
-      }
-      groupTree[parentGroup].children!.push(group);
-    }
-  });
-
   return {
     rootItems,
     groups: Object.values(groupTree).filter((group) => group.level === 1),
   };
 };
-

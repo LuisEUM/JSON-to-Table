@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ArrayCell } from "../components/array-cell";
 import { TypeDot } from "../components/type-dot";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, Eye, Filter } from "lucide-react";
+import { ArrowUp, ArrowDown, Eye, Filter, Table } from "lucide-react";
 import {
   groupColumns,
   type ProcessedItem,
@@ -27,11 +27,15 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
     "boolean",
     "fecha",
   ].includes(item.type);
-  const columnName = item.path[item.path.length - 1];
+  const columnName = item.path.join(".");
+  const isArrayOfObjects =
+    item.type === "array" && item.items?.[0]?.type === "objeto";
 
   return {
     id: item.id,
     accessorFn: (row) => row[item.id],
+    enableGlobalFilter: true,
+    filterFn: "processedValueFilter",
     header: ({ column }) => {
       const isSorted = column.getIsSorted();
       const isFiltered = column.getFilterValue() !== undefined;
@@ -41,9 +45,51 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
           <div className='flex items-center justify-between gap-2'>
             <div className='flex items-center gap-2'>
               <TypeDot type={item.type} />
-              <span>{columnName}</span>
+              <span className='whitespace-nowrap overflow-hidden text-ellipsis'>
+                {columnName}
+              </span>
             </div>
             <div className='flex items-center'>
+              {isArrayOfObjects && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='h-6 w-6 p-0'
+                      onClick={() => {
+                        // Obtener todos los items del array de esta columna
+                        const allItems = column
+                          .getFacetedUniqueValues()
+                          .entries();
+                        const arrayItems = Array.from(allItems).flatMap(
+                          ([value]) => {
+                            if (!value?.items) return [];
+                            return value.items.map((item, idx) => ({
+                              ...item.value,
+                              __parentId: value.parentId || `row-${idx}`, // ID de referencia a la fila principal
+                            }));
+                          }
+                        );
+
+                        const event = new CustomEvent("showSecondaryTable", {
+                          detail: {
+                            id: item.id,
+                            label: columnName,
+                            data: arrayItems,
+                          },
+                        });
+                        window.dispatchEvent(event);
+                      }}
+                    >
+                      <Table className='h-4 w-4' />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side='top'>
+                    <p>Ver como tabla</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
               {isSortable && (
                 <div className='flex'>
                   <Tooltip>
@@ -108,9 +154,16 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
                     <FilterFactory
                       column={column}
                       columnId={column.id}
-                      columnName={column.id.split(".").pop() || column.id}
-                      columnType='unknown'
-                      uniqueValues={[]}
+                      columnName={columnName}
+                      columnType={item.type}
+                      uniqueValues={Array.from(
+                        column.getFacetedUniqueValues().entries()
+                      ).map(([value, count]) => ({
+                        label: String(value?.value || value),
+                        value: value?.value || value,
+                        count,
+                        original: value,
+                      }))}
                       onApply={(condition) => {
                         column.setFilterValue(condition);
                       }}
@@ -149,23 +202,26 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
       );
     },
     cell: ({ row }) => {
-      const value = row.getValue(item.id) as ProcessedItem
-      if (value?.type === "array") {
-        return <ArrayCell items={value.items || []} />
+      const value = row.getValue(item.id) as ProcessedItem;
+      if (!value) return null;
+
+      if (value.type === "array") {
+        return <ArrayCell items={value.items || []} />;
       }
-      return <span className='font-mono'>{String(value?.value)}</span>;
+
+      return <span className='font-mono'>{String(value.value)}</span>;
     },
     enableSorting: isSortable,
-  }
-}
+  };
+};
 
 const processGroup = (group: GroupedColumns): ColumnDef<ProcessedRow>[] => {
-  const itemColumns = group.items?.map(createColumnDef) || []
-  const childColumns = (group.children || []).flatMap(processGroup)
-  const allColumns = [...itemColumns, ...childColumns]
+  const itemColumns = group.items?.map(createColumnDef) || [];
+  const childColumns = (group.children || []).flatMap(processGroup);
+  const allColumns = [...itemColumns, ...childColumns];
 
   if (!allColumns.length) {
-    return []
+    return [];
   }
 
   return [
@@ -175,13 +231,13 @@ const processGroup = (group: GroupedColumns): ColumnDef<ProcessedRow>[] => {
       columns: allColumns,
       meta: { level: group.level },
     },
-  ]
-}
+  ];
+};
 
 export const columns = (data: ProcessedItem[]): ColumnDef<ProcessedRow>[] => {
+  if (!data?.length) return [];
   const { rootItems, groups } = groupColumns(data);
   const rootColumns = rootItems.map(createColumnDef);
   const groupedColumns = groups.flatMap(processGroup);
   return [...rootColumns, ...groupedColumns];
 };
-

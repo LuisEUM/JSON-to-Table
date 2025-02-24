@@ -50,12 +50,6 @@ export function StringFilter({
   const handleApply = () => {
     if (selectedValues.length === 0) {
       onClear();
-    } else if (selectedValues.length === 1) {
-      onApply({
-        field: columnId,
-        operator: "equals",
-        value: selectedValues[0],
-      });
     } else {
       onApply({
         field: columnId,
@@ -67,9 +61,9 @@ export function StringFilter({
   };
 
   return (
-    <div className="w-full h-full min-h-[350px] flex flex-col">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-medium">
+    <div className='w-full h-full min-h-[350px] flex flex-col'>
+      <div className='flex items-center justify-between mb-4'>
+        <h3 className='font-medium'>
           Filtro para:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
@@ -80,41 +74,41 @@ export function StringFilter({
         </h3>
       </div>
 
-      <div className="space-y-4 flex-grow flex flex-col">
-        <div className="relative">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+      <div className='space-y-4 flex-grow flex flex-col'>
+        <div className='relative'>
+          <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
           <Input
-            placeholder="Buscar valores..."
+            placeholder='Buscar valores...'
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-8"
+            className='pl-8'
           />
         </div>
 
-        <div className="flex items-center gap-2 text-sm">
-          <Button variant="outline" size="sm" onClick={handleSelectAll}>
+        <div className='flex items-center gap-2 text-sm'>
+          <Button variant='outline' size='sm' onClick={handleSelectAll}>
             Seleccionar todo
           </Button>
-          <Button variant="outline" size="sm" onClick={handleClearSelection}>
+          <Button variant='outline' size='sm' onClick={handleClearSelection}>
             Limpiar
           </Button>
         </div>
 
-        <ScrollArea className="flex-grow border rounded-md bg-muted/30 p-2">
-          <div className="space-y-2">
+        <ScrollArea className='flex-grow border rounded-md bg-muted/30 p-2 max-h-[100px] overflow-auto'>
+          <div className='space-y-2'>
             {filteredOptions.map((option, index) => (
               <div
                 key={`${option.value}-${index}`}
-                className="flex items-center justify-between"
+                className='flex items-center justify-between'
               >
-                <div className="flex items-center space-x-2">
+                <div className='flex items-center space-x-2'>
                   <Checkbox
                     checked={selectedValues.includes(option.value)}
                     onCheckedChange={() => handleToggle(option.value)}
                   />
-                  <label className="text-sm">{option.value}</label>
+                  <label className='text-sm'>{option.value}</label>
                 </div>
-                <span className="text-sm text-muted-foreground">
+                <span className='text-sm text-muted-foreground'>
                   {option.count}
                 </span>
               </div>
@@ -122,7 +116,7 @@ export function StringFilter({
           </div>
         </ScrollArea>
 
-        <div className="pt-2 text-sm text-muted-foreground">
+        <div className='pt-2 text-sm text-muted-foreground'>
           {selectedValues.length} de {uniqueValues.length} seleccionados
         </div>
       </div>

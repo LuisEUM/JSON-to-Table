@@ -14,7 +14,6 @@ import {
   type SortingState,
   type VisibilityState,
   type ColumnFiltersState,
-  type Row,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
@@ -49,6 +48,8 @@ import { TableSearch } from "./components/table-search"; // Ajusta la ruta
 import { ColumnManagerModal } from "./components/column-manager-modal"; // Ajusta la ruta
 import { ActionButtons } from "./components/action-buttons"; // Ajusta la ruta
 import type { FilterCondition } from "./components/filters/filter-types";
+import { ExportDropdown } from "./components/export-dropdown";
+import { SecondaryTables } from "./components/secondary-tables";
 
 // --------------------
 // 1) Contexto de filtros (opcional)
@@ -60,123 +61,15 @@ export const FilterContext = createContext<{
 });
 
 // --------------------
-// 2) Definición de filtros personalizados
-// --------------------
-interface FilterFunctions {
-  [key: string]: (
-    row: Row<ProcessedRow>,
-    columnId: string,
-    filterValue: FilterCondition
-  ) => boolean;
-  processedValueFilter: (
-    row: Row<ProcessedRow>,
-    columnId: string,
-    filterValue: FilterCondition
-  ) => boolean;
-}
-
-const filterFns: FilterFunctions = {
-  processedValueFilter: (row, columnId, filterValue) => {
-    if (
-      !filterValue ||
-      typeof filterValue !== "object" ||
-      !("operator" in filterValue)
-    ) {
-      return true;
-    }
-
-    const processedValue = row.original[columnId] as ProcessedItem;
-    if (!processedValue) return false;
-
-    const rawValue = processedValue.value;
-
-    // Para operaciones numéricas
-    const isNumericOperation = [
-      "greaterThan",
-      "lessThan",
-      "between",
-      "notBetween",
-      "equals",
-    ].includes(filterValue.operator);
-
-    if (isNumericOperation) {
-      // Convertir valores no numéricos a 0
-      const numericValue = (() => {
-        if (rawValue === null || rawValue === undefined) return 0;
-        const converted = Number(rawValue);
-        return isNaN(converted) ? 0 : converted;
-      })();
-
-      const numericFilterValue = Number(filterValue.value);
-
-      if (isNaN(numericFilterValue)) {
-        return false;
-      }
-
-      switch (filterValue.operator) {
-        case "equals":
-          return numericValue === numericFilterValue;
-        case "greaterThan":
-          return numericValue > numericFilterValue;
-        case "lessThan":
-          return numericValue < numericFilterValue;
-        case "between":
-          const numericAdditionalValue = Number(filterValue.additionalValue);
-          return (
-            !isNaN(numericAdditionalValue) &&
-            numericValue >= numericFilterValue &&
-            numericValue <= numericAdditionalValue
-          );
-        case "notBetween":
-          const numericAddValue = Number(filterValue.additionalValue);
-          return (
-            !isNaN(numericAddValue) &&
-            (numericValue < numericFilterValue ||
-              numericValue > numericAddValue)
-          );
-      }
-    }
-
-    // Para operaciones no numéricas
-    switch (filterValue.operator) {
-      case "equals":
-        return rawValue === filterValue.value;
-      case "in":
-        return (
-          Array.isArray(filterValue.value) &&
-          filterValue.value.includes(String(rawValue))
-        );
-      case "notEquals":
-        return rawValue !== filterValue.value;
-      case "contains":
-        return String(rawValue)
-          .toLowerCase()
-          .includes(String(filterValue.value).toLowerCase());
-      default:
-        return true;
-    }
-  },
-  // Ejemplo de otro filtro
-  arrIncludesSome: (row, columnId, filterValue) => {
-    const value = row.getValue(columnId);
-    return (
-      Array.isArray(value) &&
-      Array.isArray(filterValue) &&
-      filterValue.some((item) => value.includes(item))
-    );
-  },
-};
-
-// --------------------
 // 3) Columnas "selección", "index" y "actions"
 // --------------------
 const selectionColumn: ColumnDef<ProcessedRow> = {
   id: "selection",
   header: ({ table }) => (
-    <div className="flex items-center justify-center">
+    <div className='flex items-center justify-center'>
       <input
-        type="checkbox"
-        className="h-4 w-4"
+        type='checkbox'
+        className='h-4 w-4'
         {...{
           checked: table.getIsAllRowsSelected(),
           onChange: table.getToggleAllRowsSelectedHandler(),
@@ -185,10 +78,10 @@ const selectionColumn: ColumnDef<ProcessedRow> = {
     </div>
   ),
   cell: ({ row }) => (
-    <div className="flex items-center justify-center">
+    <div className='flex items-center justify-center'>
       <input
-        type="checkbox"
-        className="h-4 w-4"
+        type='checkbox'
+        className='h-4 w-4'
         {...{
           checked: row.getIsSelected(),
           onChange: row.getToggleSelectedHandler(),
@@ -207,13 +100,13 @@ const selectionColumn: ColumnDef<ProcessedRow> = {
 const indexColumn: ColumnDef<ProcessedRow> = {
   id: "index",
   header: ({}) => (
-    <div className="text-center text-muted-foreground w-6">#</div>
+    <div className='text-center text-muted-foreground w-6'>#</div>
   ),
   size: 50,
   enableSorting: false,
   enableHiding: false,
   cell: ({ row }) => (
-    <div className="text-center text-muted-foreground w-full">
+    <div className='text-center text-muted-foreground w-full'>
       {row.index + 1}
     </div>
   ),
@@ -225,13 +118,13 @@ function createActionsColumn(
   return {
     id: "actions",
     header: ({}) => (
-      <div className="text-center text-muted-foreground w-28">Acciones</div>
+      <div className='text-center text-muted-foreground w-28'>Acciones</div>
     ),
     enableSorting: false,
     enableHiding: false,
     size: 50,
     cell: ({ row }) => (
-      <div className="flex items-center justify-center">
+      <div className='flex items-center justify-center'>
         <ActionButtons
           row={row.original}
           onDelete={() => onDelete(row.index)}
@@ -265,9 +158,10 @@ function getTanStackPinningStyles(
 // --------------------
 interface JsonTableProps {
   data: Record<string, unknown>[];
+  isSecondaryTable?: boolean;
 }
 
-export function JsonTable({ data }: JsonTableProps) {
+export function JsonTable({ data, isSecondaryTable = false }: JsonTableProps) {
   // Estado de datos
   const [tableData, setTableData] = useState(data);
 
@@ -283,6 +177,9 @@ export function JsonTable({ data }: JsonTableProps) {
 
   // Guardar el orden original de columnas, si se usa en tu modal
   const [originalColumnOrder, setOriginalColumnOrder] = useState<string[]>([]);
+
+  // Añadir estado para el filtro global
+  const [globalFilter, setGlobalFilter] = useState("");
 
   // Procesamos los datos
   const processedData = useMemo(
@@ -312,7 +209,7 @@ export function JsonTable({ data }: JsonTableProps) {
     return columns(processedData[0]);
   }, [processedData]);
 
-  // Definimos el orden "por defecto" de TODAS las columnas
+  // Definimos el orden de las columnas
   const tableColumns = useMemo<ColumnDef<ProcessedRow>[]>(() => {
     return [selectionColumn, indexColumn, ...baseColumns, actionsColumn];
   }, [baseColumns, actionsColumn]);
@@ -336,13 +233,48 @@ export function JsonTable({ data }: JsonTableProps) {
       columnVisibility,
       columnFilters,
       rowSelection,
+      globalFilter,
     },
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
     enableRowSelection: true,
-    filterFns,
+    filterFns: {
+      processedValueFilter: (row, columnId, filterValue) => {
+        if (
+          !filterValue ||
+          typeof filterValue !== "object" ||
+          !("operator" in filterValue)
+        ) {
+          return true;
+        }
+
+        const processedValue = row.original[columnId] as ProcessedItem;
+        if (!processedValue) return false;
+
+        const rawValue = processedValue.value;
+
+        switch (filterValue.operator) {
+          case "in":
+            return (
+              Array.isArray(filterValue.value) &&
+              filterValue.value.includes(String(rawValue))
+            );
+          case "equals":
+            return rawValue === filterValue.value;
+          case "notEquals":
+            return rawValue !== filterValue.value;
+          case "contains":
+            return String(rawValue)
+              .toLowerCase()
+              .includes(String(filterValue.value).toLowerCase());
+          default:
+            return true;
+        }
+      },
+    },
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -350,13 +282,52 @@ export function JsonTable({ data }: JsonTableProps) {
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
-    columnResizeMode: "onChange",
-    enableColumnResizing: true,
-    defaultColumn: {
-      minSize: 100,
-      size: 150,
-      maxSize: 500,
-      filterFn: filterFns.processedValueFilter,
+    enableFilters: true,
+    enableGlobalFilter: true,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const searchTerm = String(filterValue).toLowerCase();
+
+      // Buscar en todos los valores de la fila
+      const searchInObject = (obj: unknown): boolean => {
+        if (!obj) return false;
+
+        // Si es un ProcessedItem, buscar en su valor
+        if (
+          typeof obj === "object" &&
+          obj !== null &&
+          "value" in obj &&
+          "type" in obj
+        ) {
+          const processedItem = obj as ProcessedItem;
+          const value = String(processedItem.value).toLowerCase();
+          if (value.includes(searchTerm)) return true;
+
+          // Si es un array, buscar en sus items
+          if (
+            processedItem.type === "array" &&
+            Array.isArray(processedItem.items)
+          ) {
+            return processedItem.items.some((item: unknown) =>
+              searchInObject(item)
+            );
+          }
+        }
+
+        // Si es un objeto, buscar recursivamente
+        if (typeof obj === "object" && obj !== null) {
+          return Object.values(obj).some((value) => searchInObject(value));
+        }
+
+        // Para valores primitivos
+        return String(obj).toLowerCase().includes(searchTerm);
+      };
+
+      // Buscar en toda la fila
+      return searchInObject(row.original);
+    },
+    getColumnCanGlobalFilter: (column) => {
+      // Permitir filtrado global en todas las columnas excepto acciones o columnas especiales
+      return column.id !== "actions" && column.id !== "select";
     },
   });
 
@@ -411,15 +382,45 @@ export function JsonTable({ data }: JsonTableProps) {
     [applyFilter]
   );
 
+  const [arrayColumns, setArrayColumns] = useState<
+    {
+      id: string;
+      label: string;
+      data: Record<string, unknown>[];
+    }[]
+  >([]);
+
+  useEffect(() => {
+    const handleShowSecondaryTable = (event: CustomEvent) => {
+      const { id, label, data } = event.detail;
+      setArrayColumns((prev) => {
+        const exists = prev.some((col) => col.id === id);
+        if (exists) return prev;
+        return [...prev, { id, label, data }];
+      });
+    };
+
+    window.addEventListener(
+      "showSecondaryTable",
+      handleShowSecondaryTable as EventListener
+    );
+    return () => {
+      window.removeEventListener(
+        "showSecondaryTable",
+        handleShowSecondaryTable as EventListener
+      );
+    };
+  }, []);
+
   return (
     <FilterContext.Provider value={filterContextValue}>
-      <CardContent className="relative">
+      <CardContent className='relative'>
         {/* Encabezado: barra de búsqueda y modal de columnas */}
-        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="w-full sm:w-72">
+        <div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+          <div className='w-full sm:w-72'>
             <TableSearch table={table} />
           </div>
-          <div className="flex justify-end">
+          <div className='flex justify-end'>
             <ColumnManagerModal
               table={table}
               useFixedColumn={useFixedColumn}
@@ -428,13 +429,17 @@ export function JsonTable({ data }: JsonTableProps) {
               onFixedColumnIdChange={setFixedColumnId}
               originalColumnOrder={originalColumnOrder}
             />
+            <ExportDropdown
+              selectedRows={table.getSelectedRowModel().rows}
+              allRows={table.getCoreRowModel().rows}
+            />
           </div>
         </div>
 
         {/* Contenedor principal de la tabla */}
-        <div className="rounded-md border">
+        <div className='rounded-md border'>
           <div
-            className="overflow-auto"
+            className='overflow-auto'
             style={{
               height: "calc(100vh - 400px)", // Ajusta este valor según necesites
               minHeight: "300px",
@@ -442,7 +447,7 @@ export function JsonTable({ data }: JsonTableProps) {
             }}
           >
             <Table
-              className="table-auto w-full border-separate border-spacing-0"
+              className='table-auto w-full border-separate border-spacing-0'
               style={{ width: table.getCenterTotalSize() }}
             >
               {/* ENCABEZADO */}
@@ -457,7 +462,7 @@ export function JsonTable({ data }: JsonTableProps) {
                       return (
                         <TableHead
                           key={header.id}
-                          className="px-4 m-0 bg-background border-x-1 border-y-1 border-zinc-200 text-center font-black"
+                          className='px-4 m-0 bg-background border-x-1 border-y-1 border-zinc-200 text-center font-black'
                           style={{
                             width: header.getSize(),
                             ...stylePin,
@@ -496,7 +501,7 @@ export function JsonTable({ data }: JsonTableProps) {
               <TableBody>
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} className="hover:bg-muted/50">
+                    <TableRow key={row.id} className='hover:bg-muted/50'>
                       {row.getVisibleCells().map((cell) => {
                         const stylePin = getTanStackPinningStyles(
                           cell.column,
@@ -505,7 +510,7 @@ export function JsonTable({ data }: JsonTableProps) {
                         return (
                           <TableCell
                             key={cell.id}
-                            className="p-4 m-0 border-x-1 border-y-1 border-zinc-200 w-fit"
+                            className='p-4 m-0 border-x-1 border-y-1 border-zinc-200 w-fit'
                             style={{
                               width: "fit-content",
                               maxWidth: cell.column.getSize(),
@@ -525,7 +530,7 @@ export function JsonTable({ data }: JsonTableProps) {
                   <TableRow>
                     <TableCell
                       colSpan={tableColumns.length}
-                      className="h-24 text-center"
+                      className='h-24 text-center'
                     >
                       No results.
                     </TableCell>
@@ -539,6 +544,9 @@ export function JsonTable({ data }: JsonTableProps) {
         {/* Paginación y leyenda */}
         <TablePagination table={table} />
         <TypeLegend />
+
+        {/* Tablas secundarias */}
+        {!isSecondaryTable && <SecondaryTables arrayColumns={arrayColumns} />}
       </CardContent>
     </FilterContext.Provider>
   );

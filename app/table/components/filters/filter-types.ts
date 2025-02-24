@@ -15,7 +15,8 @@ export type FilterOperator =
   | "notIn"
   | "isNull"
   | "isNotNull"
-  | "arrIncludesSome";
+  | "arrIncludesSome"
+  | "includesString";
 
 export type FilterValue =
   | string
@@ -81,7 +82,8 @@ export const filterFns = {
     filterValue: string
   ) => {
     const processedValue = row[columnId] as ProcessedItem;
-    const value = String(processedValue?.value ?? "");
+    if (!processedValue?.value) return false;
+    const value = String(processedValue.value);
     return value.toLowerCase().includes(String(filterValue).toLowerCase());
   },
 
@@ -137,11 +139,12 @@ export const filterFns = {
     filterValue: unknown[]
   ) => {
     const processedValue = row[columnId] as ProcessedItem;
-    const value = processedValue?.value;
+    if (!processedValue?.value) return false;
+
+    const value = String(processedValue.value).toLowerCase();
     return (
-      Array.isArray(value) &&
       Array.isArray(filterValue) &&
-      filterValue.some((val) => value.includes(val))
+      filterValue.some((val) => value === String(val).toLowerCase())
     );
   },
 
@@ -170,103 +173,31 @@ export const filterFns = {
     columnId: string,
     filterValue: FilterCondition
   ) => {
-    if (
-      !filterValue ||
-      typeof filterValue !== "object" ||
-      !("operator" in filterValue)
-    ) {
-      return true;
-    }
     const processedValue = row[columnId] as ProcessedItem;
+    if (!processedValue?.value) return false;
 
-    // Si no hay valor procesado, retornar false
-    if (!processedValue) return false;
+    const rawValue = processedValue.value;
 
-    const value = processedValue.value;
-
-    // Para operaciones numéricas, asegurarse de que los valores sean números válidos
-    const isNumericOperation = [
-      "greaterThan",
-      "lessThan",
-      "between",
-      "notBetween",
-    ].includes(filterValue.operator);
-
-    if (isNumericOperation) {
-      const numericValue = Number(value);
-      const numericFilterValue = Number(filterValue.value);
-
-      if (isNaN(numericValue) || isNaN(numericFilterValue)) {
-        return false;
-      }
-
-      switch (filterValue.operator) {
-        case "greaterThan":
-          return numericValue > numericFilterValue;
-        case "lessThan":
-          return numericValue < numericFilterValue;
-        case "between":
-          const numericAdditionalValue = Number(filterValue.additionalValue);
-          return (
-            !isNaN(numericAdditionalValue) &&
-            numericValue >= numericFilterValue &&
-            numericValue <= numericAdditionalValue
-          );
-        case "notBetween":
-          const numericAddValue = Number(filterValue.additionalValue);
-          return (
-            !isNaN(numericAddValue) &&
-            (numericValue < numericFilterValue ||
-              numericValue > numericAddValue)
-          );
-      }
-    }
-
-    // Para operaciones no numéricas, usar el valor original
     switch (filterValue.operator) {
-      case "equals":
-        return value === filterValue.value;
-      case "notEquals":
-        return value !== filterValue.value;
-      case "in":
-        return (
-          Array.isArray(filterValue.value) &&
-          filterValue.value.includes(String(value))
-        );
-      case "notIn":
-        return (
-          Array.isArray(filterValue.value) &&
-          !filterValue.value.includes(String(value))
-        );
-      case "contains":
-        return String(value)
+      case "includesString":
+        return String(rawValue)
           .toLowerCase()
           .includes(String(filterValue.value).toLowerCase());
-      case "notContains":
-        return !String(value)
-          .toLowerCase()
-          .includes(String(filterValue.value).toLowerCase());
-      case "startsWith":
-        return String(value)
-          .toLowerCase()
-          .startsWith(String(filterValue.value).toLowerCase());
-      case "endsWith":
-        return String(value)
-          .toLowerCase()
-          .endsWith(String(filterValue.value).toLowerCase());
-      case "isNull":
-        return value === null;
-      case "isNotNull":
-        return value !== null;
+
       case "arrIncludesSome":
-        return (
-          Array.isArray(value) &&
-          Array.isArray(filterValue.value) &&
-          filterValue.value.some((item) => value.includes(item))
+        if (!Array.isArray(filterValue.value)) {
+          return (
+            String(rawValue).toLowerCase() ===
+            String(filterValue.value).toLowerCase()
+          );
+        }
+        return filterValue.value.some(
+          (val) => String(rawValue).toLowerCase() === String(val).toLowerCase()
         );
-      default:
-        return true;
+
+      // ... resto de los casos ...
     }
+    return false;
   },
 };
 

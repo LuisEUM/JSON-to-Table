@@ -14,12 +14,11 @@ export function BooleanFilter({
   columnName,
   columnType,
 }: FilterComponentProps) {
-  console.log("BooleanFilter - Columna:", columnName);
-  console.log("BooleanFilter - Tipo:", columnType);
-
   const [value, setValue] = useState<boolean | null>(
-    initialValue?.value === true || initialValue?.value === false
-      ? initialValue.value
+    initialValue?.value === "true" || initialValue?.value === true
+      ? true
+      : initialValue?.value === "false" || initialValue?.value === false
+      ? false
       : null
   );
 
@@ -30,16 +29,24 @@ export function BooleanFilter({
       onApply({
         field: columnId,
         operator: "equals",
-        value: value,
+        value: String(value),
       });
     }
     onClose();
   };
 
+  const handleSwitchChange = (newValue: boolean | null) => {
+    if (value === newValue) {
+      setValue(null);
+    } else {
+      setValue(newValue);
+    }
+  };
+
   return (
-    <div className="w-full space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-medium">
+    <div className='w-full min-h-[350px] flex flex-col'>
+      <div className='flex items-center justify-between mb-4'>
+        <h3 className='font-medium'>
           Filtro para:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
@@ -50,34 +57,45 @@ export function BooleanFilter({
         </h3>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="true-value"
-            checked={value === true}
-            onCheckedChange={() => setValue(true)}
-          />
-          <Label htmlFor="true-value">Verdadero</Label>
+      <div className='flex-grow space-y-6'>
+        <div className='space-y-4 bg-muted/30 p-4 rounded-md'>
+          <div className='flex items-center justify-between'>
+            <Label htmlFor='true-value' className='flex-grow cursor-pointer'>
+              Verdadero
+            </Label>
+            <Switch
+              id='true-value'
+              checked={value === true}
+              onCheckedChange={() => handleSwitchChange(true)}
+            />
+          </div>
+          <div className='flex items-center justify-between'>
+            <Label htmlFor='false-value' className='flex-grow cursor-pointer'>
+              Falso
+            </Label>
+            <Switch
+              id='false-value'
+              checked={value === false}
+              onCheckedChange={() => handleSwitchChange(false)}
+            />
+          </div>
+          <div className='flex items-center justify-between'>
+            <Label htmlFor='null-value' className='flex-grow cursor-pointer'>
+              Todos los valores
+            </Label>
+            <Switch
+              id='null-value'
+              checked={value === null}
+              onCheckedChange={() => handleSwitchChange(null)}
+            />
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="false-value"
-            checked={value === false}
-            onCheckedChange={() => setValue(false)}
-          />
-          <Label htmlFor="false-value">Falso</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="null-value"
-            checked={value === null}
-            onCheckedChange={() => setValue(null)}
-          />
-          <Label htmlFor="null-value">Todos</Label>
+
+        <div className='text-sm text-muted-foreground'>
+          Valor seleccionado:{" "}
+          {value === null ? "Todos" : value ? "Verdadero" : "Falso"}
         </div>
       </div>
-
-      <div className="flex-1" />
 
       <FilterFooter
         onClear={() => {

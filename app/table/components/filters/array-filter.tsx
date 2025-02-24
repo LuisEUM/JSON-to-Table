@@ -103,14 +103,14 @@ export function ArrayFilter({
           />
         </div>
 
-        <ScrollArea className='flex-grow border rounded-md bg-muted/30 p-2'>
+        <ScrollArea className='flex-grow border rounded-md bg-muted/30 p-2 max-h-[100px] overflow-auto'>
           <div className='space-y-2'>
             {filteredValues.map(({ value, count }) => {
               const valueString = formatValue(value);
               return (
                 <div
                   key={valueString}
-                  className='flex items-center justify-between p-2 hover:bg-muted/50 rounded-md'
+                  className='flex items-center justify-between p-2 hover:bg-muted/50 rounded-md '
                 >
                   <div className='flex items-center space-x-2'>
                     <Checkbox
