@@ -24,10 +24,9 @@ export function ArrayFilter({
   onClear,
   onClose,
   initialValue,
-  columnName,
+  columnType,
   uniqueValues,
-  arrayType,
-}: FilterComponentProps & { arrayType?: string }) {
+}: FilterComponentProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedValues, setSelectedValues] = useState<FilterValue[]>(
     (initialValue?.value as FilterValue[]) || []
@@ -80,13 +79,7 @@ export function ArrayFilter({
     onClose();
   };
 
-  const handleSelectAll = () => {
-    setSelectedValues(
-      filteredValues
-        .filter((item) => !item.isDisabled)
-        .map((item) => item.value as FilterValue)
-    );
-  };
+
 
   const formatValue = (value: unknown): string => {
     if (value instanceof Date) {
@@ -105,10 +98,9 @@ export function ArrayFilter({
           Filtro para array de tipo:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
-              getTypeColor(arrayType || "unknown").split(" ")[0]
+              getTypeColor(columnType || "unknown").dot
             }`}
-          ></span>{" "}
-          {columnName}
+          />
         </h3>
       </div>
 
@@ -147,7 +139,9 @@ export function ArrayFilter({
                           );
                         }}
                         disabled={isDisabled}
-                        aria-label={isDisabled ? "Valor no filtrable" : undefined}
+                        aria-label={
+                          isDisabled ? "Valor no filtrable" : undefined
+                        }
                       />
                       <label
                         htmlFor={valueString}

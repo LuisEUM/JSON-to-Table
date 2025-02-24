@@ -1,5 +1,4 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrayCell } from "../components/array-cell";
 import { TypeDot } from "../components/type-dot";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowDown, Eye, Filter, Link2 } from "lucide-react";
@@ -22,14 +21,15 @@ import {
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { FilterFactory } from "../components/filters/filter-factory";
 import type { FilterCondition } from "../components/filters/filter-types";
+import { ObjectArrayCell } from "../components/object-array-cell";
+import { SimpleArrayCell } from "../components/simple-array-cell";
 
 interface NestedRecord {
   [key: string]: ProcessedItem | unknown | { [key: string]: NestedRecord };
 }
 
 const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
-  const isReferenceColumn =
-    item.id === "__parentId" || item.id === "__parentTable";
+  const isReferenceColumn = item.id === "__parentId";
   const isSortable = ["string", "número", "boolean", "fecha"].includes(
     item.type
   );
@@ -181,57 +181,77 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
       );
     },
     cell: ({ getValue }) => {
-      const value = getValue() as ProcessedValue;
+      const value = getValue() as ProcessedItem;
 
-      console.log("🔍 Renderizando celda:", {
-        columnId: item.id,
-        isReference: item.isReference,
-        value,
-      });
+      // Si no hay valor, mostramos un guión
+      if (!value || value.value === null || value.value === undefined) {
+        return <span className='text-muted-foreground'>—</span>;
+      }
 
-      if (item.isReference || value?.isReference) {
+      // Si es una referencia (ya sea __parentId u otro campo con referencedId)
+      if (value.isReference || value.referencedId) {
+        const referenceId = value.referencedId || String(value.value);
         return (
-          <div className='flex items-center gap-1'>
-            <Link2 className='h-3 w-3 text-muted-foreground' />
-            <span className='font-mono text-sm text-primary'>
-              {String(value?.value || value)}
-            </span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='flex items-center gap-1 text-primary font-mono text-sm cursor-pointer'>
+                  <Link2 className='h-3 w-3' />
+                  <span>{referenceId.substring(0, 8)}...</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className='flex flex-col'>
+                  <span className='text-xs font-medium'>ID de referencia</span>
+                  <span className='font-mono text-xs'>{referenceId}</span>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      }
+
+      // Para valores de tipo array
+      if (value.type?.startsWith("array")) {
+        if (value.type === "array[objeto]") {
+          return <ObjectArrayCell value={value.items || []} />;
+        } else {
+          return <SimpleArrayCell value={value.items || []} />;
+        }
+      }
+
+      // Para objetos
+      if (value.type === "objeto") {
+        return <ObjectCard value={value} compact />;
+      }
+
+      // Para fechas
+      if (value.type === "fecha") {
+        return <span>{formatDateString(String(value.value))}</span>;
+      }
+
+      // Para booleanos
+      if (value.type === "boolean") {
+        const boolValue =
+          value.value === true ||
+          value.value === "true" ||
+          value.value === 1 ||
+          value.value === "1";
+
+        return (
+          <div className='flex items-center'>
+            <div
+              className={`w-3 h-3 rounded-full ${
+                boolValue ? "bg-green-500" : "bg-red-500"
+              }`}
+            />
+            <span className='ml-2'>{boolValue ? "Sí" : "No"}</span>
           </div>
         );
       }
 
-      if (!value) {
-        console.log("⚠️ Valor nulo o indefinido en celda:", {
-          columnId: item.id,
-          value,
-        });
-        return null;
-      }
-
-      if (typeof value === "object" && "type" in value) {
-        switch (value.type) {
-          case "array":
-            return <ArrayCell items={value.items || []} />;
-          case "objeto":
-            return <ObjectCard value={value} compact />;
-          case "fecha":
-            return formatDateString(value.value as string);
-          default:
-            return (
-              <span className='font-mono text-sm'>
-                {value.type === "string"
-                  ? `"${String(value.value)}"`
-                  : String(value.value)}
-              </span>
-            );
-        }
-      }
-
-      return (
-        <span className='font-mono text-sm'>
-          {String((value as ProcessedValue)?.value || value)}
-        </span>
-      );
+      // Para cualquier otro tipo
+      return <span>{String(value.value)}</span>;
     },
     filterFn: "processedValueFilter",
   };
@@ -290,3 +310,62 @@ export const columns = (data: ProcessedItem[]): ColumnDef<ProcessedRow>[] => {
 
   return [...rootColumns, ...groupedColumns];
 };
+
+export function createColumns(data: ProcessedRow[]): ColumnDef<ProcessedRow>[] {
+  if (!data.length) return [];
+
+  return Object.entries(data[0])
+    .map(([key, value]) => {
+      const columnType = (value as ProcessedItem)?.type || typeof value;
+
+      const baseColumn: ColumnDef<ProcessedRow> = {
+        id: key,
+        accessorKey: key,
+        header: key,
+        meta: { type: columnType },
+      };
+
+      // Configuración específica según el tipo
+      switch (columnType) {
+        case "array[objeto]":
+          return {
+            ...baseColumn,
+            cell: ({
+              row,
+            }: {
+              row: { getValue: (key: string) => ProcessedValue[] | unknown };
+            }) => (
+              <ObjectArrayCell value={row.getValue(key) as ProcessedValue[]} />
+            ),
+          };
+
+        case "array[primitivo]":
+          return {
+            ...baseColumn,
+            cell: ({
+              row,
+            }: {
+              row: { getValue: (key: string) => ProcessedValue[] | unknown };
+            }) => (
+              <SimpleArrayCell value={row.getValue(key) as ProcessedValue[]} />
+            ),
+          };
+
+        case "objeto":
+          return {
+            ...baseColumn,
+            cell: ({
+              row,
+            }: {
+              row: { getValue: (key: string) => ProcessedValue | unknown };
+            }) => (
+              <ObjectCard value={row.getValue(key) as ProcessedValue} compact />
+            ),
+          };
+
+        default:
+          return baseColumn;
+      }
+    })
+    .filter(Boolean) as ColumnDef<ProcessedRow>[];
+}

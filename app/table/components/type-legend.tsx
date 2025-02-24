@@ -1,27 +1,26 @@
+import { TYPE_CONFIG } from "../types/value-types";
 import { TypeDot } from "./type-dot";
-import { getTypeLabel } from "../utils/colors";
+import { TypeBadge } from "./type-badge";
 
-export function TypeLegend() {
-  const types = [
-    "string",
-    "número",
-    "boolean",
-    "fecha",
-    "array",
-    "objeto",
-    "null",
-    "undefined",
-  ];
+interface TypeLegendProps {
+  variant?: "dot" | "badge";
+  className?: string;
+}
 
+export function TypeLegend({
+  variant = "dot",
+  className = "",
+}: TypeLegendProps) {
   return (
-    <div className='flex flex-wrap gap-2 mt-4'>
-      {types.map((type) => (
-        <div
-          key={type}
-          className='flex items-center gap-1 text-xs text-muted-foreground'
-        >
-          <TypeDot type={type} />
-          <span>{getTypeLabel(type)}</span>
+    <div className={`flex flex-wrap gap-2 ${className}`}>
+      {Object.values(TYPE_CONFIG).map((typeConfig) => (
+        <div key={typeConfig.id} className='flex items-center gap-2'>
+          {variant === "dot" ? (
+            <TypeDot type={typeConfig.id} />
+          ) : (
+            <TypeBadge type={typeConfig.id} />
+          )}
+          <span className='text-sm'>{typeConfig.label}</span>
         </div>
       ))}
     </div>

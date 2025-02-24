@@ -9,6 +9,7 @@ import type { FilterComponentProps } from "./filter-types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilterFooter } from "./filter-footer";
 import { getTypeColor } from "../type-badge";
+import { TypeDot } from "../type-dot";
 
 export function StringFilter({
   columnId,
@@ -65,36 +66,27 @@ export function StringFilter({
     setSelectedValues((current) =>
       current.includes(value) && value !== "undefined"
         ? current.filter((v) => v !== value)
-        : value !== "undefined"
-        ? [...current, value]
-        : current
+        : [...current, value]
     );
   };
 
   const handleApply = () => {
-    if (selectedValues.length === 0) {
-      onClear();
-    } else {
-      onApply({
-        field: columnId,
-        operator: "in",
-        value: selectedValues.filter((v) => v !== "undefined"),
-      });
-    }
+    onApply({
+      field: columnId,
+      operator: "in",
+      value: selectedValues,
+    });
     onClose();
   };
+
+  const typeColors = getTypeColor(columnType);
 
   return (
     <div className='w-full h-full min-h-[350px] flex flex-col'>
       <div className='flex items-center justify-between mb-4'>
-        <h3 className='font-medium'>
-          Filtro para:{" "}
-          <span
-            className={`inline-block w-3 h-3 rounded-full ${
-              getTypeColor(columnType).split(" ")[0]
-            }`}
-          ></span>{" "}
-          {columnName}
+        <h3 className='font-medium flex items-center gap-2'>
+          <TypeDot type={columnType} />
+          <span>Filtro para {columnName}</span>
         </h3>
       </div>
 
@@ -118,7 +110,9 @@ export function StringFilter({
           </Button>
         </div>
 
-        <ScrollArea className='flex-grow border rounded-md bg-muted/30 p-2 max-h-[100px] overflow-auto'>
+        <ScrollArea
+          className={`flex-grow border rounded-md ${typeColors.bg} bg-opacity-30 p-2`}
+        >
           <div className='space-y-2'>
             {filteredOptions.map((option, index) => (
               <div
@@ -142,7 +136,7 @@ export function StringFilter({
                     }
                   />
                   <label
-                    className={`text-sm ${
+                    className={`text-sm ${typeColors.text} ${
                       option.isDisabled || option.value === "undefined"
                         ? "italic"
                         : ""

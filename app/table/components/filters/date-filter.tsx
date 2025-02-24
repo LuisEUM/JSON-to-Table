@@ -95,7 +95,7 @@ export function DateFilter({
           Filtro para:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
-              getTypeColor(columnType).split(" ")[0]
+              getTypeColor(columnType).dot
             }`}
           ></span>{" "}
           {columnName}
@@ -145,4 +145,3 @@ export function DateFilter({
     </div>
   );
 }
-

@@ -253,58 +253,61 @@ export function JsonTable({
   }, [baseColumns, actionsColumn]);
 
   const processedTableData = useMemo(() => {
-    return processedData.map((items: ProcessedItem[]) => {
-      const row = items.reduce<ProcessedRow>((acc, item) => {
-        acc[item.id] = item;
-        return acc;
-      }, {});
+    // Limpia el mapa de columnas array al reprocesar
+    uniqueArrayColumns.clear();
 
-      const rowId =
-        row["id"]?.value ||
-        Object.values(row).find((item) => item.isId)?.value ||
-        Object.values(row).find((item) =>
-          item.path?.[item.path.length - 1].toLowerCase().includes("id")
-        )?.value;
+    // Diccionario para agrupar todos los datos por tipo de tabla secundaria
+    const secondaryTableData: Record<string, Record<string, unknown>[]> = {};
 
-      console.log("📝 Procesando fila para arrays:", {
-        rowId,
-        hasId: !!rowId,
-        rowKeys: Object.keys(row),
-      });
+    return processedData
+      .map((items: ProcessedItem[]) => {
+        const row = items.reduce((acc, item) => {
+          acc[item.id] = item;
+          return acc;
+        }, {} as ProcessedRow);
 
-      Object.values(row).forEach((item) => {
-        if (item.type === "array" && item.items?.[0]?.type === "objeto") {
-          const columnId = item.path.join(".");
+        const rowId = items.find((item) => item.isId)?.value || "";
 
-          if (!uniqueArrayColumns.has(columnId)) {
-            const processedData =
+        // Procesar arrays de objetos para tablas secundarias
+        Object.values(row).forEach((item) => {
+          if (item.type === "array[objeto]") {
+            const columnId = item.path.join(".");
+
+            // Procesar cada item secundario con su respectivo ID padre
+            const processedSubItems =
               item.items?.map((subItem) => {
-                /* 
-                  Procesamiento de subitem:
-                  - ID padre: ${rowId}
-                  - ID columna: ${columnId}
-                  - Tipo de subitem: ${subItem.type}
-                */
-
+                // Asegurar que cada item secundario tenga referencia a su fila padre específica
                 return {
                   ...(subItem.value as object),
                   __parentId: rowId,
-                  __parentTable: parentTableInfo?.id || columnId,
                 };
               }) || [];
 
-            uniqueArrayColumns.set(columnId, {
-              id: columnId,
-              label: item.path.join("."),
-              data: processedData,
-              parentTable: parentTableInfo,
-            });
-          }
-        }
-      });
+            // Agrupar por tipo de tabla secundaria en el diccionario temporal
+            if (!secondaryTableData[columnId]) {
+              secondaryTableData[columnId] = [];
+            }
 
-      return row;
-    });
+            // Añadir todos los items a su grupo correspondiente
+            secondaryTableData[columnId].push(...processedSubItems);
+          }
+        });
+
+        return row;
+      })
+      .map((row) => {
+        // Después de procesar todas las filas, ahora configuramos las tablas secundarias
+        Object.entries(secondaryTableData).forEach(([columnId, dataItems]) => {
+          uniqueArrayColumns.set(columnId, {
+            id: columnId,
+            label: columnId.split(".").pop() || columnId,
+            data: dataItems,
+            parentTable: parentTableInfo,
+          });
+        });
+
+        return row;
+      });
   }, [processedData, parentTableInfo, uniqueArrayColumns]);
 
   // 3. Instancia de la tabla

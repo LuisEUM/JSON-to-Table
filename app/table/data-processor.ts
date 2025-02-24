@@ -18,23 +18,40 @@ export const getDetailedType = (value: unknown): string => {
   if (value === null) return "null";
   if (value === undefined) return "undefined";
 
-  if (isDate(value)) {
-    return "fecha";
-  }
+  if (isDate(value)) return "fecha";
 
   if (Array.isArray(value)) {
-    if (value.length === 0) return "array vacío";
-    const elementTypes = new Set(value.map((item) => getDetailedType(item)));
-    return `array[${Array.from(elementTypes).join(", ")}]`;
+    console.log("🔍 Analizando tipo de array:", {
+      length: value.length,
+      firstElement: value[0],
+      firstElementType: typeof value[0],
+      isObject: typeof value[0] === "object",
+      isNull: value[0] === null,
+      isArray: Array.isArray(value[0]),
+      isDate: value[0] instanceof Date,
+    });
+
+    if (value.length === 0) return "array[primitivo]";
+
+    const firstElement = value[0];
+
+    // Corregir la lógica de detección de objetos
+    if (
+      typeof firstElement === "object" &&
+      firstElement !== null &&
+      !Array.isArray(firstElement) &&
+      !(firstElement instanceof Date)
+    ) {
+      console.log("✅ Detectado array de objetos");
+      return "array[objeto]";
+    }
+
+    console.log("✅ Detectado array de primitivos");
+    return "array[primitivo]";
   }
 
-  if (typeof value === "object") {
-    return "objeto";
-  }
-
-  if (typeof value === "number") {
-    return "número";
-  }
+  if (typeof value === "object") return "objeto";
+  if (typeof value === "number") return "número";
 
   const lowerName = String(value).toLowerCase();
 
@@ -115,58 +132,50 @@ export type ValueType =
   | "null"
   | "undefined";
 
-interface ReferenceObject {
-  __parentId?: unknown;
-  __parentTable?: unknown;
-}
-
 export const processValue = (
   value: unknown,
   fieldName: string = "",
   parentId?: string
 ): ProcessedValue => {
   // Detectar si es un campo de referencia
-  const isReference =
-    fieldName === "__parentId" || fieldName === "__parentTable";
+  const isParentIdField = fieldName === "__parentId";
+
+  // Manejo especial para el campo __parentId
+  if (isParentIdField) {
+    const stringValue = String(value || "");
+    console.log("🔗 Campo __parentId encontrado:", {
+      fieldName,
+      value,
+      stringValue,
+    });
+    return {
+      value: stringValue,
+      type: "string",
+      path: [fieldName],
+      label: "ID de Referencia",
+      isReference: true,
+    };
+  }
+
+  // Manejo especial para campos que podrían contener un parentId
+  if (
+    fieldName.toLowerCase().includes("id") &&
+    typeof value === "string" &&
+    value.length >= 12
+  ) {
+    console.log("🆔 Posible ID de referencia:", {
+      fieldName,
+      value,
+    });
+  }
 
   console.log("🔄 Procesando valor:", {
     fieldName,
     value,
-    isReference,
+    isParentIdField,
     parentId,
     type: typeof value,
   });
-
-  if (isReference) {
-    console.log("🔗 Campo de referencia detectado:", {
-      fieldName,
-      value,
-      parentId,
-    });
-    return {
-      value: String(value), // Convertir a string
-      type: "string", // Cambiar tipo a string
-      path: [fieldName],
-      label: fieldName,
-      isReference: true, // Mantener la información de que es una referencia
-    };
-  }
-
-  // Procesar objetos con referencias
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    const refObj = value as ReferenceObject;
-    if ("__parentId" in refObj || "__parentTable" in refObj) {
-      const refValue = {
-        value: String(refObj.__parentId || refObj.__parentTable),
-        type: "string",
-        path: [fieldName],
-        label: fieldName,
-        isReference: true,
-      };
-      console.log("🔗 Procesando referencia como string:", refValue);
-      return refValue;
-    }
-  }
 
   if (value === null) return { value: "null", type: "null" };
   if (value === undefined) return { value: "undefined", type: "undefined" };
@@ -180,6 +189,15 @@ export const processValue = (
         value: new Date(value).toLocaleString(),
         type: "fecha",
         rawValue: value,
+      };
+    }
+    // Si el nombre del campo incluye "id" y parece un id, marcarlo como posible referencia
+    if (fieldName.toLowerCase().includes("id") && value.length >= 12) {
+      return {
+        ...baseProcessedValue,
+        type: "string",
+        isReference: true,
+        referencedId: value,
       };
     }
     return { ...baseProcessedValue, type: "string" };
@@ -214,9 +232,13 @@ export const processValue = (
       parentId,
     });
     const items = value.map((item) => processValue(item, fieldName, parentId));
+
+    // Usar getDetailedType para determinar el tipo específico del array
+    const arrayType = getDetailedType(value);
+
     return {
       value,
-      type: "array",
+      type: arrayType,
       items,
       parentId,
       path: [fieldName],
@@ -224,10 +246,75 @@ export const processValue = (
   }
 
   if (typeof value === "object" && value !== null) {
+    // Log detallado para objetos
+    const keys = Object.keys(value as object);
+    const hasParentId = "__parentId" in (value as object);
+
+    console.log("🔍 Procesando objeto:", {
+      fieldName,
+      keys,
+      hasParentId,
+    });
+
+    // Si es un objeto con referencia a parentId, procesarlo apropiadamente
+    if (hasParentId) {
+      const parentIdValue = String(
+        (value as { __parentId: unknown }).__parentId || ""
+      );
+
+      console.log("🎯 Referencia a parentId encontrada:", {
+        parentIdValue,
+        fieldName,
+        originalValue: (value as { __parentId: unknown }).__parentId,
+        isSpecificParentId: fieldName === "__parentId",
+      });
+
+      // Asegurarnos que SIEMPRE devolvemos el __parentId como un string
+      if (fieldName === "__parentId") {
+        return {
+          value: parentIdValue,
+          type: "string",
+          path: [fieldName],
+          label: "ID de Referencia",
+          isReference: true,
+        };
+      }
+
+      // Para otros objetos que contienen __parentId pero no son el campo específico
+      const processedObj: ProcessedValue = {
+        value: value,
+        type: "objeto",
+        referencedId: parentIdValue,
+        isReference: true,
+      };
+
+      // Si estamos procesando un objeto que tiene información de tablas secundarias
+      interface SecondaryTableData {
+        items?: unknown[];
+        data?: unknown[];
+      }
+
+      if (
+        typeof value === "object" &&
+        value !== null &&
+        (Array.isArray((value as SecondaryTableData)?.items) ||
+          (value as SecondaryTableData)?.data !== undefined)
+      ) {
+        console.log("📊 Procesando tabla secundaria:", {
+          fieldName,
+          hasItems: Array.isArray((value as SecondaryTableData)?.items),
+          hasData: Boolean((value as SecondaryTableData)?.data),
+          parentIdValue,
+        });
+      }
+
+      return processedObj;
+    }
+
+    // Objeto normal sin referencias
     return {
       value: value,
       type: "objeto",
-      __parentId: parentId,
     };
   }
 
@@ -245,6 +332,8 @@ export interface ProcessedValue {
   title?: string;
   isReference?: boolean;
   path?: string[];
+  referencedId?: string;
+  referencedTable?: string;
 }
 
 export interface ProcessedItem extends ProcessedValue {

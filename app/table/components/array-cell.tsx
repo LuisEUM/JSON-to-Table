@@ -24,55 +24,23 @@ interface ArrayCellProps {
 }
 
 const SimpleArrayDisplay = ({ items }: ArrayCellProps): ReactElement => {
-  // Verificar si el array contiene objetos
-  const containsObjects = items.some(
-    (item) =>
-      item.type === "objeto" || (item.value && typeof item.value === "object")
-  );
-
-  if (!containsObjects) {
-    return (
-      <div className='flex flex-wrap gap-1.5 max-w-full'>
-        {items.map((item: ProcessedValue | unknown, index) => {
-          const processedItem = isProcessedValue(item)
-            ? item
-            : processValue(item, `item-${index}`);
-
+  return (
+    <ScrollArea className="w-full" type="hover">
+      <div className="flex flex-wrap gap-2 p-2">
+        {items.map((item, index) => {
+          const typeConfig = getTypeColor(item.type || "unknown");
           return (
             <Badge
-              key={`array-item-${index}`}
-              variant='outline'
-              className={`${
-                getTypeColor(processedItem.type).split(" ")[0]
-              } text-xs font-mono whitespace-nowrap overflow-hidden text-ellipsis`}
+              key={index}
+              variant="outline"
+              className={`${typeConfig.bg} ${typeConfig.text} ${typeConfig.border}`}
             >
-              {processedItem.type === "string"
-                ? `"${String(processedItem.value)}"`
-                : processedItem.type === "boolean"
-                ? processedItem.value
-                  ? "verdadero"
-                  : "falso"
-                : processedItem.type === "número"
-                ? Number(processedItem.value).toLocaleString()
-                : String(processedItem.value)}
+              {String(item.value)}
             </Badge>
           );
         })}
       </div>
-    );
-  }
-
-  return (
-    <div className='pl-4 border-l border-muted'>
-      {items.map((item, index) => (
-        <div
-          key={`array-item-${index}`}
-          className='flex items-center gap-2 w-full text-left py-0.5 hover:bg-muted/50 rounded px-1'
-        >
-          <ObjectCard value={item} showLabels compact={true} />
-        </div>
-      ))}
-    </div>
+    </ScrollArea>
   );
 };
 
