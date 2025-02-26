@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
@@ -28,16 +28,19 @@ export function LoadingLogs({ isVisible }: LoadingLogsProps) {
     });
   };
 
-  const addLog = (message: string, type: LogEntry["type"] = "info") => {
-    setLogs((prev) => [
-      ...prev,
-      {
-        timestamp: formatTimestamp(),
-        message,
-        type,
-      },
-    ]);
-  };
+  const addLog = useCallback(
+    (message: string, type: LogEntry["type"] = "info") => {
+      setLogs((prev) => [
+        ...prev,
+        {
+          timestamp: formatTimestamp(),
+          message,
+          type,
+        },
+      ]);
+    },
+    []
+  );
 
   useEffect(() => {
     let sse: EventSource | null = null;
@@ -97,7 +100,7 @@ export function LoadingLogs({ isVisible }: LoadingLogsProps) {
         sse.close();
       }
     };
-  }, [isVisible]);
+  }, [isVisible, addLog]);
 
   if (!isVisible) return null;
 

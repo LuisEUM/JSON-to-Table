@@ -316,7 +316,7 @@ export function DateFilter({
     });
 
     setSelectedDates(newSelected);
-  }, [isInverted]);
+  }, [isInverted, dateOptions, dateRange.start, dateRange.end]);
 
   const handleApply = () => {
     if (selectedDates.size === 0) {
