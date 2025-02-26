@@ -134,32 +134,43 @@ export function DateFilter({
 }: FilterComponentProps) {
   const [selectedPreset, setSelectedPreset] =
     useState<DateRangePreset>("custom");
-  const [isInverted, setIsInverted] = useState(true);
+
+  const [isInverted, setIsInverted] = useState(() => {
+    // Siempre inicializar con true ya que usamos arrIncludesSome
+    return true;
+  });
+
   const [dateRange, setDateRange] = useState<DateRange>(() => {
-    const start = initialValue?.value
-      ? toUTCDate(initialValue.value as string | number | Date)
-      : undefined;
-    const end = initialValue?.additionalValue
-      ? toUTCDate(initialValue.additionalValue as string | number | Date)
-      : undefined;
-    return { start, end };
+    if (!initialValue?.value || !Array.isArray(initialValue.value)) {
+      return { start: undefined, end: undefined };
+    }
+
+    // Convertir las fechas string a objetos Date y ordenarlas
+    const dates = (initialValue.value as string[])
+      .map((dateStr) => new Date(dateStr))
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    if (dates.length === 0) {
+      return { start: undefined, end: undefined };
+    }
+
+    // Usar la primera y última fecha del array como rango
+    return {
+      start: dates[0],
+      end: dates[dates.length - 1],
+    };
   });
 
   const [dateOptions, setDateOptions] = useState<DateOption[]>([]);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(() => {
-    // Inicializar selectedDates con los valores del initialValue si existen
-    if (
-      initialValue?.operator === "arrIncludesSome" &&
-      Array.isArray(initialValue.value)
-    ) {
-      return new Set(initialValue.value as string[]);
+    if (!initialValue?.value || !Array.isArray(initialValue.value)) {
+      return new Set<string>();
     }
-    return new Set<string>();
+    return new Set(initialValue.value as string[]);
   });
 
-  // Efecto para generar las opciones de fecha cuando cambia el rango
+  // Efecto para generar las opciones de fecha cuando cambia el rango o uniqueValues
   useEffect(() => {
-    // Crear un mapa para contar las ocurrencias de cada fecha
     const dateCounts = new Map<string, number>();
     const allDates = new Set<string>();
 
@@ -172,42 +183,17 @@ export function DateFilter({
       }
     });
 
-    // Mostrar todas las fechas disponibles
     const options: DateOption[] = Array.from(allDates)
       .sort()
-      .map((dateStr) => {
-        const date = new Date(dateStr);
-        const isInRange = (() => {
-          if (!dateRange.start && !dateRange.end) return true;
-          if (dateRange.start && !dateRange.end) return date >= dateRange.start;
-          if (!dateRange.start && dateRange.end) return date <= dateRange.end;
-          return dateRange.start && dateRange.end
-            ? date >= dateRange.start && date <= dateRange.end
-            : true;
-        })();
-
-        const shouldBeChecked = isInverted ? isInRange : !isInRange;
-        return {
-          date,
-          label: dateStr,
-          checked: shouldBeChecked,
-          count: dateCounts.get(dateStr) || 0,
-        };
-      });
+      .map((dateStr) => ({
+        date: new Date(dateStr),
+        label: dateStr,
+        checked: selectedDates.has(dateStr),
+        count: dateCounts.get(dateStr) || 0,
+      }));
 
     setDateOptions(options);
-
-    // Actualizar selectedDates usando un callback
-    setSelectedDates(() => {
-      const newSelected = new Set<string>();
-      options.forEach((option) => {
-        if (option.checked) {
-          newSelected.add(option.label);
-        }
-      });
-      return newSelected;
-    });
-  }, [dateRange, uniqueValues, isInverted]);
+  }, [uniqueValues, selectedDates]);
 
   useEffect(() => {
     // Si hay fechas seleccionadas pero no hay rango definido,
@@ -444,7 +430,7 @@ export function DateFilter({
                           <div className='flex items-center space-x-2'>
                             <Checkbox
                               id={option.label}
-                              checked={option.checked}
+                              checked={selectedDates.has(option.label)}
                               onCheckedChange={(checked) =>
                                 handleCheckboxChange(
                                   option.label,
