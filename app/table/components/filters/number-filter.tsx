@@ -1,5 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -7,18 +11,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { FilterComponentProps, FilterOperator } from "./filter-types";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import type { FilterComponentProps } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
 import { getTypeColor } from "../type-badge";
-import { Slider } from "@/components/ui/slider";
+import { DialogTitle } from "@/components/ui/dialog";
 
-const OPERATORS: { label: string; value: FilterOperator }[] = [
-  { label: "Mayor que", value: "greaterThan" },
-  { label: "Menor que", value: "lessThan" },
-  { label: "Entre", value: "between" },
-  { label: "Fuera de rango", value: "notBetween" },
-  { label: "Igual a", value: "equals" },
+const PRESETS = [
+  { label: "Personalizado", value: "custom" },
+  { label: "Valores positivos", value: "positive" },
+  { label: "Valores negativos", value: "negative" },
+  { label: "Valores mayores a la media", value: "aboveAverage" },
+  { label: "Valores menores a la media", value: "belowAverage" },
+  { label: "Top 25%", value: "top25" },
+  { label: "Último 25%", value: "bottom25" },
 ];
+
+interface NumberOption {
+  value: number;
+  label: string;
+  checked: boolean;
+  count: number;
+}
+
+interface NumberRange {
+  start?: number;
+  end?: number;
+}
 
 export function NumberFilter({
   columnId,
@@ -32,57 +56,202 @@ export function NumberFilter({
   minValue,
   maxValue,
 }: FilterComponentProps & { minValue?: number; maxValue?: number }) {
-  console.log("NumberFilter - Columna:", columnName);
-  console.log("NumberFilter - Tipo:", columnType);
-  console.log("NumberFilter - Valores únicos:", uniqueValues);
-  console.log("NumberFilter - Valor mínimo:", minValue);
-  console.log("NumberFilter - Valor máximo:", maxValue);
+  const [selectedPreset, setSelectedPreset] = useState("custom");
+  const [isInverted, setIsInverted] = useState(true);
 
-  // Calcular min y max a partir de uniqueValues si no se proporcionan
-  const calculatedMin =
-    minValue ?? Math.min(...uniqueValues.map((opt) => Number(opt.value)));
-  const calculatedMax =
-    maxValue ?? Math.max(...uniqueValues.map((opt) => Number(opt.value)));
+  // Calcular estadísticas básicas
+  const numbers = uniqueValues
+    .map((v) => Number(v.value))
+    .filter((n) => !isNaN(n));
+  const calculatedMin = minValue ?? Math.min(...numbers);
+  const calculatedMax = maxValue ?? Math.max(...numbers);
+  const avg = numbers.reduce((a, b) => a + b, 0) / numbers.length;
+  const sorted = [...numbers].sort((a, b) => a - b);
+  const q1 = sorted[Math.floor(sorted.length * 0.25)];
+  const q3 = sorted[Math.floor(sorted.length * 0.75)];
 
-  const [operator, setOperator] = useState<FilterOperator>(
-    initialValue?.operator || "equals"
-  );
+  const [numberRange, setNumberRange] = useState<NumberRange>(() => {
+    if (!initialValue?.value || !Array.isArray(initialValue.value)) {
+      return { start: calculatedMin, end: calculatedMax };
+    }
+    const values = initialValue.value.map((v) => Number(v));
+    return {
+      start: Math.min(...values),
+      end: Math.max(...values),
+    };
+  });
 
-  const [value, setValue] = useState<number>(
-    Number(initialValue?.value) || calculatedMin
-  );
+  const [numberOptions, setNumberOptions] = useState<NumberOption[]>([]);
+  const [selectedNumbers, setSelectedNumbers] = useState<Set<string>>(() => {
+    if (!initialValue?.value || !Array.isArray(initialValue.value)) {
+      return new Set<string>();
+    }
+    return new Set(initialValue.value.map(String));
+  });
 
-  const [additionalValue, setAdditionalValue] = useState<number>(
-    Number(initialValue?.additionalValue) || calculatedMax
-  );
+  // Generar opciones de números
+  useEffect(() => {
+    const numberCounts = new Map<string, number>();
+    uniqueValues.forEach((option) => {
+      const num = Number(option.value);
+      if (!isNaN(num)) {
+        const numStr = num.toString();
+        numberCounts.set(
+          numStr,
+          (numberCounts.get(numStr) || 0) + option.count
+        );
+      }
+    });
 
-  const minVal = calculatedMin;
-  const maxVal = calculatedMax;
-  const step = (maxVal - minVal) / 100;
+    const options: NumberOption[] = Array.from(numberCounts.entries())
+      .map(([numStr, count]) => ({
+        value: Number(numStr),
+        label: numStr,
+        checked: false,
+        count,
+      }))
+      .sort((a, b) => a.value - b.value);
 
-  const needsAdditionalValue = ["between", "notBetween"].includes(operator);
+    setNumberOptions(options);
+  }, [uniqueValues]);
+
+  const getPresetRange = (preset: string): NumberRange => {
+    switch (preset) {
+      case "positive":
+        return { start: 0, end: calculatedMax };
+      case "negative":
+        return { start: calculatedMin, end: 0 };
+      case "aboveAverage":
+        return { start: avg, end: calculatedMax };
+      case "belowAverage":
+        return { start: calculatedMin, end: avg };
+      case "top25":
+        return { start: q3, end: calculatedMax };
+      case "bottom25":
+        return { start: calculatedMin, end: q1 };
+      default:
+        return { start: undefined, end: undefined };
+    }
+  };
+
+  const handlePresetChange = (preset: string) => {
+    setSelectedPreset(preset);
+    if (preset === "custom") return;
+
+    const newRange = getPresetRange(preset);
+    setNumberRange(newRange);
+
+    if (newRange.start !== undefined || newRange.end !== undefined) {
+      const newSelected = new Set<string>();
+      numberOptions.forEach((option) => {
+        const isInRange = (() => {
+          if (!newRange.start && !newRange.end) return true;
+          if (newRange.start && !newRange.end)
+            return option.value >= newRange.start;
+          if (!newRange.start && newRange.end)
+            return option.value <= newRange.end;
+          return newRange.start && newRange.end
+            ? option.value >= newRange.start && option.value <= newRange.end
+            : true;
+        })();
+
+        if (isInverted ? isInRange : !isInRange) {
+          newSelected.add(option.label);
+        }
+      });
+
+      setSelectedNumbers(newSelected);
+    }
+  };
+
+  const handleNumberInputChange = (type: "start" | "end", value: string) => {
+    const num = value ? Number(value) : undefined;
+
+    // Validar que el número esté dentro de los límites permitidos
+    if (num !== undefined) {
+      if (type === "start" && num < calculatedMin) return;
+      if (type === "end" && num > calculatedMax) return;
+    }
+
+    setNumberRange((prev) => {
+      const newRange = { ...prev, [type]: num };
+
+      const newSelected = new Set<string>();
+      numberOptions.forEach((option) => {
+        const isInRange = (() => {
+          if (!newRange.start && !newRange.end) return true;
+          if (newRange.start && !newRange.end)
+            return option.value >= newRange.start;
+          if (!newRange.start && newRange.end)
+            return option.value <= newRange.end;
+          return newRange.start && newRange.end
+            ? option.value >= newRange.start && option.value <= newRange.end
+            : true;
+        })();
+
+        if (isInverted ? isInRange : !isInRange) {
+          newSelected.add(option.label);
+        }
+      });
+
+      setSelectedNumbers(newSelected);
+      return newRange;
+    });
+  };
+
+  const handleCheckboxChange = (numStr: string, checked: boolean) => {
+    const newSelected = new Set(selectedNumbers);
+    if (checked) {
+      newSelected.add(numStr);
+    } else {
+      newSelected.delete(numStr);
+    }
+    setSelectedNumbers(newSelected);
+  };
+
+  // Mantener sincronizadas las selecciones cuando cambia el modo
+  useEffect(() => {
+    if (numberOptions.length === 0) return;
+
+    const newSelected = new Set<string>();
+    numberOptions.forEach((option) => {
+      const isInRange = (() => {
+        if (!numberRange.start && !numberRange.end) return true;
+        if (numberRange.start && !numberRange.end)
+          return option.value >= numberRange.start;
+        if (!numberRange.start && numberRange.end)
+          return option.value <= numberRange.end;
+        return numberRange.start && numberRange.end
+          ? option.value >= numberRange.start && option.value <= numberRange.end
+          : true;
+      })();
+
+      if (isInverted ? isInRange : !isInRange) {
+        newSelected.add(option.label);
+      }
+    });
+
+    setSelectedNumbers(newSelected);
+  }, [isInverted, numberOptions, numberRange.start, numberRange.end]);
 
   const handleApply = () => {
-    if (operator === "between" || operator === "notBetween") {
-      onApply({
-        field: columnId,
-        operator,
-        value: Math.min(value, additionalValue),
-        additionalValue: Math.max(value, additionalValue),
-      });
-    } else {
-      onApply({
-        field: columnId,
-        operator,
-        value: Number(value),
-      });
+    if (selectedNumbers.size === 0) {
+      onClear();
+      onClose();
+      return;
     }
+
+    onApply({
+      field: columnId,
+      operator: "arrIncludesSome",
+      value: Array.from(selectedNumbers),
+    });
     onClose();
   };
 
   return (
-    <div className='w-full space-y-4'>
-      <div className='flex items-center justify-between'>
+    <div className='w-full h-full min-h-[350px] flex flex-col'>
+      <div className='flex items-center justify-between mb-4'>
         <h3 className='font-medium'>
           Filtro para:{" "}
           <span
@@ -94,87 +263,115 @@ export function NumberFilter({
         </h3>
       </div>
 
-      <div className='space-y-4'>
-        <div className='space-y-2'>
-          <label className='text-sm font-medium'>Operador</label>
-          <Select
-            value={operator}
-            onValueChange={(value: FilterOperator) => setOperator(value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder='Seleccionar operador' />
-            </SelectTrigger>
-            <SelectContent>
-              {OPERATORS.map((op) => (
-                <SelectItem key={op.value} value={op.value}>
-                  {op.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className='space-y-4 flex-1'>
+        <Select value={selectedPreset} onValueChange={handlePresetChange}>
+          <SelectTrigger>
+            <SelectValue placeholder='Selecciona un rango predefinido' />
+          </SelectTrigger>
+          <SelectContent>
+            <DialogTitle className='sr-only'>
+              Seleccionar rango predefinido
+            </DialogTitle>
+            {PRESETS.map((preset) => (
+              <SelectItem key={preset.value} value={preset.value}>
+                {preset.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className='flex items-center justify-between space-x-2'>
+          <Label htmlFor='range-mode' className='text-sm'>
+            {isInverted ? "Dentro del rango" : "Fuera del rango"}
+          </Label>
+          <Switch
+            id='range-mode'
+            checked={isInverted}
+            onCheckedChange={setIsInverted}
+          />
         </div>
 
-        {needsAdditionalValue ? (
-          <div className='space-y-4'>
-            <div className='space-y-2'>
-              <label className='text-sm font-medium'>Rango</label>
-              <div className='pt-4'>
-                <Slider
-                  min={minVal}
-                  max={maxVal}
-                  step={step}
-                  value={[value, additionalValue]}
-                  onValueChange={([newValue, newAdditionalValue]) => {
-                    setValue(newValue);
-                    setAdditionalValue(newAdditionalValue);
-                  }}
-                />
-              </div>
-              <div className='flex justify-between gap-4 mt-2'>
-                <Input
-                  type='number'
-                  value={value}
-                  onChange={(e) => {
-                    const newValue = Number(e.target.value);
-                    setValue(Math.max(minVal, Math.min(maxVal, newValue)));
-                  }}
-                  className='w-24'
-                />
-                <Input
-                  type='number'
-                  value={additionalValue}
-                  onChange={(e) => {
-                    const newValue = Number(e.target.value);
-                    setAdditionalValue(
-                      Math.max(minVal, Math.min(maxVal, newValue))
-                    );
-                  }}
-                  className='w-24'
-                />
-              </div>
-            </div>
-          </div>
-        ) : (
+        <div className='grid grid-cols-2 gap-4'>
           <div className='space-y-2'>
-            <label className='text-sm font-medium'>Valor</label>
-            <div className='pt-4'>
-              <Slider
-                min={minVal}
-                max={maxVal}
-                step={step}
-                value={[value]}
-                onValueChange={([newValue]) => setValue(newValue)}
-              />
-            </div>
+            <Label>Desde</Label>
             <Input
               type='number'
-              value={value}
+              value={numberRange.start ?? ""}
               onChange={(e) => {
-                const newValue = Number(e.target.value);
-                setValue(Math.max(minVal, Math.min(maxVal, newValue)));
+                setSelectedPreset("custom");
+                handleNumberInputChange("start", e.target.value);
               }}
-              className='w-full mt-2'
+              min={calculatedMin}
+              max={calculatedMax}
+              step='any'
+              placeholder={calculatedMin.toString()}
             />
+          </div>
+          <div className='space-y-2'>
+            <Label>Hasta</Label>
+            <Input
+              type='number'
+              value={numberRange.end ?? ""}
+              onChange={(e) => {
+                setSelectedPreset("custom");
+                handleNumberInputChange("end", e.target.value);
+              }}
+              min={calculatedMin}
+              max={calculatedMax}
+              step='any'
+              placeholder={calculatedMax.toString()}
+            />
+          </div>
+        </div>
+
+        {numberOptions.length > 0 && (
+          <>
+            <div className='text-sm text-muted-foreground'>
+              {selectedNumbers.size} valores seleccionados en el rango
+            </div>
+
+            <Accordion type='single' collapsible className='w-full'>
+              <AccordionItem value='number-breakdown'>
+                <AccordionTrigger className='text-sm'>
+                  Ver desglose por valores
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ScrollArea className='h-[200px] w-full rounded-md border'>
+                    <div className='p-4 space-y-2'>
+                      {numberOptions.map((option) => (
+                        <div
+                          key={option.label}
+                          className='flex items-center justify-between'
+                        >
+                          <div className='flex items-center space-x-2'>
+                            <Checkbox
+                              id={option.label}
+                              checked={selectedNumbers.has(option.label)}
+                              onCheckedChange={(checked) =>
+                                handleCheckboxChange(
+                                  option.label,
+                                  checked as boolean
+                                )
+                              }
+                            />
+                            <Label htmlFor={option.label}>{option.label}</Label>
+                          </div>
+                          <span className='text-sm text-muted-foreground'>
+                            {option.count}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </>
+        )}
+
+        {numberOptions.length === 0 && (
+          <div className='flex-1 flex items-center justify-center text-muted-foreground text-sm'>
+            No hay valores numéricos disponibles
           </div>
         )}
       </div>
