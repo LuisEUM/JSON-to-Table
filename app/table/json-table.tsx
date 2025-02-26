@@ -51,6 +51,8 @@ import { ActionButtons } from "./components/action-buttons"; // Ajusta la ruta
 import type { FilterCondition } from "./components/filters/filter-types";
 import { ExportDropdown } from "./components/export-dropdown";
 import { SecondaryTables } from "./components/secondary-tables";
+import { TableSkeleton } from "./components/table-skeleton";
+import { useDebounce } from "@/lib/hooks/use-debounce"; // Asegúrate de tener este hook
 
 // --------------------
 // 1) Contexto de filtros (opcional)
@@ -159,6 +161,7 @@ function getTanStackPinningStyles(
 // --------------------
 interface JsonTableProps {
   data: Record<string, unknown>[];
+  isLoading?: boolean;
   isSecondaryTable?: boolean;
   onArrayColumnsChange?: (
     columns: {
@@ -175,31 +178,29 @@ interface JsonTableProps {
 
 export function JsonTable({
   data,
+  isLoading = false,
   isSecondaryTable = false,
   onArrayColumnsChange,
   parentTableInfo,
 }: JsonTableProps) {
-  // 1. Todos los useState primero
-  const [tableData, setTableData] = useState(data);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [isSecondaryTablesLoading, setIsSecondaryTablesLoading] =
+    useState(false);
   const [useFixedColumn, setUseFixedColumn] = useState(false);
   const [fixedColumnId, setFixedColumnId] = useState<string | null>(null);
   const [originalColumnOrder, setOriginalColumnOrder] = useState<string[]>([]);
-  const [globalFilter, setGlobalFilter] = useState("");
-  const [arrayColumns, setArrayColumns] = useState<
-    {
-      id: string;
-      label: string;
-      data: Record<string, unknown>[];
-      parentTable?: {
-        id: string;
-        name: string;
-      };
-    }[]
-  >([]);
+  const [isProcessingData, setIsProcessingData] = useState(true);
+  const [hasInitialData, setHasInitialData] = useState(false);
+
+  // Debounce para los filtros
+  const debouncedColumnFilters = useDebounce(columnFilters, 300);
+  const debouncedGlobalFilter = useDebounce(globalFilter, 300);
+
+  // Map para almacenar las columnas de arrays únicos
   const [uniqueArrayColumns] = useState(
     () =>
       new Map<
@@ -218,17 +219,15 @@ export function JsonTable({
 
   // 2. Todos los useMemo
   const processedData = useMemo(
-    () => tableData.map((item) => processData(item)),
-    [tableData]
+    () => data.map((item) => processData(item)),
+    [data]
   );
 
   const handleDelete = useCallback((index: number) => {
-    setTableData((prev) => {
-      const newData = [...prev];
-      newData.splice(index, 1);
-      toast.success("Registro eliminado correctamente");
-      return newData;
-    });
+    // Por ahora solo mostrar el toast ya que el manejo de datos
+    // se debe hacer desde el componente padre
+    toast.success(`Registro #${index + 1} eliminado correctamente`);
+    // TODO: Implementar lógica de eliminación a través de props
   }, []);
 
   const actionsColumn = useMemo(
@@ -526,7 +525,9 @@ export function JsonTable({
   // 5. Efectos
   useEffect(() => {
     if (!processedData.length) {
-      setArrayColumns([]);
+      if (onArrayColumnsChange) {
+        onArrayColumnsChange([]);
+      }
       return;
     }
 
@@ -551,9 +552,8 @@ export function JsonTable({
       })),
     });
 
-    setArrayColumns(validArrayColumns);
-
-    if (isSecondaryTable && onArrayColumnsChange) {
+    // Notificar cambios en las columnas si existe el callback
+    if (onArrayColumnsChange) {
       onArrayColumnsChange(validArrayColumns);
     }
   }, [
@@ -589,10 +589,153 @@ export function JsonTable({
     });
   }, [useFixedColumn, fixedColumnId, table]);
 
-  // 6. Render
+  // Función para procesar las tablas secundarias
+  const processSecondaryTables = useCallback(
+    (filteredData: ProcessedRow[]) => {
+      if (isSecondaryTable) return; // No procesar si es una tabla secundaria
+
+      setIsSecondaryTablesLoading(true);
+      uniqueArrayColumns.clear();
+
+      filteredData.forEach((row) => {
+        const rowId =
+          row["id"]?.value ||
+          Object.values(row).find((item) => item.isId)?.value ||
+          Object.values(row).find((item) =>
+            item.path?.[item.path.length - 1].toLowerCase().includes("id")
+          )?.value;
+
+        Object.values(row).forEach((item) => {
+          if (
+            item.type === "array[objeto]" ||
+            (item.type === "array" && item.items?.[0]?.type === "objeto")
+          ) {
+            const columnId = item.path.join(".");
+
+            if (!uniqueArrayColumns.has(columnId)) {
+              const processedData =
+                item.items?.map((subItem) => ({
+                  ...(subItem.value as object),
+                  __parentId: rowId,
+                  __parentTable: parentTableInfo?.id || columnId,
+                })) || [];
+
+              uniqueArrayColumns.set(columnId, {
+                id: columnId,
+                label: item.path.join("."),
+                data: processedData,
+                parentTable: parentTableInfo,
+              });
+            } else {
+              const existingColumn = uniqueArrayColumns.get(columnId);
+              if (existingColumn) {
+                const hasParentId = existingColumn.data.some(
+                  (record) => record.__parentId === rowId
+                );
+
+                if (!hasParentId) {
+                  const newProcessedData =
+                    item.items?.map((subItem) => ({
+                      ...(subItem.value as object),
+                      __parentId: rowId,
+                      __parentTable: parentTableInfo?.id || columnId,
+                    })) || [];
+
+                  uniqueArrayColumns.set(columnId, {
+                    ...existingColumn,
+                    data: [...existingColumn.data, ...newProcessedData],
+                  });
+                }
+              }
+            }
+          }
+        });
+      });
+
+      if (onArrayColumnsChange) {
+        onArrayColumnsChange(Array.from(uniqueArrayColumns.values()));
+      }
+
+      // Pequeño delay para asegurar que la UI se actualice
+      setTimeout(() => {
+        setIsSecondaryTablesLoading(false);
+      }, 300);
+    },
+    [
+      isSecondaryTable,
+      uniqueArrayColumns,
+      parentTableInfo,
+      onArrayColumnsChange,
+    ]
+  );
+
+  // Efecto para controlar el estado inicial de carga
+  useEffect(() => {
+    if (data.length > 0 && !hasInitialData) {
+      setHasInitialData(true);
+    }
+  }, [data.length, hasInitialData]);
+
+  // Efecto para procesar las tablas secundarias cuando cambian los filtros
+  useEffect(() => {
+    const processData = async () => {
+      setIsProcessingData(true);
+      const filteredRows = table.getFilteredRowModel().rows;
+      const filteredData = filteredRows.map((row) => row.original);
+      await processSecondaryTables(filteredData);
+      setIsProcessingData(false);
+    };
+
+    if (hasInitialData) {
+      processData();
+    }
+  }, [
+    debouncedColumnFilters,
+    debouncedGlobalFilter,
+    table,
+    processSecondaryTables,
+    hasInitialData,
+  ]);
+
+  // Render loading state
+  if (isLoading || (!hasInitialData && data.length === 0)) {
+    return (
+      <FilterContext.Provider value={filterContextValue}>
+        <CardContent className='relative'>
+          <div className='text-center text-muted-foreground py-8'>
+            Cargando datos...
+          </div>
+        </CardContent>
+      </FilterContext.Provider>
+    );
+  }
+
+  // Render empty state
+  if (!isLoading && data.length === 0) {
+    return (
+      <FilterContext.Provider value={filterContextValue}>
+        <CardContent className='relative'>
+          <div className='text-center text-muted-foreground py-8'>
+            No hay datos disponibles
+          </div>
+        </CardContent>
+      </FilterContext.Provider>
+    );
+  }
+
   return (
     <FilterContext.Provider value={filterContextValue}>
       <CardContent className='relative'>
+        {/* Mostrar skeleton loader mientras se procesan los datos */}
+        {isProcessingData && (
+          <div className='absolute inset-0 bg-background/50 backdrop-blur-sm z-50 flex items-center justify-center'>
+            <TableSkeleton
+              columnCount={7}
+              rowCount={Math.min(10, data.length || 10)}
+            />
+          </div>
+        )}
+
         {/* Encabezado: barra de búsqueda y modal de columnas */}
         <div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
           <div className='w-full sm:w-72'>
@@ -743,8 +886,12 @@ export function JsonTable({
         <TypeLegend />
 
         {/* Tablas secundarias */}
-        {!isSecondaryTable && arrayColumns.length > 0 && (
-          <SecondaryTables arrayColumns={arrayColumns} />
+        {!isSecondaryTable && (
+          <SecondaryTables
+            arrayColumns={Array.from(uniqueArrayColumns.values())}
+            level={0}
+            isLoading={isSecondaryTablesLoading}
+          />
         )}
       </CardContent>
     </FilterContext.Provider>

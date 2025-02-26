@@ -19,16 +19,19 @@ interface SecondaryTablesProps {
   }[];
   level?: number; // Nivel de anidación
   parentId?: string; // ID de la tabla padre
+  isLoading?: boolean; // Estado de carga
 }
 
 export function SecondaryTables({
   arrayColumns,
   level = 0,
   parentId,
+  isLoading = false,
 }: SecondaryTablesProps) {
   console.log("🎯 Renderizando SecondaryTables:", {
     level,
     parentId,
+    isLoading,
     arrayColumnsCount: arrayColumns.length,
     arrayColumns: arrayColumns.map((col) => ({
       id: col.id,
@@ -57,6 +60,8 @@ export function SecondaryTables({
 
   // Actualizar selección cuando cambian las columnas
   useEffect(() => {
+    if (isLoading) return; // No actualizar durante la carga
+
     const newTableIds = new Set(arrayColumns.map((col) => col.id));
     setSelectedTables((prev) => {
       const hasChanges =
@@ -65,7 +70,7 @@ export function SecondaryTables({
 
       return hasChanges ? newTableIds : prev;
     });
-  }, [arrayColumns]);
+  }, [arrayColumns, isLoading]);
 
   const handleNestedTablesChange = useCallback(
     (tableId: string, columns: typeof arrayColumns) => {
@@ -80,6 +85,40 @@ export function SecondaryTables({
     },
     []
   );
+
+  if (isLoading) {
+    // Skeleton para tablas secundarias
+    return (
+      <div className={`mt-8 space-y-6 ${level > 0 ? "ml-8" : ""}`}>
+        <div className='flex flex-wrap gap-4 p-4 border rounded-lg bg-muted/50'>
+          <div className='w-full flex items-center justify-between'>
+            <div className='h-6 bg-muted rounded w-1/3 animate-pulse'></div>
+            <div className='flex gap-4'>
+              <div className='h-4 bg-muted rounded w-24 animate-pulse'></div>
+              <div className='h-4 bg-muted rounded w-24 animate-pulse'></div>
+            </div>
+          </div>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className='flex items-center space-x-2'>
+              <div className='h-4 w-4 bg-muted rounded animate-pulse'></div>
+              <div className='h-4 bg-muted rounded w-32 animate-pulse'></div>
+            </div>
+          ))}
+        </div>
+
+        {[1, 2].map((i) => (
+          <Card key={i}>
+            <CardHeader>
+              <div className='h-6 bg-muted rounded w-1/2 animate-pulse'></div>
+            </CardHeader>
+            <CardContent>
+              <div className='h-[300px] bg-muted/30 rounded animate-pulse'></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   if (!arrayColumns.length) return null;
 
@@ -197,6 +236,7 @@ export function SecondaryTables({
                 <JsonTable
                   data={tableData.data}
                   isSecondaryTable
+                  isLoading={isLoading}
                   parentTableInfo={{
                     id: tableId,
                     name: tableData.label,
@@ -213,6 +253,7 @@ export function SecondaryTables({
                 arrayColumns={nestedTables[tableId]}
                 level={level + 1}
                 parentId={String(tableData.data[0]?.__parentId || "")}
+                isLoading={isLoading}
               />
             )}
           </div>

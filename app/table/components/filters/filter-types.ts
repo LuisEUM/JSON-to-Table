@@ -24,7 +24,8 @@ export type FilterValue =
   | boolean
   | Date
   | FilterValue[]
-  | null;
+  | null
+  | undefined;
 
 export interface FilterCondition {
   field: string;
@@ -52,10 +53,10 @@ export type DateRangePreset =
   | "quarter3"
   | "quarter4";
 
-export interface DateRange {
-  start: Date;
-  end: Date;
-}
+export type DateRange = {
+  start: Date | undefined;
+  end: Date | undefined;
+};
 
 export interface FilterOption {
   value: string;

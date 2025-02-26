@@ -9,6 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type {
   FilterComponentProps,
   DateRangePreset,
@@ -16,7 +18,7 @@ import type {
 } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
 import { getTypeColor } from "../type-badge";
-import { toUTCDate } from "../../utils/date-formatter";
+import { toUTCDate, formatDate } from "@/app/utils/date-formatter";
 
 const PRESETS: { label: string; value: DateRangePreset }[] = [
   { label: "Rango personalizado", value: "custom" },
@@ -30,6 +32,11 @@ const PRESETS: { label: string; value: DateRangePreset }[] = [
   { label: "2do trimestre", value: "quarter2" },
   { label: "3er trimestre", value: "quarter3" },
   { label: "4to trimestre", value: "quarter4" },
+];
+
+const RANGE_TYPES = [
+  { label: "Dentro del rango", value: "between" },
+  { label: "Fuera del rango", value: "notBetween" },
 ];
 
 const calculateDateRange = (preset: DateRangePreset): DateRange => {
@@ -60,13 +67,16 @@ export function DateFilter({
   columnType,
 }: FilterComponentProps) {
   const [preset, setPreset] = useState<DateRangePreset>("custom");
+  const [rangeType, setRangeType] = useState<"between" | "notBetween">(
+    "between"
+  );
   const [dateRange, setDateRange] = useState<DateRange>(() => {
     const start = initialValue?.value
       ? toUTCDate(initialValue.value as string | number | Date)
-      : toUTCDate(new Date());
+      : undefined;
     const end = initialValue?.additionalValue
       ? toUTCDate(initialValue.additionalValue as string | number | Date)
-      : toUTCDate(new Date());
+      : undefined;
     return { start, end };
   });
 
@@ -78,10 +88,24 @@ export function DateFilter({
     }
   };
 
+  const handleDateInputChange = (type: "start" | "end", value: string) => {
+    const date = value ? toUTCDate(new Date(value)) : undefined;
+    setDateRange((prev) => ({
+      ...prev,
+      [type]: date,
+    }));
+  };
+
   const handleApply = () => {
+    if (!dateRange.start && !dateRange.end) {
+      onClear();
+      onClose();
+      return;
+    }
+
     onApply({
       field: columnId,
-      operator: "between",
+      operator: rangeType,
       value: dateRange.start,
       additionalValue: dateRange.end,
     });
@@ -104,7 +128,28 @@ export function DateFilter({
 
       <div className='space-y-4'>
         <div className='space-y-2'>
-          <label className='text-sm font-medium'>Rango de fechas</label>
+          <Label>Tipo de rango</Label>
+          <Select
+            value={rangeType}
+            onValueChange={(value: "between" | "notBetween") =>
+              setRangeType(value)
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder='Seleccionar tipo de rango' />
+            </SelectTrigger>
+            <SelectContent>
+              {RANGE_TYPES.map((type) => (
+                <SelectItem key={type.value} value={type.value}>
+                  {type.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className='space-y-2'>
+          <Label>Rango predefinido</Label>
           <Select value={preset} onValueChange={handlePresetChange}>
             <SelectTrigger>
               <SelectValue placeholder='Seleccionar rango' />
@@ -120,23 +165,50 @@ export function DateFilter({
         </div>
 
         {preset === "custom" && (
-          <div className='border rounded-md p-4 overflow-auto'>
-            <Calendar
-              mode='range'
-              selected={{
-                from: dateRange.start,
-                to: dateRange.end,
-              }}
-              onSelect={(range) => {
-                if (range?.from && range?.to) {
+          <div className='space-y-4'>
+            <div className='grid grid-cols-2 gap-4'>
+              <div className='space-y-2'>
+                <Label>Desde</Label>
+                <Input
+                  type='date'
+                  value={
+                    dateRange.start
+                      ? formatDate(dateRange.start, "yyyy-MM-dd")
+                      : ""
+                  }
+                  onChange={(e) =>
+                    handleDateInputChange("start", e.target.value)
+                  }
+                />
+              </div>
+              <div className='space-y-2'>
+                <Label>Hasta</Label>
+                <Input
+                  type='date'
+                  value={
+                    dateRange.end ? formatDate(dateRange.end, "yyyy-MM-dd") : ""
+                  }
+                  onChange={(e) => handleDateInputChange("end", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className='border rounded-md p-4 overflow-auto'>
+              <Calendar
+                mode='range'
+                selected={{
+                  from: dateRange.start,
+                  to: dateRange.end,
+                }}
+                onSelect={(range) => {
                   setDateRange({
-                    start: toUTCDate(range.from),
-                    end: toUTCDate(range.to),
+                    start: range?.from,
+                    end: range?.to,
                   });
-                }
-              }}
-              numberOfMonths={2}
-            />
+                }}
+                numberOfMonths={2}
+              />
+            </div>
           </div>
         )}
       </div>
@@ -145,4 +217,3 @@ export function DateFilter({
     </div>
   );
 }
-
