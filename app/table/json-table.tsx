@@ -24,6 +24,7 @@ import {
   getFacetedMinMaxValues,
   useReactTable,
   Column, // Para leer info de pinning
+  type FilterFn,
 } from "@tanstack/react-table";
 
 import {
@@ -53,6 +54,14 @@ import { ExportDropdown } from "./components/export-dropdown";
 import { SecondaryTables } from "./components/secondary-tables";
 import { TableSkeleton } from "./components/table-skeleton";
 import { useDebounce } from "@/lib/hooks/use-debounce"; // Asegúrate de tener este hook
+import { dateBetweenFilterFn } from "./components/filters/filter-types";
+import { formatDate } from "@/app/utils/date-formatter";
+
+declare module "@tanstack/table-core" {
+  interface FilterFns {
+    dateBetweenFilterFn: FilterFn<ProcessedRow>;
+  }
+}
 
 // --------------------
 // 1) Contexto de filtros (opcional)
@@ -175,6 +184,39 @@ interface JsonTableProps {
     name: string;
   };
 }
+
+interface FilterFns {
+  processedValueFilter: FilterFn<ProcessedRow>;
+  dateBetweenFilterFn: FilterFn<ProcessedRow>;
+}
+
+// const generateColumns = (data: ProcessedRow[]): ColumnDef<ProcessedRow>[] => {
+//   if (!data.length) return [];
+
+//   const firstRow = data[0];
+//   return Object.keys(firstRow).map((key) => {
+//     const column: ColumnDef<ProcessedRow> = {
+//       id: key,
+//       accessorKey: key,
+//       header: key,
+//       cell: (info) => {
+//         const value = info.getValue() as ProcessedItem;
+//         if (!value) return null;
+//         return String(value.value);
+//       },
+//     };
+
+//     // Obtener el tipo de la columna del primer valor no nulo
+//     const columnType = data.find((row) => row[key])?.[key as keyof ProcessedRow]
+//       ?.type;
+
+//     if (columnType === "date") {
+//       column.filterFn = "dateBetweenFilterFn";
+//     }
+
+//     return column;
+//   });
+// };
 
 export function JsonTable({
   data,
@@ -398,6 +440,25 @@ export function JsonTable({
         const rawValue = processedValue.value;
 
         switch (filterValue.operator) {
+          case "arrIncludesSome":
+            if (processedValue.type === "fecha") {
+              const date =
+                rawValue instanceof Date
+                  ? rawValue
+                  : new Date(rawValue as string | number);
+              if (!isNaN(date.getTime())) {
+                const dateStr = formatDate(date, "yyyy-MM-dd");
+                return (
+                  Array.isArray(filterValue.value) &&
+                  filterValue.value.includes(dateStr)
+                );
+              }
+              return false;
+            }
+            return (
+              Array.isArray(filterValue.value) &&
+              filterValue.value.includes(String(rawValue))
+            );
           case "in":
             return (
               Array.isArray(filterValue.value) &&
@@ -415,7 +476,8 @@ export function JsonTable({
             return true;
         }
       },
-    },
+      dateBetweenFilterFn,
+    } as FilterFns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),

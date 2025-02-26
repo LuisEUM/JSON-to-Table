@@ -81,9 +81,9 @@ export function NumberFilter({
   };
 
   return (
-    <div className="w-full space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-medium">
+    <div className='w-full space-y-4'>
+      <div className='flex items-center justify-between'>
+        <h3 className='font-medium'>
           Filtro para:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
@@ -94,15 +94,15 @@ export function NumberFilter({
         </h3>
       </div>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Operador</label>
+      <div className='space-y-4'>
+        <div className='space-y-2'>
+          <label className='text-sm font-medium'>Operador</label>
           <Select
             value={operator}
             onValueChange={(value: FilterOperator) => setOperator(value)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Seleccionar operador" />
+              <SelectValue placeholder='Seleccionar operador' />
             </SelectTrigger>
             <SelectContent>
               {OPERATORS.map((op) => (
@@ -115,10 +115,10 @@ export function NumberFilter({
         </div>
 
         {needsAdditionalValue ? (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Rango</label>
-              <div className="pt-4">
+          <div className='space-y-4'>
+            <div className='space-y-2'>
+              <label className='text-sm font-medium'>Rango</label>
+              <div className='pt-4'>
                 <Slider
                   min={minVal}
                   max={maxVal}
@@ -130,18 +130,18 @@ export function NumberFilter({
                   }}
                 />
               </div>
-              <div className="flex justify-between gap-4 mt-2">
+              <div className='flex justify-between gap-4 mt-2'>
                 <Input
-                  type="number"
+                  type='number'
                   value={value}
                   onChange={(e) => {
                     const newValue = Number(e.target.value);
                     setValue(Math.max(minVal, Math.min(maxVal, newValue)));
                   }}
-                  className="w-24"
+                  className='w-24'
                 />
                 <Input
-                  type="number"
+                  type='number'
                   value={additionalValue}
                   onChange={(e) => {
                     const newValue = Number(e.target.value);
@@ -149,15 +149,15 @@ export function NumberFilter({
                       Math.max(minVal, Math.min(maxVal, newValue))
                     );
                   }}
-                  className="w-24"
+                  className='w-24'
                 />
               </div>
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Valor</label>
-            <div className="pt-4">
+          <div className='space-y-2'>
+            <label className='text-sm font-medium'>Valor</label>
+            <div className='pt-4'>
               <Slider
                 min={minVal}
                 max={maxVal}
@@ -167,13 +167,13 @@ export function NumberFilter({
               />
             </div>
             <Input
-              type="number"
+              type='number'
               value={value}
               onChange={(e) => {
                 const newValue = Number(e.target.value);
                 setValue(Math.max(minVal, Math.min(maxVal, newValue)));
               }}
-              className="w-full mt-2"
+              className='w-full mt-2'
             />
           </div>
         )}
