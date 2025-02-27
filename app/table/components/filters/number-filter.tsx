@@ -336,8 +336,8 @@ export function NumberFilter({
                   Ver desglose por valores
                 </AccordionTrigger>
                 <AccordionContent>
-                  <ScrollArea className='h-[200px] w-full rounded-md border'>
-                    <div className='p-4 space-y-2'>
+                  <ScrollArea className='w-full rounded-md border'>
+                    <div className='p-4 space-y-2 h-[200px]'>
                       {numberOptions.map((option) => (
                         <div
                           key={option.label}

@@ -3,14 +3,59 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { JsonTable } from "./table/json-table";
-import { DataSourceSelector } from "./components/data-source-selector";
+import {
+  DataSourceSelector,
+  DataSource,
+} from "./components/data-source-selector";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Clock } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 
-type DataSource = "local" | "holded-api" | "pokemon-api" | null;
+// Función para leer un archivo como JSON
+const readFileAsJSON = (
+  file: File
+): Promise<Record<string, unknown> | Record<string, unknown>[]> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target?.result as string);
+        resolve(json);
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    reader.onerror = (error) => reject(error);
+    reader.readAsText(file);
+  });
+};
+
+// Función para procesar múltiples archivos
+const processMultipleFiles = async (
+  files: File[]
+): Promise<Record<string, unknown>[]> => {
+  const allData: Record<string, unknown>[] = [];
+
+  for (const file of files) {
+    try {
+      const fileData = await readFileAsJSON(file);
+      if (Array.isArray(fileData)) {
+        allData.push(...fileData);
+      } else {
+        allData.push(fileData);
+      }
+    } catch (error) {
+      console.error(`Error al procesar archivo ${file.name}:`, error);
+      toast.error(`Error al procesar archivo ${file.name}`);
+    }
+  }
+
+  return allData;
+};
 
 export default function JsonAnalyzerPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +64,7 @@ export default function JsonAnalyzerPage() {
   const [dataSource, setDataSource] = useState<DataSource>(null);
   const [holdedApiKey, setHoldedApiKey] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
 
   // Efecto para manejar el estado de carga de la tabla
   useEffect(() => {
@@ -35,7 +81,8 @@ export default function JsonAnalyzerPage() {
   const handleDataSourceSelected = async (
     source: DataSource,
     initialData?: Record<string, unknown>[],
-    apiKey?: string
+    apiKey?: string,
+    files?: File[]
   ) => {
     try {
       setIsLoading(true);
@@ -44,7 +91,13 @@ export default function JsonAnalyzerPage() {
 
       let newData: Record<string, unknown>[] = [];
 
-      if (source === "holded-api" && apiKey) {
+      if (source === "files" && files && files.length > 0) {
+        // Procesar archivos
+        newData = await processMultipleFiles(files);
+        toast.success(
+          `Datos cargados: ${newData.length} registros de ${files.length} archivos`
+        );
+      } else if (source === "holded-api" && apiKey) {
         setHoldedApiKey(apiKey);
         newData = await fetchHoldedData(apiKey);
       } else if (source === "pokemon-api") {
@@ -59,6 +112,7 @@ export default function JsonAnalyzerPage() {
       // Solo actualizar la fuente y los datos si todo fue exitoso
       if (newData && Array.isArray(newData)) {
         setDataSource(source);
+        setLastUpdateTime(new Date());
         // Pequeño delay antes de establecer los datos para permitir que la UI se actualice
         setTimeout(() => {
           setData(newData);
@@ -177,6 +231,7 @@ export default function JsonAnalyzerPage() {
       }
 
       if (newData && Array.isArray(newData)) {
+        setLastUpdateTime(new Date());
         // Pequeño delay antes de establecer los datos para permitir que la UI se actualice
         setTimeout(() => {
           setData(newData);
@@ -205,6 +260,8 @@ export default function JsonAnalyzerPage() {
           : "API de Holded";
       case "pokemon-api":
         return "API de Pokémon";
+      case "files":
+        return "Archivos JSON cargados";
       default:
         return "JSON Analyzer";
     }
@@ -224,7 +281,16 @@ export default function JsonAnalyzerPage() {
           <CardTitle>
             JSON Analyzer - {getDataSourceTitle(dataSource)}
           </CardTitle>
-          <div className='flex gap-2'>
+          <div className='flex items-center gap-2'>
+            {lastUpdateTime && (
+              <div className='flex items-center text-sm text-muted-foreground mr-2'>
+                <Clock className='h-4 w-4 mr-1' />
+                <span>
+                  Última actualización: {lastUpdateTime.toLocaleTimeString()}{" "}
+                  {lastUpdateTime.toLocaleDateString()}
+                </span>
+              </div>
+            )}
             <Button onClick={reloadData} disabled={isLoading || isTableLoading}>
               {isLoading ? "Cargando..." : "Recargar datos"}
             </Button>

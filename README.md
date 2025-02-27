@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JSON-to-Table
 
-## Getting Started
+Aplicación para visualizar y analizar datos JSON en formato tabular.
 
-First, run the development server:
+## Mejoras de Arquitectura
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Este proyecto ha sido refactorizado para mejorar su arquitectura, siguiendo los principios SOLID y mejores prácticas de desarrollo:
+
+### 1. Módulos Especializados
+
+- **Utilidades de Fecha (`date-utils.ts`)**: Centraliza toda la lógica de detección y normalización de fechas.
+- **Sistema de Detección de Tipos (`type-detection/`)**: Implementa el patrón Strategy para la detección de tipos, facilitando la extensión.
+- **Manejo de Errores (`error-handling.ts`)**: Proporciona clases de error específicas y utilidades para un manejo consistente.
+- **Servicio de Logging (`logging-service.ts`)**: Centraliza y configura los logs de la aplicación.
+
+### 2. Mejoras en el Procesamiento de Datos
+
+- Mejor detección de arrays de objetos, incluso cuando están representados como strings.
+- Manejo mejorado de fechas, preservando el objeto `Date` original.
+- Implementación de manejo de errores robusto en todas las funciones críticas.
+
+### 3. Pruebas Unitarias
+
+Se han añadido pruebas unitarias para los componentes principales:
+
+- Utilidades de fecha
+- Sistema de detección de tipos
+- Manejo de errores
+- Servicio de logging
+
+## Estructura del Proyecto
+
+```
+app/
+├── services/
+│   └── logging-service.ts       # Servicio centralizado de logging
+├── table/
+│   ├── data-processor.ts        # Procesamiento principal de datos
+│   ├── date-utils.ts            # Utilidades para manejo de fechas
+│   └── type-detection/          # Sistema de detección de tipos
+│       └── type-detector.ts     # Implementación del patrón Strategy
+├── tests/                       # Pruebas unitarias
+│   ├── date-utils.test.ts
+│   ├── error-handling.test.ts
+│   ├── logging-service.test.ts
+│   └── type-detector.test.ts
+└── utils/
+    └── error-handling.ts        # Sistema de manejo de errores
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Ejecución de Pruebas
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Ejecutar todas las pruebas
+npm test
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Ejecutar pruebas en modo watch
+npm run test:watch
 
-## Learn More
+# Ejecutar pruebas con cobertura
+npm run test:coverage
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Próximos Pasos
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Implementar caché para mejorar el rendimiento en el procesamiento de grandes conjuntos de datos.
+- Añadir más estrategias de detección de tipos para casos específicos.
+- Mejorar la documentación con ejemplos de uso.
+- Implementar pruebas de integración para el flujo completo de procesamiento de datos.

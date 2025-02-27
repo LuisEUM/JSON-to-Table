@@ -39,6 +39,7 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
     item.type
   );
   const columnName = item.path[item.path.length - 1];
+  const fullPathName = item.id;
 
   console.log("📊 Creando definición de columna:", {
     columnId: item.id,
@@ -69,16 +70,24 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
     header: ({ column }) => {
       const isSorted = column.getIsSorted();
       const isFiltered = column.getFilterValue() !== undefined;
+      const displayName = item.path.length > 1 ? fullPathName : columnName;
 
       return (
         <TooltipProvider>
           <div className='flex items-center justify-between gap-2'>
             <div className='flex items-center gap-2'>
               <TypeDot type={isReferenceColumn ? "string" : item.type} />
-              <span className='flex items-center gap-1'>
-                {isReferenceColumn && <Link2 className='h-3 w-3' />}
-                {columnName}
-              </span>
+              <Tooltip>
+                <TooltipTrigger className='truncate max-w-[200px]'>
+                  <span className='flex items-center gap-1'>
+                    {isReferenceColumn && <Link2 className='h-3 w-3' />}
+                    {displayName}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side='top'>
+                  <p>Path: {fullPathName}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
             <div className='flex items-center'>
               {isSortable && (
@@ -141,12 +150,12 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className='p-6 w-fit max-w-[90vw] min-h-[400px] max-h-[80dvh] overflow-auto'>
-                  <DialogTitle>Filtrar {columnName}</DialogTitle>
+                  <DialogTitle>Filtrar {displayName}</DialogTitle>
                   <div className='w-[400px]'>
                     <FilterFactory
                       column={column}
                       columnId={column.id}
-                      columnName={columnName}
+                      columnName={displayName}
                       columnType={isReferenceColumn ? "string" : item.type}
                       uniqueValues={[]}
                       onApply={(condition) => {

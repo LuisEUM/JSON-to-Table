@@ -40,9 +40,9 @@ import { Button } from "@/components/ui/button";
 
 import { columns } from "./columns/columns"; // Ajusta la ruta a tu archivo de columnas
 import {
-  processData,
   type ProcessedItem,
   type ProcessedRow,
+  processBatchData,
 } from "./data-processor"; // Ajusta la ruta
 import { TypeLegend } from "./components/type-legend"; // Ajusta la ruta
 import { TablePagination } from "./components/table-pagination"; // Ajusta la ruta
@@ -261,7 +261,7 @@ export function JsonTable({
 
   // 2. Todos los useMemo
   const processedData = useMemo(
-    () => data.map((item) => processData(item)),
+    () => processBatchData(data, { sampleSize: 100 }),
     [data]
   );
 

@@ -14,13 +14,20 @@ import { HoldedApiKeyForm } from "./holded-api-key-form";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-type DataSource = "local" | "holded-api" | "pokemon-api" | null;
+// Exportar el tipo para uso en otros componentes
+export type DataSource =
+  | "local"
+  | "holded-api"
+  | "pokemon-api"
+  | "files"
+  | null;
 
 interface DataSourceSelectorProps {
   onDataSourceSelected: (
     source: DataSource,
     data?: Record<string, unknown>[],
-    apiKey?: string
+    apiKey?: string,
+    files?: File[]
   ) => void;
 }
 
@@ -29,6 +36,43 @@ export function DataSourceSelector({
 }: DataSourceSelectorProps) {
   const [showApiKeyForm, setShowApiKeyForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    setSelectedFiles(Array.from(files));
+  };
+
+  const handleFilesSelect = async () => {
+    if (selectedFiles.length === 0) {
+      toast.error("Por favor, selecciona al menos un archivo");
+      return;
+    }
+
+    setIsLoading(true);
+    const toastId = toast.loading(
+      `Procesando ${selectedFiles.length} archivos...`,
+      {
+        duration: Infinity,
+      }
+    );
+
+    try {
+      onDataSourceSelected("files", undefined, undefined, selectedFiles);
+      toast.dismiss(toastId);
+      toast.success(
+        `${selectedFiles.length} archivos seleccionados correctamente`
+      );
+    } catch (error) {
+      toast.dismiss(toastId);
+      toast.error("Error al procesar los archivos");
+      console.error("Error al procesar archivos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSourceSelect = async (source: DataSource) => {
     setIsLoading(true);
@@ -195,6 +239,45 @@ export function DataSourceSelector({
                 </>
               ) : (
                 "Cargar datos de Pokémon"
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <Card className='cursor-pointer hover:shadow-md transition-shadow'>
+          <CardHeader>
+            <CardTitle>Cargar archivos JSON</CardTitle>
+            <CardDescription>
+              Carga múltiples archivos JSON para análisis
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <input
+              type='file'
+              multiple
+              accept='.json'
+              onChange={handleFileUpload}
+              className='w-full mb-4'
+            />
+            <p className='text-sm text-muted-foreground'>
+              {selectedFiles.length > 0
+                ? `${selectedFiles.length} archivos seleccionados`
+                : "Selecciona uno o más archivos JSON para analizar"}
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              className='w-full'
+              onClick={handleFilesSelect}
+              disabled={isLoading || selectedFiles.length === 0}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  Procesando...
+                </>
+              ) : (
+                "Procesar archivos"
               )}
             </Button>
           </CardFooter>

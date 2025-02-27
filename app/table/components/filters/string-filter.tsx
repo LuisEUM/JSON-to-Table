@@ -225,7 +225,7 @@ export function StringFilter({
             </div>
 
             <ScrollArea className='flex-1 w-full rounded-md border'>
-              <div className='p-4 space-y-2'>
+              <div className='p-4 space-y-2 h-[200px]'>
                 {stringOptions.map((option) => (
                   <div
                     key={option.value}

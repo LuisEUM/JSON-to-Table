@@ -420,8 +420,8 @@ export function DateFilter({
                   Ver desglose por días
                 </AccordionTrigger>
                 <AccordionContent>
-                  <ScrollArea className='h-[200px] w-full rounded-md border'>
-                    <div className='p-4 space-y-2'>
+                  <ScrollArea className='w-full rounded-md border'>
+                    <div className='p-4 space-y-2 h-[200px]'>
                       {dateOptions.map((option) => (
                         <div
                           key={option.label}
