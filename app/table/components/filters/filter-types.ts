@@ -231,9 +231,127 @@ export const filterFns = {
           (val) => String(rawValue).toLowerCase() === String(val).toLowerCase()
         );
 
-      // ... resto de los casos ...
+      case "in":
+        return (
+          Array.isArray(filterValue.value) &&
+          filterValue.value.includes(String(rawValue))
+        );
+
+      case "notIn":
+        return (
+          Array.isArray(filterValue.value) &&
+          !filterValue.value.includes(String(rawValue))
+        );
+
+      case "equals":
+        return (
+          String(rawValue).toLowerCase() ===
+          String(filterValue.value).toLowerCase()
+        );
+
+      case "notEquals":
+        return (
+          String(rawValue).toLowerCase() !==
+          String(filterValue.value).toLowerCase()
+        );
+
+      case "contains":
+        return String(rawValue)
+          .toLowerCase()
+          .includes(String(filterValue.value).toLowerCase());
+
+      case "notContains":
+        return !String(rawValue)
+          .toLowerCase()
+          .includes(String(filterValue.value).toLowerCase());
+
+      case "startsWith":
+        return String(rawValue)
+          .toLowerCase()
+          .startsWith(String(filterValue.value).toLowerCase());
+
+      case "endsWith":
+        return String(rawValue)
+          .toLowerCase()
+          .endsWith(String(filterValue.value).toLowerCase());
+
+      case "greaterThan":
+        if (processedValue.type === "fecha") {
+          const date =
+            rawValue instanceof Date
+              ? rawValue
+              : new Date(rawValue as string | number);
+          const compareDate = new Date(filterValue.value as string | number);
+          return date > compareDate;
+        }
+        return Number(rawValue) > Number(filterValue.value);
+
+      case "lessThan":
+        if (processedValue.type === "fecha") {
+          const date =
+            rawValue instanceof Date
+              ? rawValue
+              : new Date(rawValue as string | number);
+          const compareDate = new Date(filterValue.value as string | number);
+          return date < compareDate;
+        }
+        return Number(rawValue) < Number(filterValue.value);
+
+      case "between":
+        if (
+          filterValue.value === undefined ||
+          filterValue.additionalValue === undefined
+        ) {
+          return false;
+        }
+        if (processedValue.type === "fecha") {
+          const date =
+            rawValue instanceof Date
+              ? rawValue
+              : new Date(rawValue as string | number);
+          const minDate = new Date(filterValue.value as string | number);
+          const maxDate = new Date(
+            filterValue.additionalValue as string | number
+          );
+          return date >= minDate && date <= maxDate;
+        }
+        const value = Number(rawValue);
+        const min = Number(filterValue.value);
+        const max = Number(filterValue.additionalValue);
+        return value >= min && value <= max;
+
+      case "notBetween":
+        if (
+          filterValue.value === undefined ||
+          filterValue.additionalValue === undefined
+        ) {
+          return false;
+        }
+        if (processedValue.type === "fecha") {
+          const date =
+            rawValue instanceof Date
+              ? rawValue
+              : new Date(rawValue as string | number);
+          const minDate = new Date(filterValue.value as string | number);
+          const maxDate = new Date(
+            filterValue.additionalValue as string | number
+          );
+          return date < minDate || date > maxDate;
+        }
+        const val = Number(rawValue);
+        const minVal = Number(filterValue.value);
+        const maxVal = Number(filterValue.additionalValue);
+        return val < minVal || val > maxVal;
+
+      case "isNull":
+        return rawValue === null || rawValue === undefined || rawValue === "";
+
+      case "isNotNull":
+        return rawValue !== null && rawValue !== undefined && rawValue !== "";
+
+      default:
+        return true;
     }
-    return false;
   },
 
   dateBetweenFilterFn: (

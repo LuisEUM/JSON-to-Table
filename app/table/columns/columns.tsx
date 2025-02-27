@@ -19,7 +19,12 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { FilterFactory } from "../components/filters/filter-factory";
 import type { FilterCondition } from "../components/filters/filter-types";
 
@@ -136,6 +141,7 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className='p-6 w-fit max-w-[90vw] min-h-[400px] max-h-[80dvh] overflow-auto'>
+                  <DialogTitle>Filtrar {columnName}</DialogTitle>
                   <div className='w-[400px]'>
                     <FilterFactory
                       column={column}

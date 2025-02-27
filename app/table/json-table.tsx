@@ -464,6 +464,11 @@ export function JsonTable({
               Array.isArray(filterValue.value) &&
               filterValue.value.includes(String(rawValue))
             );
+          case "notIn":
+            return (
+              Array.isArray(filterValue.value) &&
+              !filterValue.value.includes(String(rawValue))
+            );
           case "equals":
             return rawValue === filterValue.value;
           case "notEquals":
@@ -472,6 +477,56 @@ export function JsonTable({
             return String(rawValue)
               .toLowerCase()
               .includes(String(filterValue.value).toLowerCase());
+          case "notContains":
+            return !String(rawValue)
+              .toLowerCase()
+              .includes(String(filterValue.value).toLowerCase());
+          case "startsWith":
+            return String(rawValue)
+              .toLowerCase()
+              .startsWith(String(filterValue.value).toLowerCase());
+          case "endsWith":
+            return String(rawValue)
+              .toLowerCase()
+              .endsWith(String(filterValue.value).toLowerCase());
+          case "greaterThan":
+            return Number(rawValue) > Number(filterValue.value);
+          case "lessThan":
+            return Number(rawValue) < Number(filterValue.value);
+          case "between":
+            if (
+              filterValue.value !== undefined &&
+              filterValue.additionalValue !== undefined
+            ) {
+              const min = Number(filterValue.value);
+              const max = Number(filterValue.additionalValue);
+              const value = Number(rawValue);
+              return value >= min && value <= max;
+            }
+            return false;
+          case "notBetween":
+            if (
+              filterValue.value !== undefined &&
+              filterValue.additionalValue !== undefined
+            ) {
+              const min = Number(filterValue.value);
+              const max = Number(filterValue.additionalValue);
+              const value = Number(rawValue);
+              return value < min || value > max;
+            }
+            return false;
+          case "isNull":
+            return rawValue === null || rawValue === undefined;
+          case "isNotNull":
+            return rawValue !== null && rawValue !== undefined;
+          case "includesString":
+            if (typeof filterValue.value === "string") {
+              const pattern = filterValue.value.split("|");
+              return pattern.some((value: string) =>
+                String(rawValue).toLowerCase().includes(value.toLowerCase())
+              );
+            }
+            return false;
           default:
             return true;
         }

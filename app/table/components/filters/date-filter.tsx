@@ -169,7 +169,7 @@ export function DateFilter({
     return new Set(initialValue.value as string[]);
   });
 
-  // Efecto para generar las opciones de fecha cuando cambia el rango o uniqueValues
+  // Efecto para generar las opciones de fecha cuando cambia uniqueValues
   useEffect(() => {
     const dateCounts = new Map<string, number>();
     const allDates = new Set<string>();
@@ -294,7 +294,7 @@ export function DateFilter({
     }
   };
 
-  // Efecto para mantener sincronizadas las selecciones cuando cambia el modo
+  // Efecto para mantener sincronizadas las selecciones cuando cambia el modo o el rango
   useEffect(() => {
     if (dateOptions.length === 0) return;
 
@@ -316,7 +316,7 @@ export function DateFilter({
     });
 
     setSelectedDates(newSelected);
-  }, [isInverted, dateOptions, dateRange.start, dateRange.end]);
+  }, [isInverted, dateRange.start, dateRange.end]);
 
   const handleApply = () => {
     if (selectedDates.size === 0) {
