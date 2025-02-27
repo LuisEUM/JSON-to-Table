@@ -27,6 +27,8 @@ import type {
 import { FilterFooter } from "./filter-footer";
 import { getTypeColor } from "../../utils/colors";
 import { toUTCDate, formatDate } from "@/app/utils/date-formatter";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Search } from "lucide-react";
 
 const PRESETS: { label: string; value: DateRangePreset }[] = [
   { label: "Personalizado", value: "custom" },
@@ -169,6 +171,8 @@ export function DateFilter({
     return new Set(initialValue.value as string[]);
   });
 
+  const [searchTerm, setSearchTerm] = useState("");
+
   // Efecto para generar las opciones de fecha cuando cambia uniqueValues
   useEffect(() => {
     const dateCounts = new Map<string, number>();
@@ -193,7 +197,19 @@ export function DateFilter({
       }));
 
     setDateOptions(options);
-  }, [uniqueValues, selectedDates]);
+  }, [uniqueValues]);
+
+  // Separate effect to update the checked state of date options
+  useEffect(() => {
+    if (dateOptions.length === 0) return;
+
+    const updatedOptions = dateOptions.map((option) => ({
+      ...option,
+      checked: selectedDates.has(option.label),
+    }));
+
+    setDateOptions(updatedOptions);
+  }, [selectedDates]);
 
   useEffect(() => {
     // Si hay fechas seleccionadas pero no hay rango definido,
@@ -224,27 +240,7 @@ export function DateFilter({
         [type]: date,
       };
 
-      // Actualizar selecciones basadas en el nuevo rango
-      const newSelected = new Set<string>();
-      dateOptions.forEach((option) => {
-        const date = new Date(option.label);
-        const isInRange = (() => {
-          if (!newRange.start && !newRange.end) return true;
-          if (newRange.start && !newRange.end) return date >= newRange.start;
-          if (!newRange.start && newRange.end) return date <= newRange.end;
-          return newRange.start && newRange.end
-            ? date >= newRange.start && date <= newRange.end
-            : true;
-        })();
-
-        // Si está invertido, seleccionar las fechas que están en el rango
-        // Si no está invertido, seleccionar las fechas que NO están en el rango
-        if (isInverted ? isInRange : !isInRange) {
-          newSelected.add(option.label);
-        }
-      });
-
-      setSelectedDates(newSelected);
+      // We'll let the useEffect handle updating the selectedDates based on the date range
       return newRange;
     });
   };
@@ -269,35 +265,15 @@ export function DateFilter({
     const newRange = getPresetDateRange(preset);
     setDateRange(newRange);
 
-    // Actualizar selecciones basadas en el nuevo rango
-    if (newRange.start || newRange.end) {
-      const newSelected = new Set<string>();
-      dateOptions.forEach((option) => {
-        const date = new Date(option.label);
-        const isInRange = (() => {
-          if (!newRange.start && !newRange.end) return true;
-          if (newRange.start && !newRange.end) return date >= newRange.start;
-          if (!newRange.start && newRange.end) return date <= newRange.end;
-          return newRange.start && newRange.end
-            ? date >= newRange.start && date <= newRange.end
-            : true;
-        })();
-
-        // Si está invertido, seleccionar las fechas que están en el rango
-        // Si no está invertido, seleccionar las fechas que NO están en el rango
-        if (isInverted ? isInRange : !isInRange) {
-          newSelected.add(option.label);
-        }
-      });
-
-      setSelectedDates(newSelected);
-    }
+    // We'll let the useEffect handle updating the selectedDates based on the date range
   };
 
   // Efecto para mantener sincronizadas las selecciones cuando cambia el modo o el rango
   useEffect(() => {
     if (dateOptions.length === 0) return;
 
+    // We need to prevent this effect from running in response to selectedDates changes
+    // Use a ref to track if the update is coming from a selectedDates change
     const newSelected = new Set<string>();
     dateOptions.forEach((option) => {
       const date = new Date(option.label);
@@ -315,7 +291,13 @@ export function DateFilter({
       }
     });
 
-    setSelectedDates(newSelected);
+    // Use JSON.stringify to compare sets to avoid unnecessary updates
+    const currentSelectedStr = JSON.stringify(Array.from(selectedDates).sort());
+    const newSelectedStr = JSON.stringify(Array.from(newSelected).sort());
+
+    if (currentSelectedStr !== newSelectedStr) {
+      setSelectedDates(newSelected);
+    }
   }, [dateOptions, isInverted, dateRange.start, dateRange.end]);
 
   const handleApply = () => {
@@ -355,18 +337,20 @@ export function DateFilter({
       </div>
 
       <div className='space-y-4 flex-1'>
-        <Select value={selectedPreset} onValueChange={handlePresetChange}>
-          <SelectTrigger>
-            <SelectValue placeholder='Selecciona un rango predefinido' />
-          </SelectTrigger>
-          <SelectContent>
-            {PRESETS.map((preset) => (
-              <SelectItem key={preset.value} value={preset.value}>
-                {preset.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <TooltipProvider>
+          <Select value={selectedPreset} onValueChange={handlePresetChange}>
+            <SelectTrigger>
+              <SelectValue placeholder='Selecciona un rango predefinido' />
+            </SelectTrigger>
+            <SelectContent>
+              {PRESETS.map((preset) => (
+                <SelectItem key={preset.value} value={preset.value}>
+                  {preset.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </TooltipProvider>
 
         <div className='flex items-center justify-between space-x-2'>
           <Label htmlFor='range-mode' className='text-sm'>
@@ -420,33 +404,54 @@ export function DateFilter({
                   Ver desglose por días
                 </AccordionTrigger>
                 <AccordionContent>
-                  <ScrollArea className='w-full rounded-md border'>
-                    <div className='p-4 space-y-2 h-[200px]'>
-                      {dateOptions.map((option) => (
-                        <div
-                          key={option.label}
-                          className='flex items-center justify-between'
-                        >
-                          <div className='flex items-center space-x-2'>
-                            <Checkbox
-                              id={option.label}
-                              checked={selectedDates.has(option.label)}
-                              onCheckedChange={(checked) =>
-                                handleCheckboxChange(
-                                  option.label,
-                                  checked as boolean
-                                )
-                              }
-                            />
-                            <Label htmlFor={option.label}>{option.label}</Label>
-                          </div>
-                          <span className='text-sm text-muted-foreground'>
-                            {option.count}
-                          </span>
-                        </div>
-                      ))}
+                  <div className='space-y-2'>
+                    <div className='relative'>
+                      <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
+                      <Input
+                        placeholder='Buscar fechas...'
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className='pl-8 mb-2'
+                      />
                     </div>
-                  </ScrollArea>
+                    <ScrollArea className='w-full rounded-md border'>
+                      <div className='p-4 space-y-2 h-[200px]'>
+                        {dateOptions
+                          .filter(
+                            (option) =>
+                              !searchTerm ||
+                              option.label
+                                .toLowerCase()
+                                .includes(searchTerm.toLowerCase())
+                          )
+                          .map((option) => (
+                            <div
+                              key={option.label}
+                              className='flex items-center justify-between'
+                            >
+                              <div className='flex items-center space-x-2'>
+                                <Checkbox
+                                  id={option.label}
+                                  checked={selectedDates.has(option.label)}
+                                  onCheckedChange={(checked) =>
+                                    handleCheckboxChange(
+                                      option.label,
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                                <Label htmlFor={option.label}>
+                                  {option.label}
+                                </Label>
+                              </div>
+                              <span className='text-sm text-muted-foreground'>
+                                {option.count}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

@@ -46,9 +46,11 @@ export function ExportDropdown({ selectedRows, allRows }: ExportDropdownProps) {
     return result;
   };
 
+  const hasSelectedRows = selectedRows.length > 0;
+  const rowsToExport = hasSelectedRows ? selectedRows : allRows;
+
   const getExportData = () => {
-    const rows = selectedRows.length > 0 ? selectedRows : allRows;
-    return rows.map((row) => {
+    return rowsToExport.map((row) => {
       const flatData: Record<string, unknown> = {};
       Object.entries(row.original).forEach(([key, value]) => {
         flatData[key] = value.value;
@@ -105,23 +107,29 @@ export function ExportDropdown({ selectedRows, allRows }: ExportDropdownProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant='outline' size='sm'>
+        <Button
+          variant={hasSelectedRows ? "default" : "outline"}
+          size='sm'
+          className={hasSelectedRows ? "bg-primary" : ""}
+        >
           <Download className='h-4 w-4 mr-2' />
-          Exportar Datos
-          {selectedRows.length > 0 && (
-            <span className='ml-1 text-xs'>({selectedRows.length})</span>
+          {hasSelectedRows ? "Exportar Selección" : "Exportar Datos"}
+          {hasSelectedRows && (
+            <span className='ml-1 bg-primary-foreground text-primary rounded-md px-1.5 py-0.5 text-xs font-medium'>
+              {selectedRows.length}
+            </span>
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end' className='w-[200px]'>
         <DropdownMenuItem onClick={exportToJson}>
-          Exportar a JSON
+          Exportar a JSON {hasSelectedRows && `(${selectedRows.length})`}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={exportToCsv}>
-          Exportar a CSV
+          Exportar a CSV {hasSelectedRows && `(${selectedRows.length})`}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={exportToXlsx}>
-          Exportar a XLSX
+          Exportar a XLSX {hasSelectedRows && `(${selectedRows.length})`}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

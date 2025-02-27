@@ -18,7 +18,9 @@ export type FilterOperator =
   | "isNull"
   | "isNotNull"
   | "arrIncludesSome"
-  | "includesString";
+  | "includesString"
+  | "exactWordMatch"
+  | "notExactWordMatch";
 
 export type FilterValue =
   | string
@@ -349,6 +351,24 @@ export const filterFns = {
       case "isNotNull":
         return rawValue !== null && rawValue !== undefined && rawValue !== "";
 
+      case "exactWordMatch": {
+        if (!filterValue.value) return false;
+        const searchTerms = String(filterValue.value).split("|");
+        const patterns = searchTerms.map(
+          (term) => new RegExp(`\\b${term}\\b`, "i")
+        );
+        return patterns.some((pattern) => pattern.test(String(rawValue)));
+      }
+
+      case "notExactWordMatch": {
+        if (!filterValue.value) return true;
+        const searchTerms = String(filterValue.value).split("|");
+        const patterns = searchTerms.map(
+          (term) => new RegExp(`\\b${term}\\b`, "i")
+        );
+        return !patterns.some((pattern) => pattern.test(String(rawValue)));
+      }
+
       default:
         return true;
     }
@@ -391,6 +411,72 @@ export const filterFns = {
       result,
     });
 
+    return result;
+  },
+
+  exactWordMatch: (
+    row: ProcessedRow,
+    columnId: string,
+    filterValue: string
+  ) => {
+    console.log("🔍 Ejecutando filtro de texto exacto:", {
+      columnId,
+      filterValue,
+      rowValue: row[columnId],
+    });
+
+    const processedValue = row[columnId] as ProcessedItem;
+    if (!processedValue?.value) {
+      console.log("⚠️ Valor no encontrado para la columna:", { columnId });
+      return false;
+    }
+
+    const value = String(processedValue.value).toLowerCase();
+    const searchTerms = String(filterValue).toLowerCase().split("|");
+
+    // Create regex patterns for whole word matching
+    const patterns = searchTerms.map(
+      (term) => new RegExp(`\\b${term}\\b`, "i")
+    );
+
+    // Check if any pattern matches
+    const result = patterns.some((pattern) => pattern.test(value));
+    console.log("📝 Comparación texto exacto:", { value, searchTerms, result });
+    return result;
+  },
+
+  notExactWordMatch: (
+    row: ProcessedRow,
+    columnId: string,
+    filterValue: string
+  ) => {
+    console.log("🔍 Ejecutando filtro de texto exacto (negado):", {
+      columnId,
+      filterValue,
+      rowValue: row[columnId],
+    });
+
+    const processedValue = row[columnId] as ProcessedItem;
+    if (!processedValue?.value) {
+      console.log("⚠️ Valor no encontrado para la columna:", { columnId });
+      return true; // Si no hay valor, no coincide con nada
+    }
+
+    const value = String(processedValue.value).toLowerCase();
+    const searchTerms = String(filterValue).toLowerCase().split("|");
+
+    // Create regex patterns for whole word matching
+    const patterns = searchTerms.map(
+      (term) => new RegExp(`\\b${term}\\b`, "i")
+    );
+
+    // Check if none of the patterns match
+    const result = !patterns.some((pattern) => pattern.test(value));
+    console.log("📝 Comparación texto exacto (negado):", {
+      value,
+      searchTerms,
+      result,
+    });
     return result;
   },
 };

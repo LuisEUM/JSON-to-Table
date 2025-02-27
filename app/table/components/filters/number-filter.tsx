@@ -21,6 +21,7 @@ import type { FilterComponentProps } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
 import { getTypeColor } from "../../utils/colors";
 import { DialogTitle } from "@/components/ui/dialog";
+import { Search } from "lucide-react";
 
 const PRESETS = [
   { label: "Personalizado", value: "custom" },
@@ -58,6 +59,7 @@ export function NumberFilter({
 }: FilterComponentProps & { minValue?: number; maxValue?: number }) {
   const [selectedPreset, setSelectedPreset] = useState("custom");
   const [isInverted, setIsInverted] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Calcular estadísticas básicas
   const numbers = uniqueValues
@@ -336,33 +338,54 @@ export function NumberFilter({
                   Ver desglose por valores
                 </AccordionTrigger>
                 <AccordionContent>
-                  <ScrollArea className='w-full rounded-md border'>
-                    <div className='p-4 space-y-2 h-[200px]'>
-                      {numberOptions.map((option) => (
-                        <div
-                          key={option.label}
-                          className='flex items-center justify-between'
-                        >
-                          <div className='flex items-center space-x-2'>
-                            <Checkbox
-                              id={option.label}
-                              checked={selectedNumbers.has(option.label)}
-                              onCheckedChange={(checked) =>
-                                handleCheckboxChange(
-                                  option.label,
-                                  checked as boolean
-                                )
-                              }
-                            />
-                            <Label htmlFor={option.label}>{option.label}</Label>
-                          </div>
-                          <span className='text-sm text-muted-foreground'>
-                            {option.count}
-                          </span>
-                        </div>
-                      ))}
+                  <div className='space-y-2'>
+                    <div className='relative'>
+                      <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
+                      <Input
+                        placeholder='Buscar valores...'
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className='pl-8 mb-2'
+                      />
                     </div>
-                  </ScrollArea>
+                    <ScrollArea className='w-full rounded-md border'>
+                      <div className='p-4 space-y-2 h-[200px]'>
+                        {numberOptions
+                          .filter(
+                            (option) =>
+                              !searchTerm ||
+                              option.label
+                                .toLowerCase()
+                                .includes(searchTerm.toLowerCase())
+                          )
+                          .map((option) => (
+                            <div
+                              key={option.label}
+                              className='flex items-center justify-between'
+                            >
+                              <div className='flex items-center space-x-2'>
+                                <Checkbox
+                                  id={option.label}
+                                  checked={selectedNumbers.has(option.label)}
+                                  onCheckedChange={(checked) =>
+                                    handleCheckboxChange(
+                                      option.label,
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                                <Label htmlFor={option.label}>
+                                  {option.label}
+                                </Label>
+                              </div>
+                              <span className='text-sm text-muted-foreground'>
+                                {option.count}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

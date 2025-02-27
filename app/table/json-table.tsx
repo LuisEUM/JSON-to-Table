@@ -55,6 +55,7 @@ import { TableSkeleton } from "./components/tables/table-skeleton";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { dateBetweenFilterFn } from "./components/filters/filter-types";
 import { formatDate } from "@/app/utils/date-formatter";
+import { Checkbox } from "@/components/ui/checkbox";
 
 declare module "@tanstack/table-core" {
   interface FilterFns {
@@ -78,25 +79,21 @@ const selectionColumn: ColumnDef<ProcessedRow> = {
   id: "selection",
   header: ({ table }) => (
     <div className='flex items-center justify-center'>
-      <input
-        type='checkbox'
-        className='h-4 w-4'
-        {...{
-          checked: table.getIsAllRowsSelected(),
-          onChange: table.getToggleAllRowsSelectedHandler(),
-        }}
+      <Checkbox
+        checked={table.getIsAllRowsSelected()}
+        onCheckedChange={table.getToggleAllRowsSelectedHandler()}
+        aria-label='Select all rows'
+        className='mr-4'
       />
     </div>
   ),
   cell: ({ row }) => (
     <div className='flex items-center justify-center'>
-      <input
-        type='checkbox'
-        className='h-4 w-4'
-        {...{
-          checked: row.getIsSelected(),
-          onChange: row.getToggleSelectedHandler(),
-        }}
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={row.getToggleSelectedHandler()}
+        aria-label={`Select row ${row.index}`}
+        className='mr-4'
       />
     </div>
   ),
@@ -225,7 +222,9 @@ export function JsonTable({
   parentTableInfo,
 }: JsonTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    selection: true, // Ensure selection column is visible by default
+  });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState("");
@@ -480,6 +479,28 @@ export function JsonTable({
             return !String(rawValue)
               .toLowerCase()
               .includes(String(filterValue.value).toLowerCase());
+          case "exactWordMatch":
+            if (typeof filterValue.value === "string") {
+              const searchTerms: string[] = filterValue.value.split("|");
+              const patterns: RegExp[] = searchTerms.map(
+                (term: string) => new RegExp(`\\b${term}\\b`, "i")
+              );
+              return patterns.some((pattern: RegExp) =>
+                pattern.test(String(rawValue))
+              );
+            }
+            return false;
+          case "notExactWordMatch":
+            if (typeof filterValue.value === "string") {
+              const searchTerms: string[] = filterValue.value.split("|");
+              const patterns: RegExp[] = searchTerms.map(
+                (term: string) => new RegExp(`\\b${term}\\b`, "i")
+              );
+              return !patterns.some((pattern: RegExp) =>
+                pattern.test(String(rawValue))
+              );
+            }
+            return true;
           case "startsWith":
             return String(rawValue)
               .toLowerCase()
@@ -875,6 +896,25 @@ export function JsonTable({
 
         {/* Contenedor principal de la tabla */}
         <div className='rounded-md border'>
+          {Object.keys(rowSelection).length > 0 && (
+            <div className='bg-muted/30 border-b p-2 flex items-center justify-between'>
+              <div className='text-sm'>
+                <span className='font-medium'>
+                  {Object.keys(rowSelection).length}
+                </span>{" "}
+                {Object.keys(rowSelection).length === 1
+                  ? "fila seleccionada"
+                  : "filas seleccionadas"}
+              </div>
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => setRowSelection({})}
+              >
+                Limpiar selección
+              </Button>
+            </div>
+          )}
           <div
             className='overflow-auto'
             style={{

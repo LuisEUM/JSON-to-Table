@@ -16,6 +16,8 @@ import type { FilterComponentProps, FilterOperator } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
 import { getTypeColor } from "../../utils/colors";
 import { DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 const SEPARATORS = [
   { label: "Ninguno", value: "none" },
@@ -76,7 +78,15 @@ export function StringFilter({
     return !["notIn", "notContains"].includes(initialValue.operator);
   });
 
+  const [exactMatch, setExactMatch] = useState(() => {
+    if (!initialValue) return false;
+    return ["exactWordMatch", "notExactWordMatch"].includes(
+      initialValue.operator
+    );
+  });
+
   const [stringOptions, setStringOptions] = useState<StringOption[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedStrings, setSelectedStrings] = useState<Set<string>>(() => {
     if (!initialValue?.value) return new Set<string>();
     if (typeof initialValue.value === "string") {
@@ -111,7 +121,12 @@ export function StringFilter({
     if (selectedSeparator === "none") {
       operator = isInverted ? "arrIncludesSome" : "notIn";
     } else {
-      operator = isInverted ? "includesString" : "notContains";
+      if (exactMatch) {
+        // Use a custom operator for exact word matching
+        operator = isInverted ? "exactWordMatch" : "notExactWordMatch";
+      } else {
+        operator = isInverted ? "includesString" : "notContains";
+      }
     }
 
     onApply({
@@ -172,6 +187,23 @@ export function StringFilter({
     });
   }, [uniqueValues, selectedSeparator]);
 
+  // Filter options based on search term and exact match setting
+  const filteredOptions = stringOptions.filter((option) => {
+    if (!searchTerm.trim()) return true;
+
+    const searchLower = searchTerm.toLowerCase();
+    const valueLower = option.value.toLowerCase();
+
+    if (exactMatch) {
+      // For exact match, create a regex that matches the whole word
+      const regex = new RegExp(`\\b${searchLower}\\b`, "i");
+      return regex.test(valueLower);
+    } else {
+      // For contains match, use simple includes
+      return valueLower.includes(searchLower);
+    }
+  });
+
   return (
     <div className='w-full h-full min-h-[350px] flex flex-col'>
       <div className='flex items-center justify-between mb-4'>
@@ -217,6 +249,19 @@ export function StringFilter({
           />
         </div>
 
+        {selectedSeparator !== "none" && (
+          <div className='flex items-center justify-between space-x-2'>
+            <Label htmlFor='exact-match' className='text-sm'>
+              Coincidencia exacta de palabra
+            </Label>
+            <Switch
+              id='exact-match'
+              checked={exactMatch}
+              onCheckedChange={setExactMatch}
+            />
+          </div>
+        )}
+
         {stringOptions.length > 0 && (
           <>
             <div className='text-sm text-muted-foreground'>
@@ -224,9 +269,19 @@ export function StringFilter({
               {stringOptions.length} disponibles
             </div>
 
+            <div className='relative'>
+              <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
+              <Input
+                placeholder='Buscar valores...'
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className='pl-8'
+              />
+            </div>
+
             <ScrollArea className='flex-1 w-full rounded-md border'>
               <div className='p-4 space-y-2 h-[200px]'>
-                {stringOptions.map((option) => (
+                {filteredOptions.map((option) => (
                   <div
                     key={option.value}
                     className='flex items-center justify-between'
