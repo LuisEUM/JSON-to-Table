@@ -25,7 +25,7 @@ import type {
   DateRangePreset,
 } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
-import { getTypeColor } from "../type-badge";
+import { getTypeColor } from "../../utils/colors";
 import { toUTCDate, formatDate } from "@/app/utils/date-formatter";
 
 const PRESETS: { label: string; value: DateRangePreset }[] = [
@@ -316,7 +316,7 @@ export function DateFilter({
     });
 
     setSelectedDates(newSelected);
-  }, [isInverted, dateRange.start, dateRange.end]);
+  }, [dateOptions, isInverted, dateRange.start, dateRange.end]);
 
   const handleApply = () => {
     if (selectedDates.size === 0) {

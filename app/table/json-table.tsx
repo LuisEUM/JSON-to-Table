@@ -37,23 +37,22 @@ import {
 import { CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-
-import { columns } from "./columns/columns"; // Ajusta la ruta a tu archivo de columnas
+import { columns } from "./columns/columns";
 import {
   type ProcessedItem,
   type ProcessedRow,
   processBatchData,
-} from "./data-processor"; // Ajusta la ruta
-import { TypeLegend } from "./components/type-legend"; // Ajusta la ruta
-import { TablePagination } from "./components/table-pagination"; // Ajusta la ruta
-import { TableSearch } from "./components/table-search"; // Ajusta la ruta
-import { ColumnManagerModal } from "./components/column-manager-modal"; // Ajusta la ruta
-import { ActionButtons } from "./components/action-buttons"; // Ajusta la ruta
+} from "./data-processor";
+import { TypeLegend } from "./components/type-indicators/type-legend";
+import { TablePagination } from "./components/tables/table-pagination";
+import { TableSearch } from "./components/tables/table-search";
+import { ColumnManagerModal } from "./components/columns/column-manager-modal";
 import type { FilterCondition } from "./components/filters/filter-types";
-import { ExportDropdown } from "./components/export-dropdown";
-import { SecondaryTables } from "./components/secondary-tables";
-import { TableSkeleton } from "./components/table-skeleton";
-import { useDebounce } from "@/lib/hooks/use-debounce"; // Asegúrate de tener este hook
+import { ActionButtons } from "./components/actions/action-buttons";
+import { ExportDropdown } from "./components/actions/export-dropdown";
+import { SecondaryTables } from "./components/tables/secondary-tables";
+import { TableSkeleton } from "./components/tables/table-skeleton";
+import { useDebounce } from "@/lib/hooks/use-debounce";
 import { dateBetweenFilterFn } from "./components/filters/filter-types";
 import { formatDate } from "@/app/utils/date-formatter";
 

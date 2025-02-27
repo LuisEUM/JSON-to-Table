@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Download } from "lucide-react";
 import type { Row } from "@tanstack/react-table";
-import type { ProcessedRow, ProcessedItem } from "../data-processor";
+import type { ProcessedRow, ProcessedItem } from "../../data-processor";
 import * as XLSX from "xlsx";
 
 interface ExportDropdownProps {

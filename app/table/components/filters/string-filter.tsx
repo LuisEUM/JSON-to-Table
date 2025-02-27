@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import type { FilterComponentProps, FilterOperator } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
-import { getTypeColor } from "../type-badge";
+import { getTypeColor } from "../../utils/colors";
 import { DialogTitle } from "@/components/ui/dialog";
 
 const SEPARATORS = [

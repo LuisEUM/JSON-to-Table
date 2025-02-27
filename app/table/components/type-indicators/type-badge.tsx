@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { getTypeLabel } from "../utils/colors";
+import { getTypeLabel } from "../../utils/colors";
 
 export const getTypeColor = (type: string): string => {
   const colors: {

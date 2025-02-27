@@ -7,9 +7,9 @@ import { Search } from "lucide-react";
 import type { FilterComponentProps, FilterValue } from "./filter-types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilterFooter } from "./filter-footer";
-import { getTypeColor } from "../type-badge";
-import { TypeDot } from "../type-dot";
+import { getTypeColor } from "../../utils/colors";
 import { processValue } from "../../data-processor";
+import { TypeDot } from "../type-indicators/type-dot";
 
 interface FilterItem {
   value: unknown;

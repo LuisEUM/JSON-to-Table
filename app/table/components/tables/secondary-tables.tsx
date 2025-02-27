@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { JsonTable } from "../json-table";
 import { Link2 } from "lucide-react";
+import { JsonTable } from "../../json-table";
 
 interface SecondaryTablesProps {
   arrayColumns: {

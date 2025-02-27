@@ -9,9 +9,8 @@ import { Input } from "@/components/ui/input"
 import type { Table } from "@tanstack/react-table"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useState, useEffect } from "react"
-import { TypeDot } from "./type-dot"
-import type { ProcessedRow } from "../data-processor"
-
+import type { ProcessedRow } from "../../data-processor"
+import { TypeDot } from "../type-indicators/type-dot"
 interface ColumnManagerModalProps<TData> {
   table: Table<TData>
   useFixedColumn: boolean

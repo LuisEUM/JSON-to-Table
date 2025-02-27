@@ -1,6 +1,4 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrayCell } from "../components/array-cell";
-import { TypeDot } from "../components/type-dot";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowDown, Eye, Filter, Link2 } from "lucide-react";
 import {
@@ -11,8 +9,6 @@ import {
   type ProcessedValue,
   processValue,
 } from "../data-processor";
-import { ObjectCard } from "../components/object-card";
-import { formatDateString } from "../utils/date-formatter";
 import {
   Tooltip,
   TooltipContent,
@@ -27,6 +23,8 @@ import {
 } from "@/components/ui/dialog";
 import { FilterFactory } from "../components/filters/filter-factory";
 import type { FilterCondition } from "../components/filters/filter-types";
+import { CellFactory } from "../components/cells/cell-factory";
+import { TypeDot } from "../components/type-indicators/type-dot";
 
 interface NestedRecord {
   [key: string]: ProcessedItem | unknown | { [key: string]: NestedRecord };
@@ -204,51 +202,8 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
         value,
       });
 
-      if (item.isReference || value?.isReference) {
-        return (
-          <div className='flex items-center gap-1'>
-            <Link2 className='h-3 w-3 text-muted-foreground' />
-            <span className='font-mono text-sm text-primary'>
-              {String(value?.value || value)}
-            </span>
-          </div>
-        );
-      }
-
-      if (!value) {
-        console.log("⚠️ Valor nulo o indefinido en celda:", {
-          columnId: item.id,
-          value,
-        });
-        return null;
-      }
-
-      if (typeof value === "object" && "type" in value) {
-        switch (value.type) {
-          case "array":
-          case "array[primitivo]":
-          case "array[objeto]":
-            return <ArrayCell items={value.items || []} />;
-          case "objeto":
-            return <ObjectCard value={value} compact />;
-          case "fecha":
-            return formatDateString(value.value as string);
-          default:
-            return (
-              <span className='font-mono text-sm'>
-                {value.type === "string"
-                  ? `"${String(value.value)}"`
-                  : String(value.value)}
-              </span>
-            );
-        }
-      }
-
-      return (
-        <span className='font-mono text-sm'>
-          {String((value as ProcessedValue)?.value || value)}
-        </span>
-      );
+      // Use our new CellFactory component
+      return <CellFactory value={value} isReference={item.isReference} />;
     },
     filterFn: "processedValueFilter",
   };

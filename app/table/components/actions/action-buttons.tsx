@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { MoreHorizontal, Copy, Trash2, FileSearch } from "lucide-react";
 import { useState } from "react";
-import type { ProcessedRow } from "../data-processor";
+import type { ProcessedRow } from "../../data-processor";
 import { DetailsModal } from "./details-modal";
 
 interface ActionButtonsProps {

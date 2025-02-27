@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { TypeDot } from "./type-dot";
-import type { ProcessedValue } from "../data-processor";
-import { formatDateString } from "../utils/date-formatter";
+import type { ProcessedValue } from "../../data-processor";
+import { formatDateString } from "../../utils/date-formatter";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TypeDot } from "../type-indicators/type-dot";
 
 interface ObjectCardProps {
   value: ProcessedValue;

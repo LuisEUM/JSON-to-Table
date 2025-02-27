@@ -3,10 +3,10 @@
 import * as React from "react";
 import type { ReactElement } from "react";
 import { Badge } from "@/components/ui/badge";
-import { getTypeColor } from "./type-badge";
+import { getTypeColor } from "../type-indicators/type-badge";
 import { ObjectCard } from "./object-card";
-import type { ProcessedValue } from "../data-processor";
-import { processValue } from "../data-processor";
+import type { ProcessedValue } from "../../data-processor";
+import { processValue } from "../../data-processor";
 import {
   Accordion,
   AccordionContent,

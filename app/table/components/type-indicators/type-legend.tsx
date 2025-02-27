@@ -1,5 +1,5 @@
+import { getTypeLabel } from "../../utils/colors";
 import { TypeDot } from "./type-dot";
-import { getTypeLabel } from "../utils/colors";
 
 export function TypeLegend() {
   const types = [
