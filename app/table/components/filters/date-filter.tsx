@@ -197,7 +197,7 @@ export function DateFilter({
       }));
 
     setDateOptions(options);
-  }, [uniqueValues]);
+  }, [uniqueValues, selectedDates]);
 
   // Separate effect to update the checked state of date options
   useEffect(() => {
@@ -209,7 +209,7 @@ export function DateFilter({
     }));
 
     setDateOptions(updatedOptions);
-  }, [selectedDates]);
+  }, [selectedDates, dateOptions]);
 
   useEffect(() => {
     // Si hay fechas seleccionadas pero no hay rango definido,
@@ -298,7 +298,7 @@ export function DateFilter({
     if (currentSelectedStr !== newSelectedStr) {
       setSelectedDates(newSelected);
     }
-  }, [dateOptions, isInverted, dateRange.start, dateRange.end]);
+  }, [dateOptions, isInverted, dateRange.start, dateRange.end, selectedDates]);
 
   const handleApply = () => {
     if (selectedDates.size === 0) {
