@@ -7,9 +7,9 @@ import { Search } from "lucide-react";
 import type { FilterComponentProps, FilterValue } from "./filter-types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilterFooter } from "./filter-footer";
-import { getTypeColor } from "../../utils/colors";
+import { getTypeStyle } from "../type-indicators";
 import { processValue } from "../../data-processor";
-import { TypeDot } from "../type-indicators/type-dot";
+import { TypeDot } from "../type-indicators";
 
 interface FilterItem {
   value: unknown;
@@ -39,7 +39,7 @@ export function ArrayFilter({
       if (Array.isArray(arrayValue?.value)) {
         arrayValue.value.forEach((item) => {
           // Procesar el item para obtener su valor real y tipo
-          const processedItem = processValue(item, columnId);
+          const processedItem = processValue(item, columnId, undefined);
           const displayValue =
             processedItem.type === "boolean"
               ? processedItem.value
@@ -58,7 +58,7 @@ export function ArrayFilter({
   const filteredValues = Array.from(allUniqueValues.entries())
     .map(([value, count]): FilterItem => {
       // Procesar el valor para determinar su tipo
-      const processedValue = processValue(value, columnId);
+      const processedValue = processValue(value, columnId, undefined);
       return {
         value,
         count,
@@ -96,7 +96,7 @@ export function ArrayFilter({
           Filtro para array de tipo:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
-              getTypeColor(arrayType || "unknown").split(" ")[0]
+              getTypeStyle(arrayType || "unknown").bg
             }`}
           ></span>{" "}
           {columnName}

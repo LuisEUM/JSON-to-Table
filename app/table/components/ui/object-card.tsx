@@ -4,7 +4,7 @@ import type { ReactElement } from "react";
 import type { ProcessedValue } from "../../data-processor";
 import { formatDateString } from "../../utils/date-formatter";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { TypeDot } from "../type-indicators/type-dot";
+import { TypeDot } from "../type-indicators";
 
 interface ObjectCardProps {
   value: ProcessedValue;

@@ -5,7 +5,7 @@
  * utilidades para capturar, procesar y reportar errores de manera consistente.
  */
 
-import { logger } from "../services/logging-service";
+import { logger } from "../../services/logging-service";
 
 /**
  * Error base para todos los errores de la aplicación
@@ -77,11 +77,11 @@ export class ValidationError extends DataProcessingError {
  * @param errorHandler Manejador de errores
  * @returns Función envuelta que maneja errores
  */
-export function withErrorHandling<T extends (...args: any[]) => any>(
-  fn: T,
-  errorHandler: (error: unknown, ...args: Parameters<T>) => ReturnType<T>
-): (...args: Parameters<T>) => ReturnType<T> {
-  return (...args: Parameters<T>): ReturnType<T> => {
+export function withErrorHandling<Args extends unknown[], R>(
+  fn: (...args: Args) => R,
+  errorHandler: (error: unknown, ...args: Args) => R
+): (...args: Args) => R {
+  return (...args: Args): R => {
     try {
       return fn(...args);
     } catch (error) {
@@ -139,4 +139,20 @@ export function toError(value: unknown): Error {
       ? "undefined"
       : JSON.stringify(value)
   );
+}
+
+export function toUTCDate(date: string | number | Date): Date {
+  const d = new Date(date);
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+}
+
+export function formatDate(date: Date, format: string = "yyyy-MM-dd"): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return format
+    .replace("yyyy", year.toString())
+    .replace("MM", month)
+    .replace("dd", day);
 }

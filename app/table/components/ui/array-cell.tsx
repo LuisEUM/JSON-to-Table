@@ -3,7 +3,7 @@
 import * as React from "react";
 import type { ReactElement } from "react";
 import { Badge } from "@/components/ui/badge";
-import { getTypeColor } from "../type-indicators/type-badge";
+import { getTypeStyle } from "../type-indicators";
 import { ObjectCard } from "./object-card";
 import type { ProcessedValue } from "../../data-processor";
 import { processValue } from "../../data-processor";
@@ -29,14 +29,14 @@ const PrimitiveArrayDisplay = ({ items }: ArrayCellProps): ReactElement => {
       {items.map((item: ProcessedValue | unknown, index) => {
         const processedItem = isProcessedValue(item)
           ? item
-          : processValue(item, `item-${index}`);
+          : processValue(item, `item-${index}`, undefined);
 
         return (
           <Badge
             key={`array-item-${index}`}
             variant='outline'
             className={`${
-              getTypeColor(processedItem.type).split(" ")[0]
+              getTypeStyle(processedItem.type).bg
             } text-xs font-mono whitespace-nowrap overflow-hidden text-ellipsis`}
           >
             {processedItem.type === "string"
@@ -98,7 +98,7 @@ const ObjectArrayAccordion = ({ items }: ArrayCellProps): ReactElement => {
         ).map(([key, val]) => ({
           id: key,
           path: [key],
-          ...processValue(val, key),
+          ...processValue(val, key, undefined),
           label: key,
         }));
 

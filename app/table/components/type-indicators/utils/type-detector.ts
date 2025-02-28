@@ -5,7 +5,11 @@
  * donde cada tipo tiene su propia estrategia de detección independiente.
  */
 
-import { isDate, isDateColumnName, isStrongDateColumn } from "../date-utils";
+import {
+  isDate,
+  isDateColumnName,
+  isStrongDateColumn,
+} from "../../../utils/date-utils";
 
 /**
  * Interfaz para estrategias de detección de tipos

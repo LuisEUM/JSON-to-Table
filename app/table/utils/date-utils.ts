@@ -273,43 +273,11 @@ export function isStringTimestamp(value: string): boolean {
  * Comprueba si un valor es una fecha válida
  */
 export function isDate(value: unknown): boolean {
-  if (isDateInstance(value)) return true;
-
-  if (typeof value === "number") {
-    if (isTimestampInSeconds(value)) return true;
-    if (isTimestampInMs(value)) return true;
-    return false;
+  if (value instanceof Date) return !isNaN(value.getTime());
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    return !isNaN(date.getTime());
   }
-
-  if (typeof value === "string") {
-    const cleanValue = cleanStringValue(value);
-
-    // Probar diferentes formatos
-    try {
-      // Formato ISO
-      if (isISODateString(cleanValue)) return true;
-
-      // Formato común (DD/MM/YYYY o MM/DD/YYYY)
-      if (isCommonDateFormat(cleanValue)) return true;
-
-      // Formato con mes en texto
-      if (isTextMonthDateFormat(cleanValue)) return true;
-
-      // Timestamp en string
-      if (isStringTimestamp(cleanValue)) return true;
-
-      // Intentar parsear directamente
-      const date = new Date(cleanValue);
-      if (
-        isValidDateRange(date, DATE_CONSTANTS.YEAR.MIN, DATE_CONSTANTS.YEAR.MAX)
-      ) {
-        return true;
-      }
-    } catch {
-      return false;
-    }
-  }
-
   return false;
 }
 
@@ -370,21 +338,27 @@ export function normalizeDate(value: unknown): Date | string {
 }
 
 /**
- * Detecta si un nombre de columna parece referirse a una fecha
+ * Verifica si un nombre de columna sugiere que contiene fechas
  */
-export function isDateColumnName(columnName: string): boolean {
-  return (
-    /^(fecha|date|time|created|updated|at$|timestamp|deadline|birth|nacimiento|created_at|updated_at|deleted_at|publish|published|start|end|inicio|fin|vencimiento|expiry|expiration|due|completion|cuando|when|hora)$/i.test(
-      columnName
-    ) || /date$|time$|timestamp$|_at$|_on$|At$/i.test(columnName)
-  );
+export function isDateColumnName(fieldName: string): boolean {
+  const datePatterns = [
+    /date/i,
+    /fecha/i,
+    /(created|updated|modified)_?at/i,
+    /timestamp/i,
+  ];
+  return datePatterns.some((pattern) => pattern.test(fieldName));
 }
 
 /**
- * Detecta si un nombre de columna debe ser forzado como fecha
+ * Verifica si un nombre de columna indica fuertemente que contiene fechas
  */
-export function isStrongDateColumn(columnName: string): boolean {
-  return /^(created_at|updated_at|deleted_at|createdAt|updatedAt|deletedAt|timestamp)$/i.test(
-    columnName
-  );
+export function isStrongDateColumn(fieldName: string): boolean {
+  const strongDatePatterns = [
+    /^date$/i,
+    /^fecha$/i,
+    /^(created|updated|modified)_?at$/i,
+    /^timestamp$/i,
+  ];
+  return strongDatePatterns.some((pattern) => pattern.test(fieldName));
 }

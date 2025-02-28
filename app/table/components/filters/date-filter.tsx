@@ -25,8 +25,8 @@ import type {
   DateRangePreset,
 } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
-import { getTypeColor } from "../../utils/colors";
-import { toUTCDate, formatDate } from "@/app/utils/date-formatter";
+import { getTypeStyle } from "../type-indicators";
+import { toUTCDate, formatDate } from "../../utils/error-handling";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Search } from "lucide-react";
 
@@ -329,7 +329,7 @@ export function DateFilter({
           Filtro para:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
-              getTypeColor(columnType).split(" ")[0]
+              getTypeStyle(columnType).bg
             }`}
           ></span>{" "}
           {columnName}

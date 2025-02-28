@@ -6,14 +6,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { TypeDot } from "../type-indicators/type-dot";
+import { TypeDot } from "../type-indicators";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ProcessedValue } from "../../data-processor";
 import { Button } from "@/components/ui/button";
 import { Code2, Table2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getTypeColor } from "../type-indicators/type-badge";
+import { getTypeStyle } from "../type-indicators";
 import React from "react";
 
 interface DetailsModalProps {
@@ -105,7 +105,7 @@ const renderPrimitiveArray = (item: ProcessedValue) => {
           <Badge
             key={idx}
             variant='outline'
-            className={`${getTypeColor(valueType)} text-xs font-mono`}
+            className={`${getTypeStyle(valueType).bg} text-xs font-mono`}
           >
             {String(value)}
           </Badge>

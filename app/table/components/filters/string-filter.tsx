@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import type { FilterComponentProps, FilterOperator } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
-import { getTypeColor } from "../../utils/colors";
+import { getTypeStyle } from "../type-indicators";
 import { DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
@@ -211,7 +211,7 @@ export function StringFilter({
           Filtro para:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
-              getTypeColor(columnType).split(" ")[0]
+              getTypeStyle(columnType).bg
             }`}
           ></span>{" "}
           {columnName}

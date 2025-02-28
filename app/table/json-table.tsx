@@ -43,7 +43,7 @@ import {
   type ProcessedRow,
   processBatchData,
 } from "./data-processor";
-import { TypeLegend } from "./components/type-indicators/type-legend";
+import { TypeLegend } from "./components/type-indicators";
 import { TablePagination } from "./components/tables/table-pagination";
 import { TableSearch } from "./components/tables/table-search";
 import { ColumnManagerModal } from "./components/columns/column-manager-modal";
@@ -54,7 +54,7 @@ import { SecondaryTables } from "./components/tables/secondary-tables";
 import { TableSkeleton } from "./components/tables/table-skeleton";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { dateBetweenFilterFn } from "./components/filters/filter-types";
-import { formatDate } from "@/app/utils/date-formatter";
+import { formatDate } from "@/app/table/utils/error-handling";
 import { Checkbox } from "@/components/ui/checkbox";
 
 declare module "@tanstack/table-core" {

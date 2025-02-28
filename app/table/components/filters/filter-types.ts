@@ -1,6 +1,6 @@
 import type { ProcessedRow, ProcessedItem } from "../../data-processor";
 import type { FilterFn } from "@tanstack/react-table";
-import { formatDate } from "@/app/utils/date-formatter";
+import { formatDate } from "@/app/table/utils/error-handling";
 
 export type FilterOperator =
   | "equals"

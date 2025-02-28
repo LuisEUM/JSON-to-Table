@@ -5,8 +5,8 @@ import {
   normalizeDate as normalizeDateUtil,
   isDateColumnName,
   isStrongDateColumn,
-} from "./date-utils";
-import { withErrorHandling, logError } from "../utils/error-handling";
+} from "./utils/date-utils";
+import { withErrorHandling, logError } from "./utils/error-handling";
 
 // Extensión de FilterFns para tanstack table
 declare module "@tanstack/table-core" {
@@ -16,7 +16,7 @@ declare module "@tanstack/table-core" {
 }
 
 /* =======================================================
-   CONSTANTES Y LOGGER
+    CONSTANTES Y LOGGER
 ======================================================= */
 
 // Interfaz para logging configurable (inyección de dependencia)
@@ -35,7 +35,7 @@ export function setLogger(newLogger: ILogger): void {
 }
 
 /* =======================================================
-   TIPOS Y UTILIDADES GENERALES
+    TIPOS Y UTILIDADES GENERALES
 ======================================================= */
 
 // Tipos para los valores procesados
@@ -86,7 +86,7 @@ const cleanStringValue = (v: unknown): string =>
     : String(v).replace(/^["']|["']$/g, "");
 
 /* =======================================================
-   MANEJO DE FECHAS: DETECCIÓN Y NORMALIZACIÓN
+    MANEJO DE FECHAS: DETECCIÓN Y NORMALIZACIÓN
 ======================================================= */
 
 /**
@@ -105,7 +105,7 @@ export const isDate = isDateUtil;
 export const normalizeDate = normalizeDateUtil;
 
 /* =======================================================
-   APLANAMIENTO DE OBJETOS
+    APLANAMIENTO DE OBJETOS
 ======================================================= */
 
 /**
@@ -154,7 +154,7 @@ export const isIdField = (fieldName: string): boolean => {
 };
 
 /* =======================================================
-   PROCESAMIENTO DE VALORES Y DATOS
+    PROCESAMIENTO DE VALORES Y DATOS
 ======================================================= */
 
 /**
@@ -324,7 +324,7 @@ export const processValue = withErrorHandling(
 export const processData = withErrorHandling(
   (data: Record<string, unknown>): ProcessedItem[] => {
     const processed: ProcessedItem[] = [];
-    const flattenedData = flattenObject(data);
+    const flattenedData = flattenObject(data, "");
     let keyFound = false;
     let currentId: string | undefined;
 
@@ -389,7 +389,7 @@ export const inferColumnType = (
 };
 
 /* =======================================================
-   AGRUPACIÓN DE COLUMNAS
+    AGRUPACIÓN DE COLUMNAS
 ======================================================= */
 
 export interface GroupedColumns {
@@ -446,8 +446,13 @@ export const groupColumns = withErrorHandling(
 );
 
 /* =======================================================
-   ANÁLISIS DE TIPOS POR COLUMNA
+    ANÁLISIS DE TIPOS POR COLUMNA
 ======================================================= */
+
+interface ColumnTypeInfo {
+  type: ValueType;
+  normalizer: (value: unknown) => unknown;
+}
 
 /**
  * Analiza una muestra de datos para determinar el tipo predominante de cada columna.
@@ -460,13 +465,7 @@ export const analyzeColumnTypes = withErrorHandling(
   (
     data: Record<string, unknown>[],
     sampleSize: number = 100
-  ): Record<
-    string,
-    {
-      type: ValueType;
-      normalizer: (value: unknown) => unknown;
-    }
-  > => {
+  ): Record<string, ColumnTypeInfo> => {
     if (!data.length) return {};
 
     const allColumns = new Set<string>();
@@ -474,13 +473,7 @@ export const analyzeColumnTypes = withErrorHandling(
       Object.keys(row).forEach((key) => allColumns.add(key));
     });
 
-    const columnAnalysis: Record<
-      string,
-      {
-        type: ValueType;
-        normalizer: (value: unknown) => unknown;
-      }
-    > = {};
+    const columnAnalysis: Record<string, ColumnTypeInfo> = {};
 
     logger.debug("Iniciando análisis de tipos por columna...");
 
@@ -531,10 +524,7 @@ export const analyzeColumnTypes = withErrorHandling(
 export const inferTypeFromSample = (
   sampleValues: unknown[],
   columnName: string
-): {
-  type: ValueType;
-  normalizer: (value: unknown) => unknown;
-} => {
+): ColumnTypeInfo => {
   if (!sampleValues.length) {
     return { type: "string", normalizer: (v) => (v == null ? "" : String(v)) };
   }
@@ -1065,8 +1055,12 @@ export const inferTypeFromSample = (
 };
 
 /* =======================================================
-   PROCESAMIENTO POR LOTES
+    PROCESAMIENTO POR LOTES
 ======================================================= */
+
+interface BatchProcessOptions {
+  sampleSize: number;
+}
 
 /**
  * Procesa un lote de datos, aplanando cada fila y aplicando la normalización
@@ -1079,7 +1073,7 @@ export const inferTypeFromSample = (
 export const processBatchData = withErrorHandling(
   (
     dataRows: Record<string, unknown>[],
-    options = { sampleSize: 100 }
+    options: BatchProcessOptions = { sampleSize: 100 }
   ): ProcessedItem[][] => {
     if (!dataRows.length) return [];
 
@@ -1139,7 +1133,7 @@ export const processBatchData = withErrorHandling(
       return flattenedRow;
     });
 
-    const columnTypes = analyzeColumnTypes(
+    const columnTypes: Record<string, ColumnTypeInfo> = analyzeColumnTypes(
       flattenedDataRows,
       options.sampleSize
     );

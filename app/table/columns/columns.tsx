@@ -24,7 +24,7 @@ import {
 import { FilterFactory } from "../components/filters/filter-factory";
 import type { FilterCondition } from "../components/filters/filter-types";
 import { CellFactory } from "../components/cells/cell-factory";
-import { TypeDot } from "../components/type-indicators/type-dot";
+import { TypeDot } from "../components/type-indicators";
 
 interface NestedRecord {
   [key: string]: ProcessedItem | unknown | { [key: string]: NestedRecord };
@@ -58,7 +58,7 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
         if (value === undefined) break;
       }
 
-      return processValue(value, item.id);
+      return processValue(value, item.id, row.__parentId?.toString());
     },
     enableSorting: true,
     enableHiding: !isReferenceColumn,
