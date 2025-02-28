@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendLogToClients } from "../logs/route";
+import { sendLogToClients } from "@/app/services/log-stream";
 
 interface HoldedCustomer {
   id: string;
