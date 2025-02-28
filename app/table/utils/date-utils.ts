@@ -160,6 +160,16 @@ export function isISODateString(value: string): boolean {
 export function isCommonDateFormat(value: string): boolean {
   const cleanValue = cleanStringValue(value);
 
+  // Test específico para los formatos más comunes que deben ser detectados
+  if (/^(\d{1,2})[-\/\.](\d{1,2})[-\/\.](\d{4})$/.test(cleanValue)) {
+    return true;
+  }
+
+  // Para formatos con texto de mes como '1 Jan 2023'
+  if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(cleanValue)) {
+    return true;
+  }
+
   // Rechazar códigos postales y cadenas muy largas
   if (/^[\d-]{3,10}$/.test(cleanValue)) return false;
   if (cleanValue.length > 30 || cleanValue.split(/\s+/).length > 5)
@@ -273,11 +283,32 @@ export function isStringTimestamp(value: string): boolean {
  * Comprueba si un valor es una fecha válida
  */
 export function isDate(value: unknown): boolean {
+  // Si es una instancia de Date, verificar que sea válida
   if (value instanceof Date) return !isNaN(value.getTime());
-  if (typeof value === "string" || typeof value === "number") {
-    const date = new Date(value);
-    return !isNaN(date.getTime());
+
+  // Si es un número, verificar si es un timestamp válido
+  if (typeof value === "number") {
+    // Rechazar números pequeños que no representan timestamps razonables
+    if (value < 31536000) return false; // menos de un año en segundos
+    return isNumericTimestamp(value);
   }
+
+  // Si es un string, aplicar validaciones más estrictas
+  if (typeof value === "string") {
+    const cleaned = cleanStringValue(value);
+
+    // Rechazar códigos postales y números cortos
+    if (/^\d{5}$/.test(cleaned)) return false;
+
+    // Usar validadores específicos para cada formato
+    return (
+      isISODateString(cleaned) ||
+      isCommonDateFormat(cleaned) ||
+      isTextMonthDateFormat(cleaned) ||
+      isStringTimestamp(cleaned)
+    );
+  }
+
   return false;
 }
 
@@ -344,8 +375,11 @@ export function isDateColumnName(fieldName: string): boolean {
   const datePatterns = [
     /date/i,
     /fecha/i,
-    /(created|updated|modified)_?at/i,
+    /(created|updated|modified|deleted)_?at/i,
     /timestamp/i,
+    /(start|end)_?time/i,
+    /birth/i,
+    /time/i,
   ];
   return datePatterns.some((pattern) => pattern.test(fieldName));
 }
@@ -355,9 +389,11 @@ export function isDateColumnName(fieldName: string): boolean {
  */
 export function isStrongDateColumn(fieldName: string): boolean {
   const strongDatePatterns = [
-    /^date$/i,
-    /^fecha$/i,
-    /^(created|updated|modified)_?at$/i,
+    // No considerar "fecha" o "date" como campos fuertes de fecha
+    // /^date$/i,
+    // /^fecha$/i,
+    /^(created|updated|modified|deleted)_?at$/i,
+    /^(created|updated|deleted)At$/i,
     /^timestamp$/i,
   ];
   return strongDatePatterns.some((pattern) => pattern.test(fieldName));

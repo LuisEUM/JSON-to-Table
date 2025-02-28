@@ -113,7 +113,8 @@ export function setLogger(newLogger: ILogger): ILogger {
   // Reemplazar métodos
   Object.keys(newLogger).forEach((key) => {
     if (typeof newLogger[key as keyof ILogger] === "function") {
-      (logger as any)[key] = newLogger[key as keyof ILogger];
+      (logger as unknown as Record<string, unknown>)[key] =
+        newLogger[key as keyof ILogger];
     }
   });
 
