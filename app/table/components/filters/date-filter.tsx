@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -117,10 +117,9 @@ const getPresetDateRange = (preset: DateRangePreset): DateRange => {
   }
 };
 
-interface DateOption {
+interface DateOptionItem {
   date: Date;
   label: string;
-  checked: boolean;
   count: number;
 }
 
@@ -134,14 +133,51 @@ export function DateFilter({
   columnType,
   uniqueValues,
 }: FilterComponentProps) {
+  // Convertir los valores únicos a opciones de fecha
+  const dateOptions = useMemo(() => {
+    const valueCounts = new Map<string, number>();
+
+    // Recorrer los valores únicos y contar las ocurrencias de cada fecha
+    uniqueValues.forEach((option) => {
+      if (option.value) {
+        try {
+          const date = new Date(option.value);
+          if (!isNaN(date.getTime())) {
+            const dateStr = formatDate(date, "yyyy-MM-dd");
+            valueCounts.set(
+              dateStr,
+              (valueCounts.get(dateStr) || 0) + option.count
+            );
+          }
+        } catch {
+          // Ignorar valores que no pueden convertirse a fecha
+        }
+      }
+    });
+
+    // Convertir el mapa a un array de opciones
+    return Array.from(valueCounts.entries())
+      .map(([dateStr, count]) => {
+        return {
+          date: new Date(dateStr),
+          label: dateStr,
+          count: count,
+        } as DateOptionItem;
+      })
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, [uniqueValues]);
+
+  // Inicializar estado de búsqueda
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Estado para modo invertido (incluir vs. excluir)
+  const [isInverted, setIsInverted] = useState(true);
+
+  // Estado para preset seleccionado
   const [selectedPreset, setSelectedPreset] =
     useState<DateRangePreset>("custom");
 
-  const [isInverted, setIsInverted] = useState(() => {
-    // Siempre inicializar con true ya que usamos arrIncludesSome
-    return true;
-  });
-
+  // Inicializar dateRange desde initialValue o vacío
   const [dateRange, setDateRange] = useState<DateRange>(() => {
     if (!initialValue?.value || !Array.isArray(initialValue.value)) {
       return { start: undefined, end: undefined };
@@ -163,120 +199,15 @@ export function DateFilter({
     };
   });
 
-  const [dateOptions, setDateOptions] = useState<DateOption[]>([]);
-  const [selectedDates, setSelectedDates] = useState<Set<string>>(() => {
-    if (!initialValue?.value || !Array.isArray(initialValue.value)) {
-      return new Set<string>();
-    }
-    return new Set(initialValue.value as string[]);
-  });
+  // Calcular fechas seleccionadas basadas en el rango y el modo invertido
+  // Esta es una función, no un estado, para evitar ciclos de actualización
+  const getSelectedDates = useCallback(() => {
+    if (!dateOptions.length) return new Set<string>();
 
-  const [searchTerm, setSearchTerm] = useState("");
+    const selected = new Set<string>();
 
-  // Efecto para generar las opciones de fecha cuando cambia uniqueValues
-  useEffect(() => {
-    const dateCounts = new Map<string, number>();
-    const allDates = new Set<string>();
-
-    uniqueValues.forEach((option) => {
-      const date = option.value ? new Date(option.value) : null;
-      if (date && !isNaN(date.getTime())) {
-        const dateStr = formatDate(date, "yyyy-MM-dd");
-        dateCounts.set(dateStr, (dateCounts.get(dateStr) || 0) + option.count);
-        allDates.add(dateStr);
-      }
-    });
-
-    const options: DateOption[] = Array.from(allDates)
-      .sort()
-      .map((dateStr) => ({
-        date: new Date(dateStr),
-        label: dateStr,
-        checked: selectedDates.has(dateStr),
-        count: dateCounts.get(dateStr) || 0,
-      }));
-
-    setDateOptions(options);
-  }, [uniqueValues, selectedDates]);
-
-  // Separate effect to update the checked state of date options
-  useEffect(() => {
-    if (dateOptions.length === 0) return;
-
-    const updatedOptions = dateOptions.map((option) => ({
-      ...option,
-      checked: selectedDates.has(option.label),
-    }));
-
-    setDateOptions(updatedOptions);
-  }, [selectedDates, dateOptions]);
-
-  useEffect(() => {
-    // Si hay fechas seleccionadas pero no hay rango definido,
-    // establecer el rango basado en las fechas seleccionadas
-    if (selectedDates.size > 0 && (!dateRange.start || !dateRange.end)) {
-      const selectedDatesArray = Array.from(selectedDates).map(
-        (dateStr) => new Date(dateStr)
-      );
-      const minDate = new Date(
-        Math.min(...selectedDatesArray.map((d) => d.getTime()))
-      );
-      const maxDate = new Date(
-        Math.max(...selectedDatesArray.map((d) => d.getTime()))
-      );
-
-      setDateRange({
-        start: minDate,
-        end: maxDate,
-      });
-    }
-  }, [selectedDates, dateRange]);
-
-  const handleDateInputChange = (type: "start" | "end", value: string) => {
-    const date = value ? toUTCDate(new Date(value)) : undefined;
-    setDateRange((prev) => {
-      const newRange = {
-        ...prev,
-        [type]: date,
-      };
-
-      // We'll let the useEffect handle updating the selectedDates based on the date range
-      return newRange;
-    });
-  };
-
-  const handleCheckboxChange = (dateStr: string, checked: boolean) => {
-    const newSelected = new Set(selectedDates);
-    if (checked) {
-      newSelected.add(dateStr);
-    } else {
-      newSelected.delete(dateStr);
-    }
-    setSelectedDates(newSelected);
-  };
-
-  const handlePresetChange = (preset: DateRangePreset) => {
-    setSelectedPreset(preset);
-    if (preset === "custom") {
-      // Al cambiar a personalizado, mantener las selecciones actuales
-      return;
-    }
-
-    const newRange = getPresetDateRange(preset);
-    setDateRange(newRange);
-
-    // We'll let the useEffect handle updating the selectedDates based on the date range
-  };
-
-  // Efecto para mantener sincronizadas las selecciones cuando cambia el modo o el rango
-  useEffect(() => {
-    if (dateOptions.length === 0) return;
-
-    // We need to prevent this effect from running in response to selectedDates changes
-    // Use a ref to track if the update is coming from a selectedDates change
-    const newSelected = new Set<string>();
     dateOptions.forEach((option) => {
-      const date = new Date(option.label);
+      const date = option.date;
       const isInRange = (() => {
         if (!dateRange.start && !dateRange.end) return true;
         if (dateRange.start && !dateRange.end) return date >= dateRange.start;
@@ -287,32 +218,77 @@ export function DateFilter({
       })();
 
       if (isInverted ? isInRange : !isInRange) {
-        newSelected.add(option.label);
+        selected.add(option.label);
       }
     });
 
-    // Use JSON.stringify to compare sets to avoid unnecessary updates
-    const currentSelectedStr = JSON.stringify(Array.from(selectedDates).sort());
-    const newSelectedStr = JSON.stringify(Array.from(newSelected).sort());
+    return selected;
+  }, [dateOptions, dateRange.start, dateRange.end, isInverted]);
 
-    if (currentSelectedStr !== newSelectedStr) {
-      setSelectedDates(newSelected);
+  // Handlers simplificados que modifican una sola fuente de verdad
+  const handleDateInputChange = useCallback(
+    (type: "start" | "end", value: string) => {
+      const date = value ? toUTCDate(new Date(value)) : undefined;
+      setDateRange((prev) => ({
+        ...prev,
+        [type]: date,
+      }));
+      setSelectedPreset("custom");
+    },
+    []
+  );
+
+  const handleCheckboxChange = useCallback(
+    (dateStr: string, checked: boolean) => {
+      // Si se marca una fecha, actualizamos el rango para incluirla
+      const date = new Date(dateStr);
+
+      setDateRange((prev) => {
+        if (checked) {
+          // Si es el primer checkbox seleccionado
+          if (!prev.start && !prev.end) {
+            return { start: date, end: date };
+          }
+
+          // Si está fuera del rango actual, expandir el rango
+          const start = prev.start
+            ? new Date(Math.min(prev.start.getTime(), date.getTime()))
+            : date;
+          const end = prev.end
+            ? new Date(Math.max(prev.end.getTime(), date.getTime()))
+            : date;
+
+          return { start, end };
+        } else {
+          // Si se desmarca, tendríamos que recalcular el rango basado en los que quedan seleccionados
+          // Por simplicidad, no modificamos el rango al desmarcar (el usuario puede usar el rango manual)
+          return prev;
+        }
+      });
+
+      setSelectedPreset("custom");
+    },
+    []
+  );
+
+  const handlePresetChange = useCallback((preset: DateRangePreset) => {
+    if (preset === "custom") {
+      setSelectedPreset(preset);
+      return;
     }
-  }, [dateOptions, isInverted, dateRange.start, dateRange.end, selectedDates]);
 
-  const handleApply = () => {
+    const newRange = getPresetDateRange(preset);
+    setDateRange(newRange);
+    setSelectedPreset(preset);
+  }, []);
+
+  const handleApply = useCallback(() => {
+    const selectedDates = getSelectedDates();
     if (selectedDates.size === 0) {
-      console.log("🧹 Limpiando filtro de fecha");
       onClear();
       onClose();
       return;
     }
-
-    console.log("✅ Aplicando filtro de fecha:", {
-      field: columnId,
-      selectedDates: Array.from(selectedDates),
-      isInverted,
-    });
 
     onApply({
       field: columnId,
@@ -320,7 +296,21 @@ export function DateFilter({
       value: Array.from(selectedDates),
     });
     onClose();
-  };
+  }, [getSelectedDates, onApply, onClear, onClose, columnId]);
+
+  // Filtrar las opciones visibles por término de búsqueda
+  const filteredOptions = useMemo(() => {
+    return dateOptions.filter(
+      (option) =>
+        !searchTerm ||
+        option.label.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [dateOptions, searchTerm]);
+
+  // Calcular si hay opciones seleccionadas (para el indicador visual)
+  const hasSelections = useMemo(() => {
+    return getSelectedDates().size > 0;
+  }, [getSelectedDates]);
 
   return (
     <div className='w-full h-full min-h-[350px] flex flex-col'>
@@ -338,8 +328,12 @@ export function DateFilter({
 
       <div className='space-y-4 flex-1'>
         <TooltipProvider>
-          <Select value={selectedPreset} onValueChange={handlePresetChange}>
-            <SelectTrigger>
+          <Select
+            value={selectedPreset}
+            onValueChange={handlePresetChange}
+            defaultValue='custom'
+          >
+            <SelectTrigger className='w-full'>
               <SelectValue placeholder='Selecciona un rango predefinido' />
             </SelectTrigger>
             <SelectContent>
@@ -352,17 +346,6 @@ export function DateFilter({
           </Select>
         </TooltipProvider>
 
-        <div className='flex items-center justify-between space-x-2'>
-          <Label htmlFor='range-mode' className='text-sm'>
-            {isInverted ? "Dentro del rango" : "Fuera del rango"}
-          </Label>
-          <Switch
-            id='range-mode'
-            checked={isInverted}
-            onCheckedChange={setIsInverted}
-          />
-        </div>
-
         <div className='grid grid-cols-2 gap-4'>
           <div className='space-y-2'>
             <Label>Desde</Label>
@@ -372,7 +355,6 @@ export function DateFilter({
                 dateRange.start ? formatDate(dateRange.start, "yyyy-MM-dd") : ""
               }
               onChange={(e) => {
-                setSelectedPreset("custom");
                 handleDateInputChange("start", e.target.value);
               }}
             />
@@ -385,46 +367,57 @@ export function DateFilter({
                 dateRange.end ? formatDate(dateRange.end, "yyyy-MM-dd") : ""
               }
               onChange={(e) => {
-                setSelectedPreset("custom");
                 handleDateInputChange("end", e.target.value);
               }}
             />
           </div>
         </div>
 
+        <div className='flex items-center space-x-2'>
+          <Switch
+            id='inverted-mode'
+            checked={isInverted}
+            onCheckedChange={setIsInverted}
+          />
+          <Label htmlFor='inverted-mode'>
+            {isInverted
+              ? "Incluir fechas en el rango"
+              : "Excluir fechas en el rango"}
+          </Label>
+        </div>
+
         {dateOptions.length > 0 && (
           <>
-            <div className='text-sm text-muted-foreground'>
-              {selectedDates.size} días seleccionados en el rango
-            </div>
-
-            <Accordion type='single' collapsible className='w-full'>
-              <AccordionItem value='date-breakdown'>
-                <AccordionTrigger className='text-sm'>
-                  Ver desglose por días
+            <Accordion type='single' collapsible defaultValue='item-1'>
+              <AccordionItem value='item-1'>
+                <AccordionTrigger>
+                  Fechas disponibles{" "}
+                  {hasSelections && (
+                    <span className='ml-2 text-xs bg-primary text-primary-foreground rounded-full px-2 py-0.5'>
+                      {getSelectedDates().size}
+                    </span>
+                  )}
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className='space-y-2'>
+                  <div className='space-y-4'>
                     <div className='relative'>
                       <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
                       <Input
-                        placeholder='Buscar fechas...'
+                        placeholder='Buscar fechas'
+                        className='pl-8'
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className='pl-8 mb-2'
                       />
                     </div>
+
                     <ScrollArea className='w-full rounded-md border'>
                       <div className='p-4 space-y-2 h-[200px]'>
-                        {dateOptions
-                          .filter(
-                            (option) =>
-                              !searchTerm ||
-                              option.label
-                                .toLowerCase()
-                                .includes(searchTerm.toLowerCase())
-                          )
-                          .map((option) => (
+                        {filteredOptions.map((option) => {
+                          // Calcular si está seleccionado basado en el rango y modo
+                          const selectedDates = getSelectedDates();
+                          const isSelected = selectedDates.has(option.label);
+
+                          return (
                             <div
                               key={option.label}
                               className='flex items-center justify-between'
@@ -432,7 +425,7 @@ export function DateFilter({
                               <div className='flex items-center space-x-2'>
                                 <Checkbox
                                   id={option.label}
-                                  checked={selectedDates.has(option.label)}
+                                  checked={isSelected}
                                   onCheckedChange={(checked) =>
                                     handleCheckboxChange(
                                       option.label,
@@ -448,7 +441,8 @@ export function DateFilter({
                                 {option.count}
                               </span>
                             </div>
-                          ))}
+                          );
+                        })}
                       </div>
                     </ScrollArea>
                   </div>
@@ -457,15 +451,9 @@ export function DateFilter({
             </Accordion>
           </>
         )}
-
-        {dateOptions.length === 0 && (
-          <div className='flex-1 flex items-center justify-center text-muted-foreground text-sm'>
-            Selecciona un rango de fechas para ver las opciones
-          </div>
-        )}
       </div>
 
-      <FilterFooter onClear={onClear} onClose={onClose} onApply={handleApply} />
+      <FilterFooter onApply={handleApply} onClear={onClear} onClose={onClose} />
     </div>
   );
 }
