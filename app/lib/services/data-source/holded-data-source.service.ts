@@ -2,6 +2,7 @@ import { BaseDataSourceService } from "./base-data-source.service";
 import {
   ApiDataSource,
   DataSourceResponse,
+  DataRecord,
 } from "../../interfaces/data-source";
 import { DataSourceType } from "../../constants/data-sources";
 
@@ -13,14 +14,20 @@ export interface HoldedConfig {
   offset?: number;
 }
 
-export interface HoldedData {
+export interface HoldedData extends DataRecord {
   id: string;
   [key: string]: unknown;
 }
 
-export class HoldedDataSourceService
+// Definir una interfaz para el resultado de la conexión
+export interface ConnectionStatus extends DataRecord {
+  connected: boolean;
+  timestamp: number;
+}
+
+export class HoldedDataSourceService<T extends HoldedData = HoldedData>
   extends BaseDataSourceService
-  implements ApiDataSource
+  implements ApiDataSource<T>
 {
   public apiKey?: string;
   public baseUrl = "https://api.holded.com/api";
@@ -82,7 +89,7 @@ export class HoldedDataSourceService
     }
   }
 
-  async fetchData(params?: Partial<HoldedConfig>): Promise<HoldedData[]> {
+  async fetchData(params?: Partial<HoldedConfig>): Promise<T[]> {
     try {
       if (!this.isConnected && !(await this.connect())) {
         throw new Error("No se pudo establecer conexión con Holded");
@@ -110,7 +117,7 @@ export class HoldedDataSourceService
       }
 
       const data = await response.json();
-      return Array.isArray(data) ? data : [data];
+      return Array.isArray(data) ? (data as T[]) : [data as T];
     } catch (error) {
       this.lastError =
         error instanceof Error
@@ -120,12 +127,16 @@ export class HoldedDataSourceService
     }
   }
 
-  async checkConnection(): Promise<DataSourceResponse<boolean>> {
+  async checkConnection(): Promise<DataSourceResponse<ConnectionStatus>> {
     try {
       const isConnected = await this.connect();
-      return this.createSuccessResponse([isConnected]);
+      const connectionStatus: ConnectionStatus = {
+        connected: isConnected,
+        timestamp: Date.now(),
+      };
+      return this.createConnectionResponse([connectionStatus]);
     } catch (error) {
-      return this.createErrorResponse(
+      return this.createConnectionErrorResponse(
         error instanceof Error
           ? error.message
           : "Error al verificar conexión con Holded"
@@ -133,52 +144,126 @@ export class HoldedDataSourceService
     }
   }
 
+  // Métodos específicos para respuestas de conexión
+  protected createConnectionResponse(
+    data: ConnectionStatus[]
+  ): DataSourceResponse<ConnectionStatus> {
+    return {
+      success: true,
+      data,
+      metadata: {
+        totalCount: data.length,
+        timestamp: Date.now(),
+        source: this.type,
+      },
+    };
+  }
+
+  protected createConnectionErrorResponse(
+    error: string
+  ): DataSourceResponse<ConnectionStatus> {
+    this.lastError = error;
+    return {
+      success: false,
+      error,
+      metadata: {
+        timestamp: Date.now(),
+        source: this.type,
+      },
+    };
+  }
+
   // Métodos específicos de Holded
-  async getClients(): Promise<DataSourceResponse<HoldedData>> {
+  async getClients(): Promise<DataSourceResponse<T>> {
     try {
       const clients = await this.fetchData({
         moduleType: "invoicing",
         endpoint: "contacts",
       });
-      return this.createSuccessResponse(clients);
+      return {
+        success: true,
+        data: clients,
+        metadata: {
+          totalCount: clients.length,
+          timestamp: Date.now(),
+          source: this.type,
+        },
+      };
     } catch (error) {
-      return this.createErrorResponse(
+      this.lastError =
         error instanceof Error
           ? error.message
-          : "Error al obtener clientes de Holded"
-      );
+          : "Error al obtener clientes de Holded";
+      return {
+        success: false,
+        error: this.lastError,
+        metadata: {
+          timestamp: Date.now(),
+          source: this.type,
+        },
+      };
     }
   }
 
-  async getInvoices(): Promise<DataSourceResponse<HoldedData>> {
+  async getInvoices(): Promise<DataSourceResponse<T>> {
     try {
       const invoices = await this.fetchData({
         moduleType: "invoicing",
         endpoint: "documents/invoice",
       });
-      return this.createSuccessResponse(invoices);
+      return {
+        success: true,
+        data: invoices,
+        metadata: {
+          totalCount: invoices.length,
+          timestamp: Date.now(),
+          source: this.type,
+        },
+      };
     } catch (error) {
-      return this.createErrorResponse(
+      this.lastError =
         error instanceof Error
           ? error.message
-          : "Error al obtener facturas de Holded"
-      );
+          : "Error al obtener facturas de Holded";
+      return {
+        success: false,
+        error: this.lastError,
+        metadata: {
+          timestamp: Date.now(),
+          source: this.type,
+        },
+      };
     }
   }
 
-  async getProducts(): Promise<DataSourceResponse<HoldedData>> {
+  async getProducts(): Promise<DataSourceResponse<T>> {
     try {
       const products = await this.fetchData({
         moduleType: "invoicing",
         endpoint: "items",
       });
-      return this.createSuccessResponse(products);
+      return {
+        success: true,
+        data: products,
+        metadata: {
+          totalCount: products.length,
+          timestamp: Date.now(),
+          source: this.type,
+        },
+      };
     } catch (error) {
-      return this.createErrorResponse(
+      this.lastError =
         error instanceof Error
           ? error.message
-          : "Error al obtener productos de Holded"
-      );
+          : "Error al obtener productos de Holded";
+      return {
+        success: false,
+        error: this.lastError,
+        metadata: {
+          timestamp: Date.now(),
+          source: this.type,
+        },
+      };
     }
   }
 }

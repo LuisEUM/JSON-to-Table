@@ -120,12 +120,10 @@ export function DataSourceSelector({
           break;
         case "local":
         case "sample":
-          const { sampleData } = await import("@/app/data/sample-data");
           toast.dismiss(toastId);
-          toast.success("Datos locales cargados", {
-            description: `${sampleData.length} registros encontrados`,
+          toast.error("Opción no disponible", {
+            description: "Los datos de muestra locales han sido eliminados.",
           });
-          onDataSourceSelected(source, sampleData);
           setIsLoading(false);
           return;
       }
@@ -173,38 +171,7 @@ export function DataSourceSelector({
     }
 
     return (
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-        <Card className='cursor-pointer hover:shadow-md transition-shadow'>
-          <CardHeader>
-            <CardTitle>Datos locales de Holded</CardTitle>
-            <CardDescription>
-              Utiliza datos de muestra de clientes de Holded
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className='text-sm text-muted-foreground'>
-              Usa datos predefinidos para probar la aplicación sin necesidad de
-              credenciales.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Button
-              className='w-full'
-              onClick={() => handleSourceSelect("local")}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                  Cargando...
-                </>
-              ) : (
-                "Seleccionar"
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
-
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
         <Card className='cursor-pointer hover:shadow-md transition-shadow'>
           <CardHeader>
             <CardTitle>API de Holded</CardTitle>

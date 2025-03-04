@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcrypt";
+import { UserRole } from "@prisma/client";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -96,7 +97,7 @@ declare module "next-auth" {
       name: string;
       email: string;
       image?: string;
-      role?: UserRole;
+      role: UserRole;
     };
   }
 

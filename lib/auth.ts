@@ -124,7 +124,7 @@ export const authOptions: NextAuthOptions = {
       if (!dbUser) {
         if (user) {
           token.id = user.id;
-          token.role = user.role || "CLIENT";
+          token.role = (user as { role?: UserRole }).role || "CLIENT";
         }
         return token;
       }

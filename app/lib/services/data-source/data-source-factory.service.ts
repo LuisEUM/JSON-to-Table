@@ -8,6 +8,7 @@ import { DataSourceType } from "../../constants/data-sources";
 import {
   HoldedDataSourceService,
   HoldedConfig,
+  HoldedData,
 } from "./holded-data-source.service";
 import {
   JsonFileDataSourceService,
@@ -37,9 +38,9 @@ export class DataSourceFactory {
   ): DataSource<T> {
     switch (config.type) {
       case DataSourceType.HOLDED:
-        return this.createHoldedDataSource<T>(
+        return this.createHoldedDataSource(
           config.connectionParams as HoldedConfig
-        );
+        ) as unknown as DataSource<T>;
       case DataSourceType.JSON_FILE:
         return this.createJsonFileDataSource<T>(
           config.connectionParams as JsonFileConfig
@@ -59,7 +60,7 @@ export class DataSourceFactory {
   }
 
   // Métodos específicos de creación
-  private createHoldedDataSource<T extends DataRecord = DataRecord>(
+  private createHoldedDataSource<T extends HoldedData = HoldedData>(
     config: HoldedConfig
   ): HoldedDataSourceService<T> {
     return new HoldedDataSourceService<T>(config);

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { View } from "@prisma/client";
+import type { View, Prisma } from "@prisma/client";
 
 interface ViewConfig {
   name: string;
@@ -74,7 +74,7 @@ export class ViewService {
         name: viewConfig.name,
         description: viewConfig.description || "",
         isPublic: viewConfig.isPublic || false,
-        configuration: viewConfig.configuration,
+        config: viewConfig.configuration as Prisma.InputJsonValue,
         userId: user.id,
       },
     });
@@ -122,10 +122,10 @@ export class ViewService {
           viewConfig.isPublic !== undefined
             ? viewConfig.isPublic
             : view.isPublic,
-        configuration:
+        config:
           viewConfig.configuration !== undefined
-            ? viewConfig.configuration
-            : view.configuration,
+            ? (viewConfig.configuration as Prisma.InputJsonValue)
+            : (view.config as Prisma.InputJsonValue),
       },
     });
   }

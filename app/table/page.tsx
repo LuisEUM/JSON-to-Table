@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { JsonTable } from "./json-table";
 import {
@@ -15,7 +15,7 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-export default function TablePage() {
+function TablePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const source = searchParams.get("source");
@@ -334,21 +334,11 @@ export default function TablePage() {
   };
 
   return (
-    <div className='container py-8 space-y-6'>
+    <div className='container mx-auto py-6'>
       <Button
-        variant='ghost'
+        variant='outline'
         className='mb-4'
-        onClick={() => {
-          if (source?.startsWith("api-")) {
-            router.push("/data-sources/api");
-          } else if (source === "holded") {
-            router.push("/data-sources/holded");
-          } else if (source === "file") {
-            router.push("/data-sources/file");
-          } else {
-            router.push("/data-sources");
-          }
-        }}
+        onClick={() => router.push("/data-sources")}
       >
         <ArrowLeft className='mr-2 h-4 w-4' />
         Volver a fuentes de datos
@@ -360,28 +350,42 @@ export default function TablePage() {
           <CardDescription>{getSourceDescription()}</CardDescription>
         </CardHeader>
         <CardContent>
-          {error ? (
-            <div className='text-center py-8'>
-              <p className='text-red-500 mb-4'>{error}</p>
-              <Button
-                onClick={() => {
-                  if (source?.startsWith("api-")) {
-                    router.push("/data-sources/api");
-                  } else if (source === "file") {
-                    router.push("/data-sources/file");
-                  } else {
-                    router.push(`/data-sources/${source}`);
-                  }
-                }}
-              >
-                Volver a configurar la fuente de datos
-              </Button>
+          {loading ? (
+            <div className='flex justify-center items-center h-64'>
+              <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary'></div>
+            </div>
+          ) : error ? (
+            <div className='text-center p-6 text-destructive'>
+              <p className='text-lg font-semibold mb-2'>Error</p>
+              <p>{error}</p>
+            </div>
+          ) : data.length === 0 ? (
+            <div className='text-center p-6 text-muted-foreground'>
+              <p>No hay datos disponibles</p>
             </div>
           ) : (
-            <JsonTable data={data} isLoading={loading} />
+            <JsonTable data={data} />
           )}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function TablePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className='container mx-auto py-6'>
+          <Card>
+            <CardContent className='flex justify-center items-center h-64'>
+              <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary'></div>
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
+      <TablePageContent />
+    </Suspense>
   );
 }

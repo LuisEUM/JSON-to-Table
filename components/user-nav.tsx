@@ -38,7 +38,7 @@ export function UserNav() {
   }
 
   // Si está cargando o saliendo, mostrar botón de carga
-  if (status === "loading" || isLoggingOut) {
+  if ((status as string) === "loading" || isLoggingOut) {
     return (
       <Button variant='outline' disabled>
         <div className='h-4 w-4 mr-2 animate-spin rounded-full border-2 border-background border-t-foreground' />
