@@ -188,7 +188,9 @@ describe("Holded Contacts Service Utils", () => {
       const emptyMetrics = extractServiceMetrics([]);
       expect(emptyMetrics.categories.size).toBe(0);
 
-      const invalidMetrics = extractServiceMetrics(null as any);
+      const invalidMetrics = extractServiceMetrics(
+        null as unknown as Customer[]
+      );
       expect(invalidMetrics.categories.size).toBe(0);
     });
   });

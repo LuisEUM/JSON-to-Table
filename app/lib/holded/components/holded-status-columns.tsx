@@ -1,12 +1,13 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Customer } from "../interfaces/customer";
-import { createCustomStatusColumns } from "../utils/holded-customer-status-utils";
-import { MembershipStatus } from "../interfaces/status-types";
 import {
   getStatusColorClasses,
   getStatusLabel,
+  getCustomerStatus,
 } from "../utils/holded-customer-status-utils";
+import { MembershipStatus, StatusColumn } from "../interfaces/status-types";
 import React from "react";
+import { Circle } from "lucide-react";
 
 /**
  * Componente que muestra el estado de membresía con el color y etiqueta correspondientes
@@ -21,6 +22,34 @@ export function StatusCell({ status }: { status: MembershipStatus }) {
       <span>{label}</span>
     </div>
   );
+}
+
+/**
+ * Crea las columnas personalizadas para mostrar:
+ * - El Estado del Cliente (con ícono y etiqueta).
+ * - Los nombres de los servicios en cada estado renderizados como badges.
+ */
+export function createCustomStatusColumns(): StatusColumn[] {
+  return [
+    {
+      id: "clientStatus",
+      header: "Estado del Cliente",
+      cell: ({ row }: { row: { original: Customer } }) => {
+        const customer = row.original;
+        const { clientStatus } = getCustomerStatus(customer);
+        if (!clientStatus) return "N/A";
+        return (
+          <div className='flex items-center gap-1'>
+            <Circle
+              className={`h-3 w-3 ${getStatusColorClasses(clientStatus)}`}
+            />
+            <span>{getStatusLabel(clientStatus)}</span>
+          </div>
+        );
+      },
+    },
+    // Otras columnas de estado que necesites
+  ];
 }
 
 /**
