@@ -1,0 +1,13 @@
+Type,ID,Created,Description,Amount,Currency,Converted Amount,Fees,Net,Converted Currency,Details,Customer ID,Customer Email,Customer Name
+Charge,ch_3QkZ0ADWFgYzi68P3Zo91M4U,2025-01-23 22:37,,"99,00",usd,"99,00","3,52","95,48",usd,kolliker frers maria
+Charge,ch_3QkpDLDWFgYzi68P1z505a2z,2025-01-24 15:54,,"99,00",usd,"99,00","3,52","95,48",usd,Malena Rocca
+Charge,ch_3QlDZkDWFgYzi68P1WiOG8T4,2025-01-25 17:56,,"99,00",usd,"99,00","3,52","95,48",usd,Ayalibby hair extens
+Charge,ch_3QmcSGDWFgYzi68P1625uL5e,2025-01-29 14:41,,"999,00",usd,"999,00","32,77","966,23",usd,Rocio E Benicelli
+Charge,ch_3QonufDWFgYzi68P3T6rv58A,2025-02-04 15:19,,"900,00",usd,"900,00","29,55","870,45",usd,patricio.avila@legacycorp.pro,cus_RiENm1hqPKsFwI,patricio.avila@legacycorp.pro,Patricio Avila
+Charge,ch_3QpgTrDWFgYzi68P2MWCbPiT,2025-02-07 01:40,invoice FM2500004,"899,10",usd,"899,10","29,52","869,58",usd,cristhianjw73@gmail.com,cus_Rj8q8yLr2tNPzB,cristhianjw73@gmail.com,Juan valenzuela alvarez
+Charge,ch_3QpVAyDWFgYzi68P0IbUCb3V,2025-02-08 09:31,Subscription update,"90,00",usd,"90,00","3,23","86,77",usd,malenarocca@gmail.com,cus_RQiFJFUiwJC0t2,malenarocca@gmail.com,Malena rocca
+Charge,ch_3QrbhfDWFgYzi68P3iCx0JGL,2025-02-14 05:53,Subscription update,"300,00",usd,"300,00","10,05","289,95",usd,ayalibbyhairsalon@outlook.com,cus_Ri7J8zhrZ5Cwxn,ayalibbyhairsalon@outlook.com,AYALIBBY HAIR EXTENS
+Transfer,po_1Qqs1ZDWFgYzi68PHFJPEF7F,2025-02-10 08:07,"","-2383,73",eur,"-2508,55","0,00","-2508,55",usd,
+Charge,py_3QjVnPDWFgYzi68P0NOchYSW,2025-01-21 00:58,,"99,00",usd,"99,00","3,52","95,48",usd,
+Charge,py_3Qon0gDWFgYzi68P1A78ns6o,2025-02-05 16:50,Subscription creation,"300,00",usd,"300,00","10,05","289,95",usd,dominicanspasalon@gmail.com,cus_RiCSuOaNbZyo4P,dominicanspasalon@gmail.com,ROSA VASQUEZ
+Charge,py_3QoiDUDWFgYzi68P2O4eiQJS,2025-02-06 21:25,Subscription creation,"300,00",usd,"300,00","10,05","289,95",usd,mariaeugeniakolliker@gmail.com,cus_RCreXT1JhpHFXh,mariaeugeniakolliker@gmail.com,M KOLLIKER

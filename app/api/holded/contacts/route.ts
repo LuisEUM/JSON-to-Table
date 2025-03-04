@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendLogToClients } from "@/app/services/log-stream";
 
-interface HoldedCustomer {
+interface HoldedContact {
   id: string;
   name: string;
   email?: string;
@@ -25,36 +25,48 @@ class HoldedApiError extends Error {
   }
 }
 
-async function fetchAllCustomers(
+async function fetchAllContacts(
   holdedApiKey: string
-): Promise<HoldedCustomer[]> {
-  let allCustomers: HoldedCustomer[] = [];
+): Promise<HoldedContact[]> {
+  let allContacts: HoldedContact[] = [];
   let page = 1;
   const limit = 100; // Holded API maximum limit
   const maxRetries = 3;
-  const retryDelay = 1000; // 1 second
+  const retryDelay = 2000; // 2 seconds
 
-  sendLogToClients("🚀 Iniciando obtención de clientes desde Holded...");
+  sendLogToClients("🚀 Iniciando obtención de contactos desde Holded...");
 
   while (true) {
-    sendLogToClients(`📄 Obteniendo página ${page} de clientes...`);
+    sendLogToClients(`📄 Obteniendo página ${page} de contactos...`);
     let retries = 0;
+    let success = false;
 
-    while (retries < maxRetries) {
+    while (retries < maxRetries && !success) {
       try {
         const response = await fetch(
           `https://api.holded.com/api/invoicing/v1/contacts?page=${page}&limit=${limit}`,
           {
             headers: {
               key: holdedApiKey,
+              accept: "application/json",
             },
           }
         );
 
+        if (response.status === 429) {
+          const waitTime = retryDelay * (retries + 1);
+          sendLogToClients(
+            `⚠️ Límite de velocidad alcanzado, reintentando en ${waitTime}ms...`
+          );
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+          retries++;
+          continue;
+        }
+
         if (!response.ok) {
           const errorText = await response.text();
           const error = new HoldedApiError(
-            `Error al obtener clientes (página ${page})`,
+            `Error al obtener contactos (página ${page})`,
             response.status,
             { message: errorText }
           );
@@ -62,36 +74,46 @@ async function fetchAllCustomers(
           throw error;
         }
 
-        const customers = await response.json();
-        const newTotal = allCustomers.length + customers.length;
-        sendLogToClients(
-          `✅ Página ${page}: ${customers.length} clientes obtenidos (Total: ${newTotal})`
-        );
-
-        allCustomers = allCustomers.concat(customers);
-
-        if (customers.length < limit) {
+        const contacts = await response.json();
+        if (!Array.isArray(contacts)) {
           sendLogToClients(
-            `✨ Proceso completado. Total de clientes: ${allCustomers.length}`
+            `⚠️ Respuesta inesperada: No es un array de contactos`
           );
-          return allCustomers; // No more pages to fetch
+          throw new Error("Formato de respuesta inesperado");
         }
 
+        const newTotal = allContacts.length + contacts.length;
+        sendLogToClients(
+          `✅ Página ${page}: ${contacts.length} contactos obtenidos (Total: ${newTotal})`
+        );
+
+        allContacts = allContacts.concat(contacts);
+        success = true;
+
+        if (contacts.length < limit) {
+          sendLogToClients(
+            `✨ Proceso completado. Total de contactos: ${allContacts.length}`
+          );
+          return allContacts; // No more pages to fetch
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
         page++;
-        break; // Success, move to next page
       } catch (error) {
         if (error instanceof HoldedApiError && error.status === 429) {
+          const waitTime = retryDelay * (retries + 1);
           sendLogToClients(
-            `⚠️ Límite de velocidad alcanzado, reintentando en ${retryDelay}ms...`
+            `⚠️ Límite de velocidad alcanzado, reintentando en ${waitTime}ms...`
           );
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
           retries++;
         } else {
           throw error; // Rethrow other errors
         }
       }
     }
-    if (retries === maxRetries) {
+
+    if (!success) {
       const error = new Error(`Error después de ${maxRetries} intentos`);
       sendLogToClients(`❌ ${error.message}`);
       throw error;
@@ -110,8 +132,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error }, { status: 400 });
     }
 
-    const allCustomers = await fetchAllCustomers(holdedApiKey);
-    return NextResponse.json(allCustomers);
+    const allContacts = await fetchAllContacts(holdedApiKey);
+    return NextResponse.json({
+      success: true,
+      data: allContacts,
+    });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Error desconocido";
@@ -120,7 +145,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof HoldedApiError) {
       return NextResponse.json(
         {
-          error: `Error al obtener clientes: ${error.message}`,
+          error: `Error al obtener contactos: ${error.message}`,
           status: error.status,
           details: error.details,
         },
@@ -128,7 +153,7 @@ export async function GET(request: NextRequest) {
       );
     } else {
       return NextResponse.json(
-        { error: `Error al obtener clientes: ${errorMessage}` },
+        { error: `Error al obtener contactos: ${errorMessage}` },
         { status: 500 }
       );
     }

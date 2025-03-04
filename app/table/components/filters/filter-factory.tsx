@@ -35,6 +35,8 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
 
   // Procesar y unificar valores únicos
   const uniqueValuesMap = new Map<string, number>();
+  let processedCount = 0;
+  const MAX_UNIQUE_VALUES = 5000; // Aumentar el límite a 5000 valores (era 20 por defecto)
 
   column.getFacetedUniqueValues().forEach((count, value) => {
     const processedValue = value as ProcessedItem;
@@ -48,6 +50,11 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
       stringValue,
       (uniqueValuesMap.get(stringValue) || 0) + count
     );
+
+    processedCount++;
+    if (processedCount >= MAX_UNIQUE_VALUES) {
+      return; // Salir del bucle si excedemos el límite
+    }
   });
 
   // Convertir el Map a array de objetos

@@ -25,6 +25,7 @@ import {
   useReactTable,
   Column, // Para leer info de pinning
   type FilterFn,
+  type ColumnPinningState,
 } from "@tanstack/react-table";
 
 import {
@@ -54,8 +55,9 @@ import { SecondaryTables } from "./components/tables/secondary-tables";
 import { TableSkeleton } from "./components/tables/table-skeleton";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { dateBetweenFilterFn } from "./components/filters/filter-types";
-import { formatDate } from "@/app/table/utils/error-handling";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TableToolbar } from "./components/tables/table-toolbar";
+import { convertToCSV, downloadFile } from "./utils/export-utils";
 
 declare module "@tanstack/table-core" {
   interface FilterFns {
@@ -257,6 +259,11 @@ export function JsonTable({
       >()
   );
 
+  // Estado para guardar la configuración actual para las vistas
+  const [currentViewConfig, setCurrentViewConfig] = useState<
+    Record<string, unknown>
+  >({});
+
   // 2. Todos los useMemo
   const processedData = useMemo(
     () => processBatchData(data, { sampleSize: 100 }),
@@ -436,27 +443,70 @@ export function JsonTable({
         if (!processedValue) return false;
 
         const rawValue = processedValue.value;
+        const columnType = processedValue.type;
 
         switch (filterValue.operator) {
           case "arrIncludesSome":
-            if (processedValue.type === "fecha") {
-              const date =
-                rawValue instanceof Date
-                  ? rawValue
-                  : new Date(rawValue as string | number);
-              if (!isNaN(date.getTime())) {
-                const dateStr = formatDate(date, "yyyy-MM-dd");
-                return (
-                  Array.isArray(filterValue.value) &&
-                  filterValue.value.includes(dateStr)
+            if (columnType === "date") {
+              try {
+                // Obtener la fecha de la celda
+                const cellDate = new Date(String(rawValue));
+
+                // Formatear la fecha a dd/mm/yyyy para comparación
+                let formattedCellDate = "";
+                if (!isNaN(cellDate.getTime())) {
+                  const day = cellDate.getDate().toString().padStart(2, "0");
+                  const month = (cellDate.getMonth() + 1)
+                    .toString()
+                    .padStart(2, "0");
+                  const year = cellDate.getFullYear();
+                  formattedCellDate = `${day}/${month}/${year}`;
+                }
+
+                // Asegurarse de que filterValue.value sea un array
+                const filterValues = Array.isArray(filterValue.value)
+                  ? filterValue.value
+                  : [filterValue.value];
+
+                // Ya no necesitamos convertir entre formatos, las comparaciones serán directas
+                console.log(
+                  `Comparando fecha: ${formattedCellDate} con filtros:`,
+                  filterValues
                 );
+
+                // Verificar si alguno de los valores de filtro coincide con la fecha formateada
+                const result = filterValues.some((val: unknown) => {
+                  const stringVal = String(val).trim();
+                  const match = formattedCellDate === stringVal;
+                  console.log(
+                    `- Comparando con ${stringVal}: ${
+                      match ? "COINCIDE" : "no coincide"
+                    }`
+                  );
+                  return match;
+                });
+
+                console.log(
+                  `Resultado final para ${formattedCellDate}: ${
+                    result ? "INCLUIDO" : "NO INCLUIDO"
+                  }`
+                );
+                return result;
+              } catch (error) {
+                console.error("Error al comparar fechas:", error);
+                return false;
               }
-              return false;
+            } else {
+              const filterValues = Array.isArray(filterValue.value)
+                ? filterValue.value
+                : [filterValue.value];
+
+              return filterValues.some((val: unknown) => {
+                const stringVal = String(val).toLowerCase();
+                const stringRawVal = String(rawValue).toLowerCase();
+                return stringRawVal.includes(stringVal);
+              });
             }
-            return (
-              Array.isArray(filterValue.value) &&
-              filterValue.value.includes(String(rawValue))
-            );
           case "in":
             return (
               Array.isArray(filterValue.value) &&
@@ -834,6 +884,80 @@ export function JsonTable({
     hasInitialData,
   ]);
 
+  // Función para obtener la configuración actual
+  const getCurrentConfiguration = useCallback(() => {
+    return {
+      sorting,
+      columnVisibility,
+      columnFilters,
+      columnPinning: table.getState().columnPinning,
+      globalFilter: globalFilter,
+      pagination: {
+        pageIndex: table.getState().pagination.pageIndex,
+        pageSize: table.getState().pagination.pageSize,
+      },
+    };
+  }, [sorting, columnVisibility, columnFilters, globalFilter, table]);
+
+  // Actualizar la configuración actual cuando cambian los filtros, ordenación, etc.
+  useEffect(() => {
+    setCurrentViewConfig(getCurrentConfiguration());
+  }, [
+    sorting,
+    columnVisibility,
+    columnFilters,
+    globalFilter,
+    getCurrentConfiguration,
+  ]);
+
+  // Cargar una configuración guardada
+  const handleLoadView = useCallback(
+    (config: Record<string, unknown>) => {
+      try {
+        // Aplicar ordenación
+        if (config.sorting) {
+          setSorting(config.sorting as SortingState);
+        }
+
+        // Aplicar visibilidad de columnas
+        if (config.columnVisibility) {
+          setColumnVisibility(config.columnVisibility as VisibilityState);
+        }
+
+        // Aplicar filtros de columnas
+        if (config.columnFilters) {
+          setColumnFilters(config.columnFilters as ColumnFiltersState);
+        }
+
+        // Aplicar pinning de columnas
+        if (config.columnPinning) {
+          table.setColumnPinning(config.columnPinning as ColumnPinningState);
+        }
+
+        // Aplicar búsqueda global
+        if (config.globalFilter) {
+          setGlobalFilter(config.globalFilter as string);
+        }
+
+        // Aplicar paginación
+        if (config.pagination) {
+          const pagination = config.pagination as {
+            pageIndex: number;
+            pageSize: number;
+          };
+          table.setPageIndex(pagination.pageIndex);
+          table.setPageSize(pagination.pageSize);
+        }
+
+        toast.success("Vista cargada correctamente");
+      } catch (error) {
+        console.error("Error al cargar vista:", error);
+        toast.error("Error al cargar la vista");
+      }
+    },
+    [setGlobalFilter, setSorting, setColumnVisibility, setColumnFilters, table]
+  );
+
   // Render loading state
   if (isLoading || (!hasInitialData && data.length === 0)) {
     return (
@@ -1049,6 +1173,40 @@ export function JsonTable({
             isLoading={isSecondaryTablesLoading}
           />
         )}
+
+        {/* Toolbar con búsqueda y administración de vistas */}
+        <TableToolbar
+          table={table}
+          searchPlaceholder={`Buscar en ${processedData.length} ${
+            isSecondaryTable ? "registros relacionados" : "registros"
+          }...`}
+          currentConfig={currentViewConfig}
+          onLoadView={handleLoadView}
+          onExportJSON={() => {
+            const jsonData = JSON.stringify(processedData, null, 2);
+            downloadFile(jsonData, "datos.json", "application/json");
+          }}
+          onExportCSV={() => {
+            // Convertir los datos procesados a un formato compatible con la función convertToCSV
+            const exportData = processedData.map((item) => {
+              // Convertir cada item a un objeto plano
+              return Object.fromEntries(
+                Object.entries(item).map(([key, value]) => {
+                  // Manejar arrays y objetos convirtiéndolos a JSON string
+                  if (typeof value === "object" && value !== null) {
+                    return [key, JSON.stringify(value)];
+                  }
+                  return [key, value];
+                })
+              );
+            });
+
+            const csvData = convertToCSV(
+              exportData as Record<string, unknown>[]
+            );
+            downloadFile(csvData, "datos.csv", "text/csv");
+          }}
+        />
       </CardContent>
     </FilterContext.Provider>
   );

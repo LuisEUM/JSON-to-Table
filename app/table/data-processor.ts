@@ -223,15 +223,9 @@ export const processValue = withErrorHandling(
         ...baseProcessedValue,
         value:
           dateObj instanceof Date
-            ? dateObj.toLocaleString("es-ES", {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-                hour12: false,
-              })
+            ? `${String(dateObj.getDate()).padStart(2, "0")}-${String(
+                dateObj.getMonth() + 1
+              ).padStart(2, "0")}-${dateObj.getFullYear()}`
             : dateObj,
         type: "fecha",
         rawValue: value,
@@ -1283,10 +1277,6 @@ export const processBatchData = withErrorHandling(
                       year: "numeric",
                       month: "2-digit",
                       day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                      hour12: false,
                     })
                   : dateObj,
               type: "fecha",
@@ -1331,10 +1321,6 @@ export const processBatchData = withErrorHandling(
                       year: "numeric",
                       month: "2-digit",
                       day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                      hour12: false,
                     })
                   : dateObj,
               type: "fecha",

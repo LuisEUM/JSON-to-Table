@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,7 +26,7 @@ import type {
 } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
 import { getTypeStyle } from "../type-indicators";
-import { toUTCDate, formatDate } from "../../utils/error-handling";
+import { formatDate } from "../../utils/error-handling";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Search } from "lucide-react";
 
@@ -141,9 +141,35 @@ export function DateFilter({
     uniqueValues.forEach((option) => {
       if (option.value) {
         try {
-          const date = new Date(option.value);
+          // Intentamos manejar diferentes formatos de fecha
+          let date;
+          const value = String(option.value).trim();
+
+          // Comprobar si tiene el formato dd/mm/yyyy (con barra)
+          if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value)) {
+            const [day, month, year] = value
+              .split("/")
+              .map((n) => parseInt(n, 10));
+            date = new Date(year, month - 1, day);
+          }
+          // Comprobar si tiene el formato dd-mm-yyyy (con guión)
+          else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(value)) {
+            const [day, month, year] = value
+              .split("-")
+              .map((n) => parseInt(n, 10));
+            date = new Date(year, month - 1, day);
+          }
+          // Intentar otros formatos
+          else {
+            date = new Date(value);
+          }
+
           if (!isNaN(date.getTime())) {
-            const dateStr = formatDate(date, "yyyy-MM-dd");
+            // Siempre guardamos en formato dd/mm/yyyy para ser consistente
+            const day = date.getDate().toString().padStart(2, "0");
+            const month = (date.getMonth() + 1).toString().padStart(2, "0");
+            const year = date.getFullYear();
+            const dateStr = `${day}/${month}/${year}`;
             valueCounts.set(
               dateStr,
               (valueCounts.get(dateStr) || 0) + option.count
@@ -151,6 +177,7 @@ export function DateFilter({
           }
         } catch {
           // Ignorar valores que no pueden convertirse a fecha
+          console.warn("No se pudo convertir a fecha:", option.value);
         }
       }
     });
@@ -158,8 +185,9 @@ export function DateFilter({
     // Convertir el mapa a un array de opciones
     return Array.from(valueCounts.entries())
       .map(([dateStr, count]) => {
+        const [day, month, year] = dateStr.split("/");
         return {
-          date: new Date(dateStr),
+          date: new Date(parseInt(year), parseInt(month) - 1, parseInt(day)),
           label: dateStr,
           count: count,
         } as DateOptionItem;
@@ -185,7 +213,36 @@ export function DateFilter({
 
     // Convertir las fechas string a objetos Date y ordenarlas
     const dates = (initialValue.value as string[])
-      .map((dateStr) => new Date(dateStr))
+      .map((dateStr) => {
+        try {
+          const value = dateStr.trim();
+          let date;
+
+          // Comprobar si tiene el formato dd-mm-yyyy (con guión)
+          if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(value)) {
+            const [day, month, year] = value
+              .split("-")
+              .map((n) => parseInt(n, 10));
+            date = new Date(year, month - 1, day);
+          }
+          // Comprobar si tiene el formato dd/mm/yyyy (con barra)
+          else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value)) {
+            const [day, month, year] = value
+              .split("/")
+              .map((n) => parseInt(n, 10));
+            date = new Date(year, month - 1, day);
+          }
+          // Intentar otros formatos
+          else {
+            date = new Date(value);
+          }
+
+          return date;
+        } catch {
+          return new Date(NaN); // Fecha inválida
+        }
+      })
+      .filter((date) => !isNaN(date.getTime())) // Filtrar fechas inválidas
       .sort((a, b) => a.getTime() - b.getTime());
 
     if (dates.length === 0) {
@@ -199,9 +256,33 @@ export function DateFilter({
     };
   });
 
+  // Estado para seguir las fechas específicas seleccionadas (valores iniciales)
+  const [selectedDatesSet, setSelectedDatesSet] = useState<Set<string>>(() => {
+    if (!initialValue?.value || !Array.isArray(initialValue.value)) {
+      return new Set<string>();
+    }
+    return new Set<string>(initialValue.value as string[]);
+  });
+
   // Calcular fechas seleccionadas basadas en el rango y el modo invertido
   // Esta es una función, no un estado, para evitar ciclos de actualización
   const getSelectedDates = useCallback(() => {
+    // Si tenemos fechas explícitamente seleccionadas (al volver a abrir), usarlas
+    if (selectedDatesSet.size > 0) {
+      return selectedDatesSet;
+    }
+
+    // Si hay un valor inicial, usarlo para la primera renderización
+    if (
+      initialValue?.value &&
+      Array.isArray(initialValue.value) &&
+      initialValue.value.length > 0
+    ) {
+      const initialDates = new Set<string>(initialValue.value as string[]);
+      setSelectedDatesSet(initialDates); // Actualizar el estado para futuras referencias
+      return initialDates;
+    }
+
     if (!dateOptions.length) return new Set<string>();
 
     const selected = new Set<string>();
@@ -223,50 +304,61 @@ export function DateFilter({
     });
 
     return selected;
-  }, [dateOptions, dateRange.start, dateRange.end, isInverted]);
+  }, [
+    dateOptions,
+    dateRange.start,
+    dateRange.end,
+    isInverted,
+    selectedDatesSet,
+    initialValue,
+    setSelectedDatesSet,
+  ]);
+
+  // Actualizar las fechas seleccionadas cuando cambia el rango
+  useEffect(() => {
+    // Reiniciar las fechas seleccionadas explícitamente cuando el usuario cambia el rango
+    if (dateRange.start || dateRange.end) {
+      setSelectedDatesSet(new Set<string>());
+    }
+  }, [dateRange.start, dateRange.end]);
 
   // Handlers simplificados que modifican una sola fuente de verdad
   const handleDateInputChange = useCallback(
-    (type: "start" | "end", value: string) => {
-      const date = value ? toUTCDate(new Date(value)) : undefined;
-      setDateRange((prev) => ({
-        ...prev,
-        [type]: date,
-      }));
-      setSelectedPreset("custom");
-    },
-    []
-  );
+    (date: "start" | "end") => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      console.log(`Cambio en input de fecha ${date}: ${value}`);
 
-  const handleCheckboxChange = useCallback(
-    (dateStr: string, checked: boolean) => {
-      // Si se marca una fecha, actualizamos el rango para incluirla
-      const date = new Date(dateStr);
+      if (value) {
+        try {
+          // Para inputs HTML, el formato es yyyy-mm-dd
+          const [year, month, day] = value
+            .split("-")
+            .map((n) => parseInt(n, 10));
 
-      setDateRange((prev) => {
-        if (checked) {
-          // Si es el primer checkbox seleccionado
-          if (!prev.start && !prev.end) {
-            return { start: date, end: date };
+          // Crear la fecha con el día correcto
+          const newDate = new Date(Date.UTC(year, month - 1, day));
+
+          if (!isNaN(newDate.getTime())) {
+            console.log(`Fecha parseada: ${newDate.toISOString()}`);
+            setDateRange((prev) => ({
+              ...prev,
+              [date]: newDate,
+            }));
+            setSelectedPreset("custom");
+          } else {
+            console.warn(`Fecha inválida: ${value}`);
           }
-
-          // Si está fuera del rango actual, expandir el rango
-          const start = prev.start
-            ? new Date(Math.min(prev.start.getTime(), date.getTime()))
-            : date;
-          const end = prev.end
-            ? new Date(Math.max(prev.end.getTime(), date.getTime()))
-            : date;
-
-          return { start, end };
-        } else {
-          // Si se desmarca, tendríamos que recalcular el rango basado en los que quedan seleccionados
-          // Por simplicidad, no modificamos el rango al desmarcar (el usuario puede usar el rango manual)
-          return prev;
+        } catch (error) {
+          console.error(`Error al parsear fecha: ${value}`, error);
         }
-      });
-
-      setSelectedPreset("custom");
+      } else {
+        // Si el input está vacío, establecer la fecha como undefined
+        setDateRange((prev) => ({
+          ...prev,
+          [date]: undefined,
+        }));
+        setSelectedPreset("custom");
+      }
     },
     []
   );
@@ -282,21 +374,100 @@ export function DateFilter({
     setSelectedPreset(preset);
   }, []);
 
+  // Función auxiliar para parsear fechas en diferentes formatos
+  const parseDate = useCallback((dateStr: string): Date | null => {
+    try {
+      const value = dateStr.trim();
+
+      // Comprobar si tiene el formato dd/mm/yyyy (con barra)
+      if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value)) {
+        const [day, month, year] = value.split("/").map((n) => parseInt(n, 10));
+        return new Date(year, month - 1, day);
+      }
+      // Comprobar si tiene el formato dd-mm-yyyy (con guión) - para compatibilidad
+      else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(value)) {
+        const [day, month, year] = value.split("-").map((n) => parseInt(n, 10));
+        return new Date(year, month - 1, day);
+      }
+      // Intentar otros formatos
+      else {
+        const date = new Date(value);
+        return isNaN(date.getTime()) ? null : date;
+      }
+    } catch {
+      return null;
+    }
+  }, []);
+
   const handleApply = useCallback(() => {
+    console.log("Aplicando filtro de fechas");
+
     const selectedDates = getSelectedDates();
     if (selectedDates.size === 0) {
+      console.log("No hay fechas seleccionadas, se limpiará el filtro");
       onClear();
       onClose();
       return;
     }
 
+    // Log de fechas seleccionadas antes de normalizar
+    console.log(
+      "Fechas seleccionadas antes de normalizar:",
+      Array.from(selectedDates)
+    );
+
+    // Normalizar todas las fechas a formato dd/mm/yyyy
+    const normalizedSelectedDates: string[] = [];
+
+    selectedDates.forEach((dateStr: string) => {
+      console.log(`Normalizando fecha: ${dateStr}`);
+      try {
+        // Intentar parsear la fecha
+        const date = parseDate(dateStr);
+        if (date) {
+          // Formatear a dd/mm/yyyy
+          const day = date.getDate().toString().padStart(2, "0");
+          const month = (date.getMonth() + 1).toString().padStart(2, "0");
+          const year = date.getFullYear();
+          const formattedDate = `${day}/${month}/${year}`;
+          console.log(`  Fecha parseada y formateada: ${formattedDate}`);
+          normalizedSelectedDates.push(formattedDate);
+        } else {
+          console.log(
+            `  No se pudo parsear la fecha, se mantiene original: ${dateStr}`
+          );
+          normalizedSelectedDates.push(dateStr); // Mantener el string original si no se puede parsear
+        }
+      } catch (error) {
+        console.log(
+          `  Error al procesar fecha: ${error}, se mantiene original: ${dateStr}`
+        );
+        normalizedSelectedDates.push(dateStr); // Mantener el string original en caso de error
+      }
+    });
+
+    console.log("Fechas normalizadas:", normalizedSelectedDates);
+
+    // Actualizar el conjunto de fechas seleccionadas para uso futuro
+    const newSelectedDatesSet = new Set<string>(normalizedSelectedDates);
+    setSelectedDatesSet(newSelectedDatesSet);
+
+    // Aplicar el filtro con las fechas normalizadas
     onApply({
       field: columnId,
       operator: "arrIncludesSome",
-      value: Array.from(selectedDates),
+      value: normalizedSelectedDates,
     });
     onClose();
-  }, [getSelectedDates, onApply, onClear, onClose, columnId]);
+  }, [
+    getSelectedDates,
+    onApply,
+    onClear,
+    onClose,
+    columnId,
+    setSelectedDatesSet,
+    parseDate,
+  ]);
 
   // Filtrar las opciones visibles por término de búsqueda
   const filteredOptions = useMemo(() => {
@@ -311,6 +482,24 @@ export function DateFilter({
   const hasSelections = useMemo(() => {
     return getSelectedDates().size > 0;
   }, [getSelectedDates]);
+
+  const toggleDateSelection = useCallback(
+    (option: DateOptionItem) => {
+      // Actualizar directamente las fechas seleccionadas cuando se hace clic
+      setSelectedDatesSet((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(option.label)) {
+          newSet.delete(option.label);
+        } else {
+          newSet.add(option.label);
+        }
+        return newSet;
+      });
+
+      setSelectedPreset("custom");
+    },
+    [setSelectedDatesSet]
+  );
 
   return (
     <div className='w-full h-full min-h-[350px] flex flex-col'>
@@ -352,11 +541,9 @@ export function DateFilter({
             <Input
               type='date'
               value={
-                dateRange.start ? formatDate(dateRange.start, "yyyy-MM-dd") : ""
+                dateRange.start ? formatDate(dateRange.start, "yyyy-mm-dd") : ""
               }
-              onChange={(e) => {
-                handleDateInputChange("start", e.target.value);
-              }}
+              onChange={handleDateInputChange("start")}
             />
           </div>
           <div className='space-y-2'>
@@ -364,11 +551,9 @@ export function DateFilter({
             <Input
               type='date'
               value={
-                dateRange.end ? formatDate(dateRange.end, "yyyy-MM-dd") : ""
+                dateRange.end ? formatDate(dateRange.end, "yyyy-mm-dd") : ""
               }
-              onChange={(e) => {
-                handleDateInputChange("end", e.target.value);
-              }}
+              onChange={handleDateInputChange("end")}
             />
           </div>
         </div>
@@ -426,11 +611,8 @@ export function DateFilter({
                                 <Checkbox
                                   id={option.label}
                                   checked={isSelected}
-                                  onCheckedChange={(checked) =>
-                                    handleCheckboxChange(
-                                      option.label,
-                                      checked as boolean
-                                    )
+                                  onCheckedChange={() =>
+                                    toggleDateSelection(option)
                                   }
                                 />
                                 <Label htmlFor={option.label}>

@@ -13,17 +13,39 @@ const createUTCDate = (date: Date): Date => {
   );
 };
 
+/**
+ * Normaliza un formato de fecha a formato dd-mm-yyyy
+ * Maneja correctamente fechas en formatos dd/mm/yyyy y dd-mm-yyyy
+ */
 export const formatDateString = (value: Date | string | number): string => {
   try {
     let date: Date;
 
-    // Normalizar la entrada a Date
+    // Si es una cadena, intentar parsear diferentes formatos
     if (typeof value === "string") {
-      // Primero intentar como ISO
-      date = parseISO(value);
-      if (!isValid(date)) {
-        // Si falla, intentar como fecha normal
-        date = new Date(value);
+      const cleanedValue = value.trim();
+
+      // Manejar formato dd/mm/yyyy
+      if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(cleanedValue)) {
+        const [day, month, year] = cleanedValue
+          .split("/")
+          .map((n) => parseInt(n, 10));
+        date = new Date(year, month - 1, day);
+      }
+      // Manejar formato dd-mm-yyyy
+      else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(cleanedValue)) {
+        const [day, month, year] = cleanedValue
+          .split("-")
+          .map((n) => parseInt(n, 10));
+        date = new Date(year, month - 1, day);
+      }
+      // Intentar ISO
+      else {
+        date = parseISO(cleanedValue);
+        if (!isValid(date)) {
+          // Último intento como fecha normal
+          date = new Date(cleanedValue);
+        }
       }
     } else if (typeof value === "number") {
       date = new Date(value);
@@ -37,18 +59,13 @@ export const formatDateString = (value: Date | string | number): string => {
       throw new Error("Fecha inválida");
     }
 
-    // Asegurar que estamos en UTC
-    const utcDate = createUTCDate(date);
+    // Formatear siempre en formato dd-mm-yyyy
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
 
-    // Formatear usando un formato estricto y consistente
-    const year = utcDate.getUTCFullYear();
-    const month = String(utcDate.getUTCMonth() + 1).padStart(2, "0");
-    const day = String(utcDate.getUTCDate()).padStart(2, "0");
-    const hours = String(utcDate.getUTCHours()).padStart(2, "0");
-    const minutes = String(utcDate.getUTCMinutes()).padStart(2, "0");
-    const seconds = String(utcDate.getUTCSeconds()).padStart(2, "0");
-
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    // Formato consistente con guion medio
+    return `${day}-${month}-${year}`;
   } catch (error) {
     console.warn("Error al formatear fecha:", error, value);
     return String(value);
@@ -75,4 +92,3 @@ export const toUTCDate = (value: Date | string | number): Date => {
     return new Date(NaN); // Fecha inválida
   }
 };
-

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSession, signIn } from "next-auth/react";
 import {
   Card,
   CardHeader,
@@ -20,6 +21,10 @@ export type DataSource =
   | "holded-api"
   | "pokemon-api"
   | "files"
+  | "holded"
+  | "file"
+  | "pokemon"
+  | "sample"
   | null;
 
 interface DataSourceSelectorProps {
@@ -34,6 +39,7 @@ interface DataSourceSelectorProps {
 export function DataSourceSelector({
   onDataSourceSelected,
 }: DataSourceSelectorProps) {
+  const { data: session } = useSession();
   const [showApiKeyForm, setShowApiKeyForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -77,7 +83,20 @@ export function DataSourceSelector({
   const handleSourceSelect = async (source: DataSource) => {
     setIsLoading(true);
 
-    if (source === "holded-api") {
+    if (source === "holded-api" || source === "holded") {
+      // Verificar si el usuario está autenticado
+      if (!session) {
+        toast.error("Necesitas iniciar sesión para acceder a Holded", {
+          description: "Serás redirigido a la página de inicio de sesión",
+        });
+
+        // Redirigir al inicio de sesión y volver a esta página después
+        signIn(undefined, { callbackUrl: window.location.href });
+        setIsLoading(false);
+        return;
+      }
+
+      // Si está autenticado, ahora muestra el formulario de API key
       setShowApiKeyForm(true);
       setIsLoading(false);
       return;
@@ -86,7 +105,7 @@ export function DataSourceSelector({
     try {
       let response;
       const toastId = toast.loading(
-        source === "pokemon-api"
+        source === "pokemon-api" || source === "pokemon"
           ? "Conectando con la API de Pokémon..."
           : "Cargando datos locales...",
         {
@@ -96,9 +115,11 @@ export function DataSourceSelector({
 
       switch (source) {
         case "pokemon-api":
+        case "pokemon":
           response = await fetch("/api/pokemon");
           break;
         case "local":
+        case "sample":
           const { sampleData } = await import("@/app/data/sample-data");
           toast.dismiss(toastId);
           toast.success("Datos locales cargados", {
@@ -120,7 +141,7 @@ export function DataSourceSelector({
       }
 
       toast.dismiss(toastId);
-      if (source === "pokemon-api") {
+      if (source === "pokemon-api" || source === "pokemon") {
         toast.success("Datos de Pokémon cargados", {
           description: `${data.length} Pokémon encontrados`,
         });
