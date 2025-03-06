@@ -9,8 +9,6 @@ import {
 import {
   BarChart3,
   Users,
-  FileText,
-  TrendingUp,
   Calendar,
   Bell,
   BarChart,
@@ -59,33 +57,8 @@ export default function DashboardPage() {
           </Card>
         </Link>
 
-        <Link href='/dashboard/reports'>
-          <Card className='hover:bg-muted/50 transition-colors cursor-pointer'>
-            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium'>Informes</CardTitle>
-              <FileText className='h-4 w-4 text-muted-foreground' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-sm text-muted-foreground'>
-                Genera y descarga informes personalizados
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
 
-        <Link href='/dashboard/trends'>
-          <Card className='hover:bg-muted/50 transition-colors cursor-pointer'>
-            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium'>Tendencias</CardTitle>
-              <TrendingUp className='h-4 w-4 text-muted-foreground' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-sm text-muted-foreground'>
-                Analiza tendencias y proyecciones de crecimiento
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
+   
 
         <Link href='/dashboard/calendar'>
           <Card className='hover:bg-muted/50 transition-colors cursor-pointer'>

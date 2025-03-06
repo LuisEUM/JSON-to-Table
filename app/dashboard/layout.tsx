@@ -3,10 +3,8 @@ import Link from "next/link";
 import {
   BarChart3,
   Users,
-  FileText,
   Settings,
   Home,
-  TrendingUp,
   Calendar,
   Bell,
 } from "lucide-react";
@@ -69,13 +67,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <BarChart3 className='h-5 w-5' />
               <span>Análisis</span>
             </Link>
-            <Link
-              href='/dashboard/trends'
-              className='flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground'
-            >
-              <TrendingUp className='h-5 w-5' />
-              <span>Tendencias</span>
-            </Link>
+
             <Link
               href='/dashboard/contacts'
               className='flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground'
@@ -89,13 +81,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               <Calendar className='h-5 w-5' />
               <span>Calendario</span>
-            </Link>
-            <Link
-              href='/dashboard/reports'
-              className='flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground'
-            >
-              <FileText className='h-5 w-5' />
-              <span>Informes</span>
             </Link>
             <Link
               href='/dashboard/notifications'
