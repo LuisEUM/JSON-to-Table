@@ -51,7 +51,7 @@ export function PhaseLegend({
       ),
     },
     {
-      name: "Fase de Desarrollo",
+      name: "Fase de Ejecución",
       color: "#4ade80", // Verde
       description:
         "Representa la etapa de operación activa. Incluye clientes con membresías activas, servicios en ejecución o entrega, formaciones en progreso, consultorías en curso y clientes con antigüedad media que están recibiendo valor continuamente.",

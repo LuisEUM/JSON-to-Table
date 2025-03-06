@@ -1,9 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Card,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   Tooltip,
   TooltipContent,
@@ -279,7 +277,7 @@ export function StatusLegend({
           <TabsContent value='estados'>
             <PhaseGroup title='Fase de Inicio' items={statusGroups.inicio} />
             <PhaseGroup
-              title='Fase de Desarrollo'
+              title='Fase de Ejecución'
               items={statusGroups.desarrollo}
             />
             <PhaseGroup title='Fase de Cierre' items={statusGroups.cierre} />
@@ -303,7 +301,7 @@ export function StatusLegend({
               items={membershipGroups.inicio}
             />
             <PhaseGroup
-              title='Fase de Desarrollo'
+              title='Fase de Ejecución'
               items={membershipGroups.desarrollo}
             />
             <PhaseGroup
@@ -333,7 +331,7 @@ export function StatusLegend({
           <TabsContent value='formacion'>
             <PhaseGroup title='Fase de Inicio' items={trainingGroups.inicio} />
             <PhaseGroup
-              title='Fase de Desarrollo'
+              title='Fase de Ejecución'
               items={trainingGroups.desarrollo}
             />
             <PhaseGroup title='Fase de Cierre' items={trainingGroups.cierre} />
@@ -357,7 +355,7 @@ export function StatusLegend({
               items={serviceGroups.inicio}
             />
             <PhaseGroup
-              title='Fase de Desarrollo'
+              title='Fase de Ejecución'
               items={serviceGroups.desarrollo}
             />
             <PhaseGroup title='Fase de Cierre' items={serviceGroups.cierre} />
@@ -372,7 +370,7 @@ export function StatusLegend({
               items={consultingGroups.inicio}
             />
             <PhaseGroup
-              title='Fase de Desarrollo'
+              title='Fase de Ejecución'
               items={consultingGroups.desarrollo}
             />
             <PhaseGroup
