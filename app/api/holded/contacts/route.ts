@@ -607,24 +607,24 @@ async function fetchAllContacts(
       // Lanzar error personalizado
       throw new HoldedApiError(
         `Error al obtener contactos (${response.status}: ${response.statusText})`,
-        response.status,
+            response.status,
         errorDetails
-      );
-    }
+          );
+        }
 
     // Procesar contactos de esta página
-    const contacts = await response.json();
+        const contacts = await response.json();
 
     if (Array.isArray(contacts) && contacts.length > 0) {
       // Añadir contactos de esta página al resultado acumulado
       allContacts = [...allContacts, ...contacts];
-      sendLogToClients(
+        sendLogToClients(
         `✅ Obtenidos ${contacts.length} contactos de la página ${page}`
-      );
+        );
       page++;
 
       // Si recibimos menos contactos que el límite, hemos terminado
-      if (contacts.length < limit) {
+        if (contacts.length < limit) {
         hasMoreContacts = false;
       }
     } else {
@@ -658,7 +658,7 @@ export async function GET(request: NextRequest) {
 
     try {
       // Obtener contactos de Holded
-      const allContacts = await fetchAllContacts(holdedApiKey);
+    const allContacts = await fetchAllContacts(holdedApiKey);
       sendLogToClients("✅ Procesando datos de contactos...");
 
       // Procesar los contactos para enriquecerlos con información adicional
@@ -668,8 +668,8 @@ export async function GET(request: NextRequest) {
       const kpis = calculateKPIs(processedContacts);
 
       // Devolver respuesta exitosa con todos los datos
-      return NextResponse.json({
-        success: true,
+    return NextResponse.json({
+      success: true,
         data: processedContacts, // Datos principales
         kpis, // Indicadores calculados
         summary: {

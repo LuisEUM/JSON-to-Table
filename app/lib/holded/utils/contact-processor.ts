@@ -201,6 +201,7 @@ export function processContacts(contacts: HoldedContact[]): ProcessedContact[] {
       tenure,
       memberships,
       trainings,
+      services: [],
     };
   });
 }

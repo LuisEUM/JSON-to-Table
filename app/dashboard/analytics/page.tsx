@@ -37,7 +37,6 @@ import {
   getStartOfCurrentYear,
   getEndOfCurrentYear,
   getDateMonthsAgo,
-  toISODateString,
 } from "../../lib/holded/utils/analytics-date-utils";
 
 // Importar componentes de gráficos
@@ -45,9 +44,35 @@ import MembershipTrendsChart from "./components/MembershipTrendsChart";
 import TrainingsByYearChart from "./components/TrainingsByYearChart";
 import StatusPieChart from "./components/StatusPieChart";
 import TenurePieChart from "./components/TenurePieChart";
-import StatsCards from "./components/StatsCards";
+import StatusLegend from "./components/StatusLegend";
+import PhaseLegend from "./components/PhaseLegend";
+
+// Importar componentes nuevos
+import TodosView from "./components/TodosView";
+import LeadsView from "./components/LeadsView";
+import ContactosView from "./components/ContactosView";
+import { Contact as ModalContact } from "./components/ContactDetailModal";
 
 // Definir interfaces para los datos
+interface Contact {
+  id: string;
+  name: string;
+  status?: string;
+}
+
+// ChartContact type to match what MembershipTrendsChart expects
+type ChartContact = Contact & {
+  [key: string]: string | number | boolean | undefined;
+};
+
+// Type for contacts with index signature used by components
+type ComponentContact = {
+  id: string;
+  name: string;
+  status?: string;
+  [key: string]: string | number | boolean | undefined;
+};
+
 interface AnalyticsData {
   stats: {
     totalContacts: number;
@@ -55,7 +80,32 @@ interface AnalyticsData {
     inactiveContacts: number;
     totalMemberships: number;
     totalTrainings: number;
-    averageTenure: string;
+    totalServices: number;
+    averageTenure: number;
+  };
+  contactCountByType: {
+    client?: number;
+    lead?: number;
+    supplier?: number;
+    creditor?: number;
+    debtor?: number;
+  };
+  distribution?: {
+    byContactType: {
+      client: number;
+      lead: number;
+      supplier: number;
+      creditor: number;
+      debtor: number;
+    };
+    byMemberships: {
+      active: number;
+      inactive: number;
+    };
+    byTrainings: {
+      completed: number;
+      inprogress: number;
+    };
   };
   membershipTrends: {
     date: string;
@@ -73,80 +123,131 @@ interface AnalyticsData {
     name: string;
     value: number;
     color: string;
+    description: string;
   }[];
   tenureCounts: {
     name: string;
     value: number;
     color: string;
+    description: string;
   }[];
+  trainingStatusCounts: {
+    name: string;
+    value: number;
+    color: string;
+    description: string;
+  }[];
+  serviceStatusCounts: {
+    name: string;
+    value: number;
+    color: string;
+    description: string;
+  }[];
+  membershipStatusCounts: {
+    name: string;
+    value: number;
+    color: string;
+    description: string;
+  }[];
+  contactsByCategory: {
+    active: Contact[];
+    expiringSoon: Contact[];
+    inactive: Contact[];
+    status: Record<string, Contact[]>;
+    tenure: Record<string, Contact[]>;
+    completed: Record<string, Contact[]>;
+    inProgress: Record<string, Contact[]>;
+    pending: Record<string, Contact[]>;
+    deliveredSuccess: Record<string, Contact[]>;
+    deliveredFailed: Record<string, Contact[]>;
+  };
+  dateRange: {
+    minDate: string | null;
+    maxDate: string | null;
+  };
 }
 
-// Tipos de contacto disponibles
+// Definir los tipos de contactos disponibles
 const contactTypes = [
   { value: "all", label: "Todos" },
-  { value: "client", label: "Clientes" },
-  { value: "creditor", label: "Acreedores" },
-  { value: "debtor", label: "Deudores" },
-  { value: "lead", label: "Leads" },
-  { value: "supplier", label: "Proveedores" },
-];
+  { value: "leads", label: "Leads" },
+  { value: "clients", label: "Clientes" },
+]; // Revised contact types according to requirements
 
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<string>("clients");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [diagnosisResult, setDiagnosisResult] = useState<string | null>(null);
 
+  const handleTypeChange = (value: string) => {
+    setSelectedType(value);
+    fetchAnalyticsData(value, startDate, endDate);
+  };
+
+  // Función para obtener los datos del endpoint
   const fetchAnalyticsData = async (
     type?: string,
-    start?: Date,
-    end?: Date
+    startDate?: Date,
+    endDate?: Date
   ) => {
     setLoading(true);
     setError(null);
 
     try {
-      let url = "/api/holded/analytics";
-      const params = new URLSearchParams();
+      // Construir URL con parámetros
+      let url = `/api/holded/analytics?type=${type || "all"}`;
 
-      if (type && type !== "all") {
-        params.append("type", type);
+      // Añadir parámetros de fecha si están presentes
+      if (startDate) {
+        url += `&startDate=${startDate.toISOString()}`;
+      }
+      if (endDate) {
+        url += `&endDate=${endDate.toISOString()}`;
       }
 
-      if (start) {
-        const startStr = toISODateString(start);
-        params.append("startDate", startStr);
-        console.log(`Añadiendo startDate a URL: ${startStr}`);
-      }
-
-      if (end) {
-        const endStr = toISODateString(end);
-        params.append("endDate", endStr);
-        console.log(`Añadiendo endDate a URL: ${endStr}`);
-      }
-
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      console.log(`Realizando petición a: ${url}`);
-      const response = await fetch(url);
+      console.log("Fetching from URL:", url);
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.status} ${response.statusText}`);
+        console.error(
+          "API Response Error:",
+          response.status,
+          response.statusText
+        );
+        // Try to get more error details if available
+        let errorDetails = "";
+        try {
+          const errorText = await response.text();
+          errorDetails = errorText.substring(0, 100); // Get first 100 chars for debugging
+          console.error("Error response details:", errorDetails);
+        } catch (e) {
+          console.error("Could not read error response:", e);
+        }
+
+        throw new Error(
+          `Error al obtener datos: ${response.statusText || response.status}`
+        );
       }
 
-      const data = await response.json();
-      console.log(
-        `Datos recibidos: ${data.stats.totalContacts} contactos totales`
-      );
-      setData(data);
+      const result = await response.json();
+      setData(result);
     } catch (err) {
-      console.error("Error al cargar datos de análisis:", err);
-      setError(err instanceof Error ? err.message : "Error desconocido");
+      console.error("Error fetching analytics data:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al obtener datos"
+      );
     } finally {
       setLoading(false);
     }
@@ -156,12 +257,6 @@ export default function AnalyticsPage() {
   useEffect(() => {
     fetchAnalyticsData();
   }, []);
-
-  // Manejar cambio de tipo
-  const handleTypeChange = (value: string) => {
-    setSelectedType(value);
-    fetchAnalyticsData(value === "all" ? undefined : value, startDate, endDate);
-  };
 
   // Manejar cambio de fecha de inicio
   const handleStartDateChange = (date: Date | undefined) => {
@@ -271,7 +366,7 @@ export default function AnalyticsPage() {
   // Renderizar estado de carga
   if (loading && !data) {
     return (
-      <div className='container mx-auto py-10 space-y-8'>
+      <div className='container mx-auto py-10 space-y-8 '>
         <h1 className='text-3xl font-bold'>Análisis de Contactos</h1>
         <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
           {Array(6)
@@ -309,13 +404,15 @@ export default function AnalyticsPage() {
 
   // Renderizar datos
   return (
-    <div className='container mx-auto py-10 space-y-8'>
-      <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4'>
-        <h1 className='text-3xl font-bold'>Análisis de Contactos</h1>
+    <div className='container mx-auto py-6 md:py-10 space-y-4 md:space-y-8 px-4 sm:px-6 lg:px-8'>
+      <div className='flex flex-col space-y-4 md:space-y-0 md:flex-row md:justify-between md:items-center'>
+        <h1 className='text-2xl md:text-3xl font-bold'>
+          Análisis de Contactos
+        </h1>
 
         <Card className='w-full md:w-auto'>
-          <CardContent className='p-4'>
-            <div className='flex flex-col md:flex-row items-start md:items-center gap-4'>
+          <CardContent className='p-3 md:p-4'>
+            <div className='flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:flex-wrap sm:items-center gap-2 md:gap-4'>
               <div className='flex items-center gap-2'>
                 <Filter className='h-4 w-4' />
                 <span className='text-sm font-medium'>Filtros:</span>
@@ -323,7 +420,7 @@ export default function AnalyticsPage() {
 
               {/* Selector de tipo */}
               <Select value={selectedType} onValueChange={handleTypeChange}>
-                <SelectTrigger className='w-[180px]'>
+                <SelectTrigger className='w-full sm:w-[180px]'>
                   <SelectValue placeholder='Tipo de contacto' />
                 </SelectTrigger>
                 <SelectContent>
@@ -338,12 +435,12 @@ export default function AnalyticsPage() {
               {/* Filtros predefinidos de fecha */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant='outline' className='w-[180px]'>
+                  <Button variant='outline' className='w-full sm:w-[180px]'>
                     <CalendarIcon className='mr-2 h-4 w-4' />
                     <span>Período</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align='end'>
+                <DropdownMenuContent align='end' className='w-[200px]'>
                   <DropdownMenuItem
                     onClick={() => applyDatePreset("current-month")}
                   >
@@ -381,7 +478,7 @@ export default function AnalyticsPage() {
                   <Button
                     variant='outline'
                     className={cn(
-                      "w-[180px] justify-start text-left font-normal",
+                      "w-full sm:w-[180px] justify-start text-left font-normal",
                       !startDate && "text-muted-foreground"
                     )}
                   >
@@ -410,7 +507,7 @@ export default function AnalyticsPage() {
                   <Button
                     variant='outline'
                     className={cn(
-                      "w-[180px] justify-start text-left font-normal",
+                      "w-full sm:w-[180px] justify-start text-left font-normal",
                       !endDate && "text-muted-foreground"
                     )}
                   >
@@ -439,13 +536,18 @@ export default function AnalyticsPage() {
                   variant='outline'
                   size='sm'
                   onClick={handleClearFilters}
+                  className='w-full sm:w-auto'
                 >
                   Limpiar filtros
                 </Button>
               )}
 
               {/* Botón de diagnóstico */}
-              <Button variant='outline' onClick={runDateDiagnosis}>
+              <Button
+                variant='outline'
+                onClick={runDateDiagnosis}
+                className='w-full sm:w-auto'
+              >
                 Diagnosticar fechas
               </Button>
             </div>
@@ -475,7 +577,7 @@ export default function AnalyticsPage() {
           <h2 className='text-xl font-semibold mb-2'>
             Resultado del diagnóstico
           </h2>
-          <pre className='bg-gray-100 p-4 rounded overflow-auto max-h-96'>
+          <pre className='bg-gray-100 p-4 rounded overflow-auto max-h-96 text-xs sm:text-sm'>
             {diagnosisResult}
           </pre>
         </div>
@@ -483,37 +585,145 @@ export default function AnalyticsPage() {
 
       {data && (
         <>
-          <StatsCards
-            totalContacts={data.stats.totalContacts}
-            activeContacts={data.stats.activeContacts}
-            inactiveContacts={data.stats.inactiveContacts}
-            totalMemberships={data.stats.totalMemberships}
-            totalTrainings={data.stats.totalTrainings}
-            averageTenure={data.stats.averageTenure}
-          />
+          <div className='grid gap-4 md:gap-8 mt-4'>
+            {/* Renderiza el componente adecuado según el tipo seleccionado */}
+            {selectedType === "all" && data && (
+              <TodosView
+                totalContacts={data.stats.totalContacts}
+                clientsCount={data.contactCountByType?.client || 0}
+                leadsCount={data.contactCountByType?.lead || 0}
+                suppliersCount={data.contactCountByType?.supplier || 0}
+                creditorsCount={data.contactCountByType?.creditor || 0}
+                debtorsCount={data.contactCountByType?.debtor || 0}
+              />
+            )}
 
-          <Tabs defaultValue='membership'>
-            <TabsList className='w-full justify-start'>
-              <TabsTrigger value='membership'>Membresías</TabsTrigger>
-              <TabsTrigger value='trainings'>Formaciones</TabsTrigger>
-              <TabsTrigger value='distribution'>Distribución</TabsTrigger>
-            </TabsList>
+            {selectedType === "leads" && data && (
+              <LeadsView totalLeads={data.contactCountByType?.lead || 0} />
+            )}
 
-            <TabsContent value='membership' className='mt-6'>
-              <MembershipTrendsChart data={data.membershipTrends} />
-            </TabsContent>
+            {selectedType === "clients" && data && (
+              <>
+                <ContactosView
+                  totalClients={data.contactCountByType?.client || 0}
+                  activeClients={data.stats.activeContacts}
+                  inactiveClients={data.stats.inactiveContacts}
+                  averageTenure={data.stats.averageTenure}
+                />
 
-            <TabsContent value='trainings' className='mt-6'>
-              <TrainingsByYearChart data={data.trainingsByYear} />
-            </TabsContent>
+                {/* Sección de KPIs y Gráficos */}
+                <section className='space-y-6'>
+                  {/* Leyenda de Fases */}
+                  <PhaseLegend />
 
-            <TabsContent value='distribution' className='mt-6'>
-              <div className='grid gap-6 md:grid-cols-2'>
-                <StatusPieChart data={data.statusCounts} />
-                <TenurePieChart data={data.tenureCounts} />
-              </div>
-            </TabsContent>
-          </Tabs>
+                  {/* Leyenda de Estados */}
+                  <StatusLegend
+                    statusDescriptions={data.statusCounts}
+                    tenureDescriptions={data.tenureCounts}
+                    trainingDescriptions={data.trainingStatusCounts}
+                    serviceDescriptions={data.serviceStatusCounts}
+                    membershipDescriptions={data.membershipStatusCounts}
+                  />
+                </section>
+
+                {/* Solo mostrar las pestañas de gráficas para la vista de Clientes */}
+                <Tabs defaultValue='membership' className='w-full'>
+                  <TabsList className='w-full justify-start overflow-auto'>
+                    <TabsTrigger value='membership'>Membresías</TabsTrigger>
+                    <TabsTrigger value='training'>Formaciones</TabsTrigger>
+                    <TabsTrigger value='distribution'>Distribución</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value='membership' className='pt-4'>
+                    <MembershipTrendsChart
+                      data={data.membershipTrends}
+                      contactsByCategory={{
+                        active: data.contactsByCategory
+                          .active as unknown as ChartContact[],
+                        expiringSoon: data.contactsByCategory
+                          .expiringSoon as unknown as ChartContact[],
+                        inactive: data.contactsByCategory
+                          .inactive as unknown as ChartContact[],
+                      }}
+                      dateRange={data.dateRange}
+                      statusDescriptions={{
+                        active:
+                          data.statusCounts.find((s) => s.name === "Activos")
+                            ?.description || "",
+                        expiringSoon:
+                          data.statusCounts.find(
+                            (s) => s.name === "Próximos a inactivar"
+                          )?.description || "",
+                        inactive:
+                          data.statusCounts.find((s) => s.name === "Inactivos")
+                            ?.description || "",
+                      }}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value='training' className='pt-4'>
+                    <TrainingsByYearChart
+                      data={data.trainingsByYear}
+                      contactsByCategory={{
+                        completed: data.contactsByCategory
+                          .completed as unknown as Record<
+                          string,
+                          ModalContact[]
+                        >,
+                        inProgress: data.contactsByCategory
+                          .inProgress as unknown as Record<
+                          string,
+                          ModalContact[]
+                        >,
+                        pending: data.contactsByCategory
+                          .pending as unknown as Record<string, ModalContact[]>,
+                      }}
+                      trainingDescriptions={{
+                        completed:
+                          data.trainingStatusCounts.find(
+                            (s) => s.name === "Completadas"
+                          )?.description ||
+                          "Formación finalizada: El contacto ha completado todas las sesiones y requisitos del curso.",
+                        inProgress:
+                          data.trainingStatusCounts.find(
+                            (s) => s.name === "En Progreso"
+                          )?.description ||
+                          "Formación en curso: El contacto está participando activamente en el programa formativo.",
+                        pending:
+                          data.trainingStatusCounts.find(
+                            (s) => s.name === "Pendientes"
+                          )?.description ||
+                          "Formación pendiente: El contacto tiene asignada la formación pero aún no ha iniciado ninguna sesión.",
+                      }}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value='distribution' className='pt-4'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                      <StatusPieChart
+                        data={data.statusCounts}
+                        contactsByCategory={
+                          data.contactsByCategory.status as unknown as Record<
+                            string,
+                            ComponentContact[]
+                          >
+                        }
+                      />
+                      <TenurePieChart
+                        data={data.tenureCounts}
+                        contactsByCategory={
+                          data.contactsByCategory.tenure as unknown as Record<
+                            string,
+                            ComponentContact[]
+                          >
+                        }
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
+          </div>
         </>
       )}
     </div>

@@ -146,8 +146,6 @@ export function formatStatusCountsForPieChart(
         return "Inactivos";
       case "preDeactivation":
         return "Pre-desactivación";
-      case "inactiveWithServices":
-        return "Inactivos con servicios";
       default:
         return key;
     }
@@ -162,7 +160,6 @@ export function formatStatusCountsForPieChart(
           "#4CAF50", // verde para activos
           "#F44336", // rojo para inactivos
           "#FFC107", // amarillo para pre-desactivación
-          "#2196F3", // azul para inactivos con servicios
         ],
       },
     ],

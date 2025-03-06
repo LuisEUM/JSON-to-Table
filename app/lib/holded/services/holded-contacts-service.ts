@@ -40,6 +40,7 @@ export async function getContacts(
 
   // Si el tipo es "all", tratarlo como undefined para obtener todos los contactos
   if (type === "all") {
+    console.log("Tipo 'all' detectado: obteniendo todos los contactos");
     type = undefined;
   }
 

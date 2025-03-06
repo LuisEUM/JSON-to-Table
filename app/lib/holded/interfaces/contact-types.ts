@@ -28,6 +28,7 @@ export interface ProcessedContact extends HoldedContact {
   tenure: "new" | "onboarding" | "loyal" | "legend";
   memberships: MembershipInfo[];
   trainings: TrainingInfo[];
+  services: ServiceInfo[]; // Servicios asociados al contacto
 }
 
 /**
@@ -36,7 +37,13 @@ export interface ProcessedContact extends HoldedContact {
 export interface MembershipInfo {
   id: string;
   name: string;
-  status: "active" | "pending" | "expiring-soon" | "inactive";
+  status:
+    | "active"
+    | "pending"
+    | "expiring-soon"
+    | "inactive"
+    | "inactive-satisfied"
+    | "inactive-unsatisfied";
   startDate: string;
   endDate: string;
   type: "monthly" | "quarterly" | "biannual" | "annual";
@@ -48,10 +55,30 @@ export interface MembershipInfo {
 export interface TrainingInfo {
   id: string;
   name: string;
-  status: "pending" | "in-progress" | "ending-soon" | "completed" | "extended";
+  status:
+    | "pending"
+    | "in-progress"
+    | "ending-soon"
+    | "completed"
+    | "extended"
+    | "deactivated";
   startDate: string;
   endDate: string;
   extendedEndDate?: string; // Fecha extendida opcional (típicamente 1 año después)
+  hasCertificate?: boolean; // Indica si el contacto recibió certificado al completar
+}
+
+/**
+ * Información sobre servicios de un contacto
+ */
+export interface ServiceInfo {
+  id: string;
+  name: string;
+  status: "scheduled" | "in-progress" | "delivered" | "deactivated";
+  startDate: string;
+  endDate: string;
+  deliverySuccess?: boolean; // Indica si el servicio fue entregado exitosamente
+  notes?: string; // Notas adicionales sobre el servicio
 }
 
 /**

@@ -97,24 +97,14 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string;
-        session.user.name = token.name as string;
-        session.user.email = token.email as string;
+        session.user.name = (token.name as string) || "Usuario";
+        session.user.email = (token.email as string) || "usuario@example.com";
         session.user.image = token.picture as string | undefined;
-        session.user.role = token.role as UserRole;
+        session.user.role = (token.role as UserRole) || "USER";
       }
       return session;
     },
-    async jwt({ token, user, trigger, session }) {
-      // Si estamos actualizando la sesión, actualizar el token
-      if (trigger === "update" && session?.user) {
-        // Solo actualiza si hay cambios
-        if (session.user.role) {
-          token.role = session.user.role;
-        }
-        return { ...token, ...session.user };
-      }
-
-      // Si el usuario acaba de iniciar sesión, obtener sus datos de la BD
+    async jwt({ token }) {
       const dbUser = await prisma.user.findFirst({
         where: {
           email: token.email as string,
@@ -122,10 +112,6 @@ export const authOptions: NextAuthOptions = {
       });
 
       if (!dbUser) {
-        if (user) {
-          token.id = user.id;
-          token.role = (user as { role?: UserRole }).role || "CLIENT";
-        }
         return token;
       }
 
@@ -151,11 +137,12 @@ declare module "next-auth" {
       role: UserRole;
     };
   }
-}
 
-declare module "next-auth/jwt" {
   interface JWT {
     id: string;
-    role: UserRole;
+    name?: string | null;
+    email?: string | null;
+    picture?: string | null;
+    role?: UserRole;
   }
 }
