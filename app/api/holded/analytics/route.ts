@@ -921,7 +921,7 @@ function prepareStatusCounts(contacts: ProcessedContact[]): StatusCount[] {
       phase: "inicio",
     },
     {
-      name: "Pendiente de activación",
+      name: "Por iniciar",
       value: counts.preActivation,
       color: "#2563eb",
       description:
@@ -945,7 +945,7 @@ function prepareStatusCounts(contacts: ProcessedContact[]): StatusCount[] {
       phase: "desarrollo",
     },
     {
-      name: "Inactivos",
+      name: "Desactivado",
       value: counts.inactive,
       color: "#ef4444",
       description:
@@ -953,7 +953,7 @@ function prepareStatusCounts(contacts: ProcessedContact[]): StatusCount[] {
       phase: "cierre",
     },
     {
-      name: "Finalizados Satisfactoriamente",
+      name: "Satisfecho",
       value: counts.inactiveSatisfied,
       color: "#047230",
       description:
@@ -961,7 +961,7 @@ function prepareStatusCounts(contacts: ProcessedContact[]): StatusCount[] {
       phase: "cierre",
     },
     {
-      name: "Finalizados por Insatisfacción",
+      name: "Insatisfecho",
       value: counts.inactiveUnsatisfied,
       color: "#ef7b07",
       description:
@@ -997,7 +997,7 @@ function prepareTenureCounts(contacts: ProcessedContact[]): TenureCount[] {
 
   return [
     {
-      name: "Sin antigüedad",
+      name: "Sin estado",
       value: counts.noTenure,
       color: "#a1a1aa",
       description:
@@ -1013,7 +1013,7 @@ function prepareTenureCounts(contacts: ProcessedContact[]): TenureCount[] {
       phase: "inicio",
     },
     {
-      name: "En incorporación",
+      name: "Exploradores",
       value: counts.onboarding,
       color: "#eab308",
       description:
@@ -1021,7 +1021,7 @@ function prepareTenureCounts(contacts: ProcessedContact[]): TenureCount[] {
       phase: "desarrollo",
     },
     {
-      name: "Clientes Leales",
+      name: "Leales",
       value: counts.loyal,
       color: "#00C851",
       description:
@@ -1029,7 +1029,7 @@ function prepareTenureCounts(contacts: ProcessedContact[]): TenureCount[] {
       phase: "cierre",
     },
     {
-      name: "Clientes Veteranos",
+      name: "Veteranos",
       value: counts.legend,
       color: "#8b5cf6",
       description:
@@ -1086,7 +1086,7 @@ function prepareTrainingStatusCounts(
 
   return [
     {
-      name: "Sin formación asignada",
+      name: "Sin estado",
       value: trainingCounts.noTraining,
       color: "#a1a1aa",
       description:
@@ -1094,7 +1094,7 @@ function prepareTrainingStatusCounts(
       phase: "inicio",
     },
     {
-      name: "Formación Pendiente",
+      name: "Por iniciar",
       value: trainingCounts.pending,
       color: "#2563eb",
       description:
@@ -1102,7 +1102,7 @@ function prepareTrainingStatusCounts(
       phase: "inicio",
     },
     {
-      name: "En Curso",
+      name: "En progreso",
       value: trainingCounts.inProgress,
       color: "#60a5fa",
       description:
@@ -1110,7 +1110,7 @@ function prepareTrainingStatusCounts(
       phase: "desarrollo",
     },
     {
-      name: "Finalización Inminente",
+      name: "Por finalizar",
       value: trainingCounts.endingSoon,
       color: "#eab308",
       description:
@@ -1118,7 +1118,7 @@ function prepareTrainingStatusCounts(
       phase: "desarrollo",
     },
     {
-      name: "Formación Suspendida",
+      name: "Desactivado",
       value: trainingCounts.deactivated,
       color: "#ef4444",
       description:
@@ -1126,7 +1126,7 @@ function prepareTrainingStatusCounts(
       phase: "cierre",
     },
     {
-      name: "Formación Completada (Con Certificado)",
+      name: "Completado",
       value: trainingCounts.completedWithCertificate,
       color: "#00C851",
       description:
@@ -1134,7 +1134,7 @@ function prepareTrainingStatusCounts(
       phase: "cierre",
     },
     {
-      name: "Formación Completada (Sin Certificado)",
+      name: "Sin certificado",
       value: trainingCounts.completedWithoutCertificate,
       color: "#ef7b07",
       description:
@@ -1184,14 +1184,14 @@ function prepareServiceStatusCounts(
 
   return [
     {
-      name: "Sin servicio asignado",
+      name: "Sin estado",
       value: serviceCounts.noService,
       color: "#a1a1aa",
       description: "Contactos sin ningún servicio vinculado en el sistema.",
       phase: "inicio",
     },
     {
-      name: "Servicio Programado",
+      name: "Por iniciar",
       value: serviceCounts.scheduled,
       color: "#2563eb",
       description:
@@ -1199,7 +1199,7 @@ function prepareServiceStatusCounts(
       phase: "inicio",
     },
     {
-      name: "Servicio en Proceso",
+      name: "En progreso",
       value: serviceCounts.inProgress,
       color: "#60a5fa",
       description:
@@ -1207,7 +1207,7 @@ function prepareServiceStatusCounts(
       phase: "desarrollo",
     },
     {
-      name: "Servicio Suspendido",
+      name: "Desactivado",
       value: serviceCounts.deactivated,
       color: "#ef4444",
       description:
@@ -1215,7 +1215,7 @@ function prepareServiceStatusCounts(
       phase: "cierre",
     },
     {
-      name: "Servicio Completado",
+      name: "Completado",
       value: serviceCounts.deliveredSuccess,
       color: "#00C851",
       description:
@@ -1223,7 +1223,7 @@ function prepareServiceStatusCounts(
       phase: "cierre",
     },
     {
-      name: "Servicio No Completado",
+      name: "No completado",
       value: serviceCounts.deliveredFailed,
       color: "#ef7b07",
       description:
@@ -1271,7 +1271,7 @@ function prepareMembershipStatusCounts(
 
   return [
     {
-      name: "Sin membresía",
+      name: "Sin estado",
       value: membershipCounts.noMembership,
       color: "#a1a1aa",
       description:
@@ -1279,7 +1279,7 @@ function prepareMembershipStatusCounts(
       phase: "inicio",
     },
     {
-      name: "Membresía Activa",
+      name: "Activo",
       value: membershipCounts.active,
       color: "#00C851",
       description:
@@ -1287,7 +1287,7 @@ function prepareMembershipStatusCounts(
       phase: "desarrollo",
     },
     {
-      name: "Membresía Pendiente",
+      name: "Por iniciar",
       value: membershipCounts.pending,
       color: "#2563eb",
       description:
@@ -1295,7 +1295,7 @@ function prepareMembershipStatusCounts(
       phase: "inicio",
     },
     {
-      name: "Membresía Próxima a Vencer",
+      name: "Por finalizar",
       value: membershipCounts.expiringSoon,
       color: "#eab308",
       description:
@@ -1303,7 +1303,7 @@ function prepareMembershipStatusCounts(
       phase: "desarrollo",
     },
     {
-      name: "Membresía Inactiva",
+      name: "Desactivado",
       value: membershipCounts.inactive,
       color: "#ef4444",
       description:
@@ -1311,7 +1311,7 @@ function prepareMembershipStatusCounts(
       phase: "cierre",
     },
     {
-      name: "Membresía Cancelada Satisfactoriamente",
+      name: "Satisfecho",
       value: membershipCounts.inactiveSatisfied,
       color: "#047230",
       description:
@@ -1319,7 +1319,7 @@ function prepareMembershipStatusCounts(
       phase: "cierre",
     },
     {
-      name: "Membresía Cancelada por Insatisfacción",
+      name: "Insatisfecho",
       value: membershipCounts.inactiveUnsatisfied,
       color: "#ef7b07",
       description:
@@ -1385,14 +1385,14 @@ function prepareConsultingStatusCounts(
       phase: "inicio",
     },
     {
-      name: "Consultoría Programada",
+      name: "Por Iniciar",
       value: consultingCounts.scheduled,
       color: "#2563eb",
       description: "Servicio de consultoría agendado y pendiente de inicio.",
       phase: "inicio",
     },
     {
-      name: "Consultoría en Progreso",
+      name: "En progreso",
       value: consultingCounts.inProgress,
       color: "#60a5fa",
       description:
@@ -1400,19 +1400,19 @@ function prepareConsultingStatusCounts(
       phase: "desarrollo",
     },
     {
-      name: "Consultoría Cancelada",
-      value: consultingCounts.cancelled,
-      color: "#ef4444",
+      name: "Satisfecho",
+      value: consultingCounts.completed,
+      color: "#00C851", // verde
       description:
-        "Servicio de consultoría cancelado antes de su finalización, por motivos internos o externos.",
+        "Consultoría finalizada: El proyecto de consultoría ha sido completado satisfactoriamente.",
       phase: "cierre",
     },
     {
-      name: "Consultoría Finalizada",
-      value: consultingCounts.completed,
-      color: "#00C851",
+      name: "Insatisfecho",
+      value: consultingCounts.cancelled,
+      color: "#ef4444", // rojo
       description:
-        "Proyecto de consultoría completado satisfactoriamente, cumpliendo los objetivos planteados.",
+        "Consultoría cancelada: El servicio fue cancelado antes de su finalización por motivos internos o externos.",
       phase: "cierre",
     },
   ];

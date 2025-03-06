@@ -94,19 +94,7 @@ export default function AdminPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value='stats' className='space-y-4'>
-          <Card>
-            <CardHeader>
-              <CardTitle>Estadísticas</CardTitle>
-              <CardDescription>
-                Visualiza estadísticas de uso de la aplicación.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p>Funcionalidad en desarrollo...</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
+
       </Tabs>
     </div>
   );
