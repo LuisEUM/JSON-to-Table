@@ -10,6 +10,11 @@ import { isDateBetween } from "../../../lib/holded/utils/analytics-date-utils";
 import { normalizeDate } from "@/app/table/utils/date-utils";
 
 // Definir interfaces para los tipos de datos
+interface CustomField {
+  field: string;
+  value: string;
+}
+
 interface ProcessedContact {
   id: string;
   name: string;
@@ -27,6 +32,7 @@ interface ProcessedContact {
   startDate?: Date | null; // Fecha de inicio de servicios
   endDate?: Date | null; // Fecha de fin de servicios
   services?: ServiceInfo[];
+  customFields: CustomField[];
   [key: string]: unknown;
 }
 
@@ -88,6 +94,14 @@ interface MembershipStatusCount {
   phase: "inicio" | "desarrollo" | "cierre";
 }
 
+interface ConsultingStatusCount {
+  name: string;
+  value: number;
+  color: string;
+  description: string;
+  phase: "inicio" | "desarrollo" | "cierre";
+}
+
 interface AnalyticsData {
   stats: {
     totalContacts: number;
@@ -95,7 +109,8 @@ interface AnalyticsData {
     inactiveContacts: number;
     totalMemberships: number;
     totalTrainings: number;
-    totalServices: number; // Nuevo: total de servicios
+    totalServices: number;
+    totalConsultorias: number;
     averageTenure: string;
   };
   contactCountByType: {
@@ -105,13 +120,19 @@ interface AnalyticsData {
     creditor?: number;
     debtor?: number;
   };
+  responsibleCounts: {
+    name: string;
+    subcategory: string;
+    count: number;
+  }[];
   membershipTrends: MembershipTrend[];
   trainingsByYear: TrainingByYear[];
   statusCounts: StatusCount[];
   tenureCounts: TenureCount[];
   trainingStatusCounts: TrainingStatusCount[];
-  serviceStatusCounts: ServiceStatusCount[]; // Nuevo: estados de servicios
-  membershipStatusCounts: MembershipStatusCount[]; // Nuevo: estados de membresía
+  serviceStatusCounts: ServiceStatusCount[];
+  membershipStatusCounts: MembershipStatusCount[];
+  consultingStatusCounts: ConsultingStatusCount[];
   contactsByCategory: {
     active: ProcessedContact[];
     expiringSoon: ProcessedContact[];
@@ -121,8 +142,12 @@ interface AnalyticsData {
     completed: Record<string, ProcessedContact[]>;
     inProgress: Record<string, ProcessedContact[]>;
     pending: Record<string, ProcessedContact[]>;
-    deliveredSuccess: Record<string, ProcessedContact[]>; // Servicios entregados exitosamente
-    deliveredFailed: Record<string, ProcessedContact[]>; // Servicios no entregados
+    deliveredSuccess: Record<string, ProcessedContact[]>;
+    deliveredFailed: Record<string, ProcessedContact[]>;
+  };
+  dateRange: {
+    minDate?: string;
+    maxDate?: string;
   };
 }
 
@@ -152,26 +177,25 @@ export async function GET(request: NextRequest) {
     const startDate = startDateParam ? new Date(startDateParam) : undefined;
     const endDate = endDateParam ? new Date(endDateParam) : undefined;
 
-    // Si el tipo es "all", tratarlo como undefined para obtener todos los contactos
-    // Enviar el tipo directamente a getContacts que ya maneja el caso 'all'
-    const contactType = type === "all" ? undefined : type;
+    // Obtener todos los contactos sin filtrar por tipo inicialmente
+    const contacts = await getContacts(apiKey, false);
 
-    // Obtener los contactos de Holded, filtrando por tipo si se especifica
-    const contacts = await getContacts(apiKey, false, contactType);
+    // Filtrar por fechas
+    const filteredByDate = filterContactsByDate(contacts, startDate, endDate);
 
-    // Filtrar contactos por fecha de creación si se especifican fechas
-    const filteredContacts = filterContactsByDate(contacts, startDate, endDate);
+    // Filtrar por tipo si es necesario
+    const filteredContacts =
+      type && type !== "all"
+        ? filteredByDate.filter((contact) => contact.type === type)
+        : filteredByDate;
 
-    // Procesar los contactos para obtener información adicional
-    // Nota: En un caso real, importaríamos processContacts desde el módulo correcto
-    // Como es solo para demostración, usaremos datos simulados
-    const processedContacts: ProcessedContact[] =
-      simulateProcessedContacts(filteredContacts);
+    // Procesar los contactos ya filtrados
+    const processedContacts = simulateProcessedContacts(filteredContacts);
 
-    // Calcular estadísticas generales
+    // Calcular estadísticas generales usando los contactos ya filtrados
     const totalContacts = processedContacts.length;
 
-    // Calcular contactos activos e inactivos basados en su status (ya determinado por fechas)
+    // Calcular contactos activos e inactivos basados en su status
     const activeContacts = processedContacts.filter(
       (c) => c.status === "active"
     ).length;
@@ -180,7 +204,9 @@ export async function GET(request: NextRequest) {
       (c) =>
         c.status === "inactive" ||
         c.status === "pre-deactivation" ||
-        c.status === "inactive-with-services"
+        c.status === "inactive-with-services" ||
+        c.status === "inactive-satisfied" ||
+        c.status === "inactive-unsatisfied"
     ).length;
 
     // Calcular totales de membresías y formaciones
@@ -193,7 +219,7 @@ export async function GET(request: NextRequest) {
       0
     );
 
-    // Calcular antigüedad promedio (simplificado)
+    // Calcular antigüedad promedio
     const averageTenure = calculateAverageTenure(processedContacts);
 
     // Contar servicios registrados
@@ -203,12 +229,69 @@ export async function GET(request: NextRequest) {
       );
     }, 0);
 
-    // Preparar datos para gráficos
+    // Contar consultorías registradas
+    const totalConsultorias = processedContacts.reduce((total, contact) => {
+      const customFields: CustomField[] = contact.customFields || [];
+      const consultoriaFields = customFields.filter(
+        (field: CustomField) =>
+          field.field.startsWith("CONSULTORÍA") &&
+          (field.field.includes("Fecha de Inicio") ||
+            field.field.includes("Responsable")) &&
+          field.value
+      );
+      return total + (consultoriaFields.length > 0 ? 1 : 0);
+    }, 0);
+
+    // Obtener conteo de responsables por subcategoría
+    const responsibleCounts = processedContacts.reduce((acc, contact) => {
+      const customFields: CustomField[] = contact.customFields || [];
+
+      customFields.forEach((field: CustomField) => {
+        if (field.field.includes("Responsable") && field.value) {
+          const categoryMatch = field.field.match(/^([^-]+)/);
+          if (categoryMatch) {
+            const category = categoryMatch[1].trim();
+            const responsible = field.value.trim();
+
+            const existingEntry = acc.find(
+              (entry) =>
+                entry.name === responsible && entry.subcategory === category
+            );
+
+            if (existingEntry) {
+              existingEntry.count++;
+            } else {
+              acc.push({
+                name: responsible,
+                subcategory: category,
+                count: 1,
+              });
+            }
+          }
+        }
+      });
+
+      return acc;
+    }, [] as { name: string; subcategory: string; count: number }[]);
+
+    // Ordenar por cantidad descendente
+    responsibleCounts.sort((a, b) => b.count - a.count);
+
+    // Preparar datos para gráficos usando los contactos filtrados
     const membershipTrends = prepareMembershipTrends();
     const trainingsByYear = prepareTrainingsByYear();
     const statusCounts = prepareStatusCounts(processedContacts);
     const tenureCounts = prepareTenureCounts(processedContacts);
     const trainingStatusCounts = prepareTrainingStatusCounts(processedContacts);
+
+    // Para el conteo por tipo, usamos la lista filtrada solo por fecha
+    const contactCountByType = {
+      client: filteredByDate.filter((c) => c.type === "client").length,
+      lead: filteredByDate.filter((c) => c.type === "lead").length,
+      supplier: filteredByDate.filter((c) => c.type === "supplier").length,
+      creditor: filteredByDate.filter((c) => c.type === "creditor").length,
+      debtor: filteredByDate.filter((c) => c.type === "debtor").length,
+    };
 
     // Construir respuesta
     const analyticsData: AnalyticsData = {
@@ -219,15 +302,11 @@ export async function GET(request: NextRequest) {
         totalMemberships,
         totalTrainings,
         totalServices,
+        totalConsultorias,
         averageTenure,
       },
-      contactCountByType: {
-        client: processedContacts.filter((c) => c.type === "client").length,
-        lead: processedContacts.filter((c) => c.type === "lead").length,
-        supplier: processedContacts.filter((c) => c.type === "supplier").length,
-        creditor: processedContacts.filter((c) => c.type === "creditor").length,
-        debtor: processedContacts.filter((c) => c.type === "debtor").length,
-      },
+      contactCountByType,
+      responsibleCounts,
       membershipTrends,
       trainingsByYear,
       statusCounts,
@@ -235,8 +314,8 @@ export async function GET(request: NextRequest) {
       trainingStatusCounts,
       serviceStatusCounts: prepareServiceStatusCounts(processedContacts),
       membershipStatusCounts: prepareMembershipStatusCounts(processedContacts),
+      consultingStatusCounts: prepareConsultingStatusCounts(processedContacts),
       contactsByCategory: {
-        // Contactos para MembershipTrendsChart
         active: processedContacts.filter((c) => c.status === "active"),
         expiringSoon: processedContacts.filter(
           (c) => c.status === "pre-deactivation"
@@ -245,26 +324,26 @@ export async function GET(request: NextRequest) {
           (c) =>
             c.status === "inactive" || c.status === "inactive-with-services"
         ),
-
-        // Contactos para StatusPieChart
         status: {
           Activos: processedContacts.filter((c) => c.status === "active"),
           "Pre-desactivación": processedContacts.filter(
             (c) => c.status === "pre-deactivation"
           ),
         },
-
-        // Contactos para TenurePieChart
         tenure: {
-          Nuevos: processedContacts.filter((c) => c.tenure === "new"),
-          "En Onboarding": processedContacts.filter(
+          "Recién llegados": processedContacts.filter(
+            (c) => c.tenure === "new"
+          ),
+          "En incorporación": processedContacts.filter(
             (c) => c.tenure === "onboarding"
           ),
-          Leales: processedContacts.filter((c) => c.tenure === "loyal"),
-          Leyendas: processedContacts.filter((c) => c.tenure === "legend"),
+          "Clientes Leales": processedContacts.filter(
+            (c) => c.tenure === "loyal"
+          ),
+          "Clientes Veteranos": processedContacts.filter(
+            (c) => c.tenure === "legend"
+          ),
         },
-
-        // Contactos para TrainingsByYearChart
         completed: processedContacts.reduce((acc, contact) => {
           const trainings = contact.trainings || [];
           trainings.forEach((training) => {
@@ -276,7 +355,6 @@ export async function GET(request: NextRequest) {
           });
           return acc;
         }, {} as Record<string, ProcessedContact[]>),
-
         inProgress: processedContacts.reduce((acc, contact) => {
           const trainings = contact.trainings || [];
           trainings.forEach((training) => {
@@ -290,7 +368,6 @@ export async function GET(request: NextRequest) {
           });
           return acc;
         }, {} as Record<string, ProcessedContact[]>),
-
         pending: processedContacts.reduce((acc, contact) => {
           const trainings = contact.trainings || [];
           trainings.forEach((training) => {
@@ -304,10 +381,8 @@ export async function GET(request: NextRequest) {
           });
           return acc;
         }, {} as Record<string, ProcessedContact[]>),
-
         deliveredSuccess: processedContacts.reduce((acc, contact) => {
-          const services =
-            (contact.services as ServiceInfo[] | undefined) || [];
+          const services = contact.services || [];
           services.forEach((service) => {
             if (service.status === "delivered" && service.deliverySuccess) {
               const year = new Date(service.endDate).getFullYear().toString();
@@ -317,10 +392,8 @@ export async function GET(request: NextRequest) {
           });
           return acc;
         }, {} as Record<string, ProcessedContact[]>),
-
         deliveredFailed: processedContacts.reduce((acc, contact) => {
-          const services =
-            (contact.services as ServiceInfo[] | undefined) || [];
+          const services = contact.services || [];
           services.forEach((service) => {
             if (service.status === "delivered" && !service.deliverySuccess) {
               const year = new Date(service.endDate).getFullYear().toString();
@@ -330,6 +403,10 @@ export async function GET(request: NextRequest) {
           });
           return acc;
         }, {} as Record<string, ProcessedContact[]>),
+      },
+      dateRange: {
+        minDate: startDateParam || undefined,
+        maxDate: endDateParam || undefined,
       },
     };
 
@@ -480,47 +557,38 @@ function simulateProcessedContacts(
 
   // Helper function to ensure a date is valid
   const ensureValidDate = (date: Date): Date => {
-    // Check if the date is valid
     if (isNaN(date.getTime())) {
-      // If invalid, return current date as fallback
       return new Date();
     }
     return date;
   };
 
-  // Helper function to safely convert a date to ISO string
+  // Helper function para convertir a ISO string de forma segura
   const safeToISOString = (date: Date): string => {
     try {
       return ensureValidDate(date).toISOString();
     } catch (e) {
       console.error("Error converting date to ISO string:", e);
-      return new Date().toISOString(); // Fallback to current date
+      return new Date().toISOString();
     }
   };
 
-  // Procesamos los contactos reales (simplificado para el ejemplo)
   return rawContacts.map((contact) => {
-    // Simplificado para el ejemplo
     const startDate = normalizeDate(contact.registrationDate);
-
-    // Ensure startDate is a Date object before using Date methods
     const startDateObj =
       typeof startDate === "string"
         ? new Date(startDate)
         : startDate instanceof Date
         ? startDate
         : new Date();
-    // Validate the date
     const validStartDate = ensureValidDate(startDateObj);
 
-    // Generamos una fecha de fin aleatoria entre 1 y 24 meses después
+    // Fecha de fin aleatoria entre 1 y 24 meses después
     const randomMonths = Math.floor(Math.random() * 24) + 1;
     const endDateObj = new Date(validStartDate);
     endDateObj.setMonth(endDateObj.getMonth() + randomMonths);
-    // Validate the end date
     const validEndDate = ensureValidDate(endDateObj);
 
-    // Determine status based on end date
     const now = new Date();
     const monthsDiff =
       (now.getFullYear() - validStartDate.getFullYear()) * 12 +
@@ -528,20 +596,17 @@ function simulateProcessedContacts(
 
     let status: ProcessedContact["status"] = "active";
     if (validEndDate < now) {
-      // Si la fecha de fin ya pasó, el contacto está inactivo
       const random = Math.random();
       if (random < 0.3) {
-        status = "inactive-satisfied"; // 30% inactivos satisfechos
+        status = "inactive-satisfied";
       } else if (random < 0.6) {
-        status = "inactive-unsatisfied"; // 30% inactivos insatisfechos
+        status = "inactive-unsatisfied";
       } else {
-        status = "inactive"; // 40% inactivos regulares
+        status = "inactive";
       }
     } else {
-      // Si la fecha de fin es futura, el contacto está activo o pre-desactivación
       const oneMonthFromNow = new Date();
       oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
-
       if (validEndDate <= oneMonthFromNow) {
         status = "pre-deactivation";
       } else {
@@ -549,7 +614,6 @@ function simulateProcessedContacts(
       }
     }
 
-    // Simplificado para el ejemplo: Determinamos si tiene servicios activos
     if (status === "inactive" && Math.random() > 0.7) {
       status = "inactive-with-services";
     }
@@ -565,26 +629,22 @@ function simulateProcessedContacts(
       tenure = "legend";
     }
 
-    // Simulamos membresías
-    const membershipCount = Math.floor(Math.random() * 3); // 0-2 membresías
+    // Simulación de membresías
+    const membershipCount = Math.floor(Math.random() * 3);
     const memberships: MembershipInfo[] = [];
-
     for (let i = 0; i < membershipCount; i++) {
       const membershipStartDate = new Date(validStartDate);
       membershipStartDate.setMonth(
         membershipStartDate.getMonth() + Math.floor(Math.random() * 3)
       );
-      // Validate membership start date
       const validMembershipStartDate = ensureValidDate(membershipStartDate);
 
       const membershipEndDate = new Date(validMembershipStartDate);
       membershipEndDate.setMonth(
         membershipEndDate.getMonth() + Math.floor(Math.random() * 12) + 1
       );
-      // Validate membership end date
       const validMembershipEndDate = ensureValidDate(membershipEndDate);
 
-      // Determinamos el estado de la membresía
       let membershipStatus: MembershipInfo["status"] = "active";
       if (validMembershipEndDate < now) {
         const random = Math.random();
@@ -598,16 +658,11 @@ function simulateProcessedContacts(
       } else {
         const oneMonthFromNow = new Date();
         oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
-
         if (validMembershipEndDate <= oneMonthFromNow) {
           membershipStatus = "expiring-soon";
         } else {
           const randomStatus = Math.random();
-          if (randomStatus < 0.2) {
-            membershipStatus = "pending"; // 20% pendiente
-          } else {
-            membershipStatus = "active"; // 80% activo
-          }
+          membershipStatus = randomStatus < 0.2 ? "pending" : "active";
         }
       }
 
@@ -623,41 +678,31 @@ function simulateProcessedContacts(
       });
     }
 
-    // Simulamos formaciones
-    const trainingCount = Math.floor(Math.random() * 4); // 0-3 formaciones
+    // Simulación de formaciones
+    const trainingCount = Math.floor(Math.random() * 4);
     const trainings: TrainingInfo[] = [];
-
     for (let i = 0; i < trainingCount; i++) {
       const trainingStartDate = new Date(validStartDate);
       trainingStartDate.setMonth(
         trainingStartDate.getMonth() + Math.floor(Math.random() * 6)
       );
-      // Validate training start date
       const validTrainingStartDate = ensureValidDate(trainingStartDate);
 
       const trainingEndDate = new Date(validTrainingStartDate);
       trainingEndDate.setMonth(
         trainingEndDate.getMonth() + Math.floor(Math.random() * 6) + 1
       );
-      // Validate training end date
       const validTrainingEndDate = ensureValidDate(trainingEndDate);
 
-      // Determinamos el estado de la formación
       let trainingStatus: TrainingInfo["status"];
       if (validTrainingEndDate < now) {
         trainingStatus = Math.random() > 0.2 ? "completed" : "extended";
       } else if (validTrainingStartDate > now) {
         trainingStatus = "pending";
       } else {
-        // Probabilidad de que una formación esté desactivada
-        if (Math.random() < 0.1) {
-          trainingStatus = "deactivated";
-        } else {
-          trainingStatus = "in-progress";
-        }
+        trainingStatus = Math.random() < 0.1 ? "deactivated" : "in-progress";
       }
 
-      // Si la formación está extendida, añadir fecha de extensión
       let extendedEndDate = undefined;
       if (trainingStatus === "extended") {
         const extDate = new Date(validTrainingEndDate);
@@ -676,40 +721,30 @@ function simulateProcessedContacts(
       });
     }
 
-    // Simulamos servicios
-    const serviceCount = Math.floor(Math.random() * 3); // 0-2 servicios
+    // Simulación de servicios
+    const serviceCount = Math.floor(Math.random() * 3);
     const services: ServiceInfo[] = [];
-
     for (let i = 0; i < serviceCount; i++) {
       const serviceStartDate = new Date(validStartDate);
       serviceStartDate.setMonth(
         serviceStartDate.getMonth() + Math.floor(Math.random() * 3)
       );
-      // Validate service start date
       const validServiceStartDate = ensureValidDate(serviceStartDate);
 
       const serviceEndDate = new Date(validServiceStartDate);
       serviceEndDate.setMonth(
         serviceEndDate.getMonth() + Math.floor(Math.random() * 2) + 1
       );
-      // Validate service end date
       const validServiceEndDate = ensureValidDate(serviceEndDate);
 
-      // Determinamos el estado del servicio
       let serviceStatus: ServiceInfo["status"];
       const random = Math.random();
-
       if (validServiceEndDate < now) {
         serviceStatus = "delivered";
       } else if (validServiceStartDate > now) {
         serviceStatus = "scheduled";
       } else {
-        // Probabilidad de que el servicio esté desactivado
-        if (random < 0.1) {
-          serviceStatus = "deactivated";
-        } else {
-          serviceStatus = "in-progress";
-        }
+        serviceStatus = random < 0.1 ? "deactivated" : "in-progress";
       }
 
       services.push({
@@ -724,17 +759,17 @@ function simulateProcessedContacts(
       });
     }
 
-    // Construir el objeto ProcessedContact
     const processedContact: ProcessedContact = {
       ...contact,
-      type: "client", // Simplificado
+      type: "client",
       status,
       tenure,
       startDate: validStartDate,
-      endDate: validEndDate < validStartDate ? null : validEndDate, // Para evitar fechas inconsistentes
+      endDate: validEndDate < validStartDate ? null : validEndDate,
       memberships: memberships.length > 0 ? memberships : undefined,
       trainings: trainings.length > 0 ? trainings : undefined,
       services: services.length > 0 ? services : undefined,
+      customFields: [],
     };
 
     return processedContact;
@@ -769,7 +804,6 @@ function calculateAverageTenure(contacts: ProcessedContact[]): string {
 
 // Función para preparar datos de tendencias de membresías
 function prepareMembershipTrends(): MembershipTrend[] {
-  // Simplificado: Usar los últimos 6 meses
   const months = [
     "Ene",
     "Feb",
@@ -792,8 +826,6 @@ function prepareMembershipTrends(): MembershipTrend[] {
     .map((_, index) => {
       const monthIndex = (currentMonth - index + 12) % 12;
       const monthName = months[monthIndex];
-
-      // Simular datos para demostración
       const active = Math.floor(Math.random() * 100) + 50;
       const expiringSoon = Math.floor(Math.random() * 30) + 10;
       const inactive = Math.floor(Math.random() * 40) + 20;
@@ -816,8 +848,6 @@ function prepareTrainingsByYear(): TrainingByYear[] {
     .fill(0)
     .map((_, index) => {
       const year = (currentYear - index).toString();
-
-      // Simular datos para demostración
       const completed = Math.floor(Math.random() * 80) + 40;
       const inProgress = Math.floor(Math.random() * 50) + 20;
       const pending = Math.floor(Math.random() * 30) + 10;
@@ -834,27 +864,22 @@ function prepareTrainingsByYear(): TrainingByYear[] {
 
 // Función para preparar datos de estado de los contactos
 function prepareStatusCounts(contacts: ProcessedContact[]): StatusCount[] {
-  // Inicializamos contadores para cada estado
   const counts = {
     active: 0,
     preActivation: 0,
     preDeactivation: 0,
     inactive: 0,
     inactiveWithServices: 0,
-    inactiveSatisfied: 0, // Nuevo: Inactivos que se fueron satisfechos
-    inactiveUnsatisfied: 0, // Nuevo: Inactivos que se fueron insatisfechos
+    inactiveSatisfied: 0,
+    inactiveUnsatisfied: 0,
     noStatus: 0,
   };
 
-  // Iteramos sobre los contactos para contar cada estado
   contacts.forEach((contact) => {
-    // Verificamos primero si el status existe y es una cadena válida
     if (!contact.status) {
       counts.noStatus++;
       return;
     }
-
-    // Ahora contamos basado en el status
     switch (contact.status) {
       case "active":
         counts.active++;
@@ -878,9 +903,6 @@ function prepareStatusCounts(contacts: ProcessedContact[]): StatusCount[] {
         counts.noStatus++;
         break;
     }
-
-    // Consideramos pre-activation como un estado adicional
-    // que podría estar presente en los datos aunque no esté en el tipo principal
     if (
       typeof contact.status === "string" &&
       contact.status.includes("pre-activation")
@@ -893,74 +915,72 @@ function prepareStatusCounts(contacts: ProcessedContact[]): StatusCount[] {
     {
       name: "Sin estado",
       value: counts.noStatus,
-      color: "#a1a1aa", // gris
+      color: "#a1a1aa",
       description:
-        "Contactos sin información suficiente: No se ha podido determinar el estado operativo de estos contactos por falta de datos o inconsistencias en la información disponible.",
-      phase: "inicio", // Fase de inicio
+        "Contactos sin información suficiente para determinar su estado operativo, debido a datos incompletos o inconsistentes.",
+      phase: "inicio",
     },
     {
-      name: "Por iniciar",
+      name: "Pendiente de activación",
       value: counts.preActivation,
-      color: "#2563eb", // azul oscuro
+      color: "#2563eb",
       description:
-        "Clientes con membresías pendientes: Corresponde a contactos que han adquirido servicios pero cuya fecha de activación aún no ha llegado.",
-      phase: "inicio", // Fase de inicio
+        "Contactos con servicios contratados pero que aún no han iniciado; la activación está programada para una fecha futura.",
+      phase: "inicio",
     },
     {
       name: "Activos",
       value: counts.active,
-      color: "#00C851", // verde
+      color: "#00C851",
       description:
-        "Clientes con membresías activas: Estos contactos tienen suscripciones vigentes con acceso completo a todos los servicios contratados.",
-      phase: "desarrollo", // Fase de desarrollo
+        "Contactos con suscripciones activas que utilizan de forma continua los servicios contratados.",
+      phase: "desarrollo",
     },
     {
       name: "Por finalizar",
       value: counts.preDeactivation,
-      color: "#eab308", // amarillo
+      color: "#eab308",
       description:
-        "Clientes en período de pre-desactivación: Contactos cuyas membresías vencerán en menos de 30 días y requieren acciones de renovación.",
-      phase: "desarrollo", // Fase de desarrollo
+        "Contactos en fase de pre-desactivación, con servicios próximos a vencerse (menos de 30 días), que requieren acción para su renovación.",
+      phase: "desarrollo",
     },
     {
-      name: "Desactivado",
+      name: "Inactivos",
       value: counts.inactive,
-      color: "#ef4444", // rojo
+      color: "#ef4444",
       description:
-        "Clientes con membresías desactivadas: Contactos que no tienen suscripciones activas y no pueden acceder a los servicios contratados porque no han realizado los pagos correspondientes.",
-      phase: "cierre", // Fase de cierre
+        "Contactos sin suscripciones activas; su acceso a los servicios se ha interrumpido por falta de pago o renovación.",
+      phase: "cierre",
     },
     {
-      name: "Satisfecho",
+      name: "Finalizados Satisfactoriamente",
       value: counts.inactiveSatisfied,
-      color: "#047230", // Verde Oscuro
+      color: "#047230",
       description:
-        "Clientes inactivos que alcanzaron sus objetivos: Contactos que finalizaron su relación comercial porque aprendieron lo que necesitaban, se desactivaron voluntariamente por temas ajenos a la empresa o cumplieron sus metas formativas.",
-      phase: "cierre", // Fase de cierre
+        "Contactos que completaron su ciclo de servicio de manera satisfactoria, finalizando voluntariamente al cumplir sus objetivos.",
+      phase: "cierre",
     },
     {
-      name: "Insatisfecho",
+      name: "Finalizados por Insatisfacción",
       value: counts.inactiveUnsatisfied,
-      color: "#ef7b07", // Naranja
+      color: "#ef7b07",
       description:
-        "Clientes inactivos por insatisfacción: Contactos que cesaron su relación debido a problemas internos o insatisfacción con el servicio. Requieren análisis y seguimiento.",
-      phase: "cierre", // Fase de cierre
+        "Contactos que concluyeron la relación por insatisfacción con el servicio, lo que requiere un análisis y seguimiento posterior.",
+      phase: "cierre",
     },
   ];
 }
 
 // Función para preparar datos de distribución por antigüedad
 function prepareTenureCounts(contacts: ProcessedContact[]): TenureCount[] {
-  // Inicializamos contadores para cada segmento de antigüedad
   const counts = {
     new: 0,
     onboarding: 0,
     loyal: 0,
     legend: 0,
-    noTenure: 0, // Añadimos "Sin antigüedad"
+    noTenure: 0,
   };
 
-  // Iteramos a través de los contactos para contar los diferentes segmentos
   contacts.forEach((contact) => {
     if (!contact.tenure) {
       counts.noTenure++;
@@ -977,44 +997,44 @@ function prepareTenureCounts(contacts: ProcessedContact[]): TenureCount[] {
 
   return [
     {
-      name: "Sin estado",
+      name: "Sin antigüedad",
       value: counts.noTenure,
-      color: "#a1a1aa", // Gris
+      color: "#a1a1aa",
       description:
-        "Contactos sin información de fecha de inicio: No se ha podido determinar la antigüedad por falta de datos o inconsistencias en las fechas registradas.",
-      phase: "inicio", // Fase de inicio por defecto
+        "Contactos sin fecha de inicio registrada, lo que impide determinar el tiempo de relación.",
+      phase: "inicio",
     },
     {
       name: "Recién llegados",
       value: counts.new,
-      color: "#2563eb", // azul oscuro
+      color: "#2563eb",
       description:
-        "Clientes con menos de 1 mes de antigüedad: Se encuentran en fase inicial de onboarding y adaptación a los servicios contratados.",
-      phase: "inicio", // Fase de adopción
+        "Contactos con menos de 1 mes de relación, en fase de incorporación y adaptación inicial.",
+      phase: "inicio",
     },
     {
-      name: "Exploradores",
+      name: "En incorporación",
       value: counts.onboarding,
-      color: "#eab308", // amarillo
+      color: "#eab308",
       description:
-        "Clientes con 1 a 3 meses de antigüedad: Etapa crítica de adopción donde se consolida el uso regular de los servicios.",
-      phase: "desarrollo", // Fase de adopción
+        "Contactos con 1 a 3 meses de relación, en proceso de onboarding y exploración de los servicios.",
+      phase: "desarrollo",
     },
     {
-      name: "Leales",
+      name: "Clientes Leales",
       value: counts.loyal,
-      color: "#00C851", // verde
+      color: "#00C851",
       description:
-        "Clientes con más de 3 meses de antigüedad: Muestran uso regular de los servicios y alta retención, con menor probabilidad de abandono.",
-      phase: "cierre", // Fase de consolidación
+        "Contactos con más de 3 meses de relación, que demuestran un uso constante y alta retención de los servicios.",
+      phase: "cierre",
     },
     {
-      name: "Veteranos",
+      name: "Clientes Veteranos",
       value: counts.legend,
-      color: "#8b5cf6", // Morado
+      color: "#8b5cf6",
       description:
-        "Clientes con más de 1 año de antigüedad: Base de clientes altamente leal y potenciales promotores de los servicios.",
-      phase: "cierre", // Fase de madurez
+        "Contactos con más de 1 año de relación, clientes consolidados con gran potencial para promocionar los servicios.",
+      phase: "cierre",
     },
   ];
 }
@@ -1022,39 +1042,33 @@ function prepareTenureCounts(contacts: ProcessedContact[]): TenureCount[] {
 function prepareTrainingStatusCounts(
   contacts: ProcessedContact[]
 ): TrainingStatusCount[] {
-  // Calculamos los conteos de cada tipo de formación
   const trainingCounts = {
-    completedWithCertificate: 0, // Completadas con certificado
-    completedWithoutCertificate: 0, // Completadas sin certificado
-    inProgress: 0, // En progreso
-    pending: 0, // Pendientes
-    endingSoon: 0, // Por finalizar pronto
-    extendedPeriod: 0, // Periodo extendido
-    deactivated: 0, // Desactivadas
-    noTraining: 0, // Sin formación
+    completedWithCertificate: 0,
+    completedWithoutCertificate: 0,
+    inProgress: 0,
+    pending: 0,
+    endingSoon: 0,
+    extendedPeriod: 0,
+    deactivated: 0,
+    noTraining: 0,
   };
 
-  // Iteramos a través de los contactos para contar los diferentes estados de formación
   contacts.forEach((contact) => {
     if (!contact.trainings || contact.trainings.length === 0) {
       trainingCounts.noTraining++;
       return;
     }
-
     contact.trainings.forEach((training) => {
       if (training.status === "completed") {
-        // Verificar si tiene certificado
         if (training.hasCertificate) {
           trainingCounts.completedWithCertificate++;
         } else {
           trainingCounts.completedWithoutCertificate++;
         }
       } else if (training.status === "in-progress") {
-        // Verificar si está próxima a finalizar (menos de un mes)
         const endDate = training.endDate ? new Date(training.endDate) : null;
         const oneMonthFromNow = new Date();
         oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
-
         if (endDate && endDate <= oneMonthFromNow && endDate >= new Date()) {
           trainingCounts.endingSoon++;
         } else {
@@ -1072,60 +1086,60 @@ function prepareTrainingStatusCounts(
 
   return [
     {
-      name: "Sin estado",
+      name: "Sin formación asignada",
       value: trainingCounts.noTraining,
-      color: "#a1a1aa", // gris
+      color: "#a1a1aa",
       description:
-        "Contacto sin formaciones asignadas: No tiene cursos o programas formativos registrados en el sistema.",
-      phase: "inicio", // Fase de desarrollo por defecto
+        "Contactos sin ningún curso o programa formativo registrado en el sistema.",
+      phase: "inicio",
     },
     {
-      name: "Por iniciar",
+      name: "Formación Pendiente",
       value: trainingCounts.pending,
-      color: "#2563eb", // Azul Oscuro
+      color: "#2563eb",
       description:
-        "Formación pendiente: El contacto tiene asignada la formación pero aún no ha iniciado ninguna sesión o no ha accedido al contenido.",
-      phase: "inicio", // Fase de inicio
+        "Formación asignada pero aún no iniciada; el contacto todavía no ha accedido al contenido.",
+      phase: "inicio",
     },
     {
-      name: "En progreso",
+      name: "En Curso",
       value: trainingCounts.inProgress,
-      color: "#60a5fa", // azul
+      color: "#60a5fa",
       description:
-        "Formación en curso: El contacto está participando activamente en el programa formativo. Ha completado al menos una sesión o módulo.",
-      phase: "desarrollo", // Fase de desarrollo
+        "Formación en proceso, con el contacto participando activamente en sesiones o módulos del curso.",
+      phase: "desarrollo",
     },
     {
-      name: "Por finalizar",
+      name: "Finalización Inminente",
       value: trainingCounts.endingSoon,
-      color: "#eab308", // amarillo
+      color: "#eab308",
       description:
-        "Formación próxima a finalizar: La formación concluirá en menos de 30 días. Es necesario evaluar si requiere acciones adicionales.",
-      phase: "desarrollo", // Fase de desarrollo
+        "Formación próxima a concluir en menos de 30 días, lo que requiere un seguimiento para asegurar su cierre exitoso.",
+      phase: "desarrollo",
     },
     {
-      name: "Desactivado",
+      name: "Formación Suspendida",
       value: trainingCounts.deactivated,
-      color: "#ef4444", // rojo
+      color: "#ef4444",
       description:
-        "Formación desactivada: El acceso a la formación ha sido suspendido debido a impagos o incumplimiento de condiciones por parte del cliente.",
-      phase: "cierre", // Fase de cierre
+        "Acceso a la formación suspendido por impagos o incumplimientos, interrumpiendo el avance del curso.",
+      phase: "cierre",
     },
     {
-      name: "Completado",
+      name: "Formación Completada (Con Certificado)",
       value: trainingCounts.completedWithCertificate,
-      color: "#00C851", // verde
+      color: "#00C851",
       description:
-        "Formación completada con certificado: El contacto ha finalizado con éxito el programa formativo y ha recibido un certificado oficial de aprovechamiento.",
-      phase: "cierre", // Fase de cierre
+        "Programa formativo finalizado exitosamente, otorgando al contacto un certificado oficial.",
+      phase: "cierre",
     },
     {
-      name: "Sin certificado",
+      name: "Formación Completada (Sin Certificado)",
       value: trainingCounts.completedWithoutCertificate,
-      color: "#ef7b07", // Naranja Oscuro
+      color: "#ef7b07",
       description:
-        "Formación completada sin certificado: El contacto ha finalizado el programa formativo pero no ha recibido un certificado, posiblemente por no cumplir los requisitos mínimos para la certificación.",
-      phase: "cierre", // Fase de cierre
+        "Programa formativo completado sin certificación, posiblemente por no cumplir los requisitos necesarios.",
+      phase: "cierre",
     },
   ];
 }
@@ -1136,25 +1150,21 @@ function prepareTrainingStatusCounts(
 function prepareServiceStatusCounts(
   contacts: ProcessedContact[]
 ): ServiceStatusCount[] {
-  // Calculamos los conteos de cada tipo de servicio
   const serviceCounts = {
-    deliveredSuccess: 0, // Entregado exitosamente
-    deliveredFailed: 0, // No se pudo entregar
-    inProgress: 0, // En proceso
-    scheduled: 0, // Programado
-    deactivated: 0, // Desactivado por impagos o incumplimiento
-    noService: 0, // Sin servicios asignados
+    deliveredSuccess: 0,
+    deliveredFailed: 0,
+    inProgress: 0,
+    scheduled: 0,
+    deactivated: 0,
+    noService: 0,
   };
 
-  // Iteramos a través de los contactos para contar los diferentes estados de servicios
   contacts.forEach((contact) => {
     const services = (contact.services as ServiceInfo[] | undefined) || [];
-
     if (services.length === 0) {
       serviceCounts.noService++;
       return;
     }
-
     services.forEach((service) => {
       if (service.status === "delivered") {
         if (service.deliverySuccess) {
@@ -1174,52 +1184,51 @@ function prepareServiceStatusCounts(
 
   return [
     {
-      name: "Sin estado",
+      name: "Sin servicio asignado",
       value: serviceCounts.noService,
-      color: "#a1a1aa", // gris
-      description:
-        "Contacto sin servicios asignados: No tiene servicios registrados en el sistema.",
-      phase: "inicio", // Fase de inicio por defecto
+      color: "#a1a1aa",
+      description: "Contactos sin ningún servicio vinculado en el sistema.",
+      phase: "inicio",
     },
     {
-      name: "Por iniciar",
+      name: "Servicio Programado",
       value: serviceCounts.scheduled,
-      color: "#2563eb", // Azul Oscuro
+      color: "#2563eb",
       description:
-        "Servicio programado: El servicio está agendado para una fecha futura. Se han establecido los parámetros pero aún no se ha iniciado el trabajo.",
-      phase: "inicio", // Fase de programación
+        "Servicio agendado para una fecha futura, que aún no ha iniciado su ejecución.",
+      phase: "inicio",
     },
     {
-      name: "En progreso",
+      name: "Servicio en Proceso",
       value: serviceCounts.inProgress,
-      color: "#60a5fa", // azul
+      color: "#60a5fa",
       description:
-        "Servicio en proceso: El equipo está trabajando activamente en la prestación del servicio. Se encuentra en fase de producción o desarrollo.",
-      phase: "desarrollo", // Fase de ejecución
+        "Servicio actualmente en ejecución, con el equipo trabajando activamente en su prestación.",
+      phase: "desarrollo",
     },
     {
-      name: "Desactivado",
+      name: "Servicio Suspendido",
       value: serviceCounts.deactivated,
-      color: "#ef4444", // rojo
+      color: "#ef4444",
       description:
-        "Servicio desactivado: El servicio ha sido suspendido debido a que el cliente debe dinero o no ha cumplido con su parte del acuerdo, aunque ya se ha iniciado el proyecto.",
-      phase: "cierre", // Fase de cierre
+        "Servicio interrumpido o suspendido debido a incumplimientos o impagos por parte del cliente.",
+      phase: "cierre",
     },
     {
-      name: "Completado",
+      name: "Servicio Completado",
       value: serviceCounts.deliveredSuccess,
-      color: "#00C851", // verde
+      color: "#00C851",
       description:
-        "Servicio completado con éxito: El servicio ha sido entregado al cliente de manera satisfactoria, cumpliendo todos los requisitos y estándares de calidad establecidos.",
-      phase: "cierre", // Fase de entrega
+        "Servicio entregado exitosamente, cumpliendo los estándares y requerimientos establecidos.",
+      phase: "cierre",
     },
     {
-      name: "No completado",
+      name: "Servicio No Completado",
       value: serviceCounts.deliveredFailed,
-      color: "#ef7b07", // Naranja
+      color: "#ef7b07",
       description:
-        "Servicio no entregado: No fue posible completar la entrega del servicio al cliente por problemas técnicos, falta de información, o circunstancias fuera de control.",
-      phase: "cierre", // Fase de entrega
+        "Servicio que no pudo completarse debido a problemas técnicos, falta de información u otros inconvenientes.",
+      phase: "cierre",
     },
   ];
 }
@@ -1228,7 +1237,6 @@ function prepareServiceStatusCounts(
 function prepareMembershipStatusCounts(
   contacts: ProcessedContact[]
 ): MembershipStatusCount[] {
-  // Inicializamos contadores para cada estado
   const membershipCounts = {
     active: 0,
     pending: 0,
@@ -1239,13 +1247,11 @@ function prepareMembershipStatusCounts(
     noMembership: 0,
   };
 
-  // Iteramos a través de los contactos para contar los diferentes estados de membresía
   contacts.forEach((contact) => {
     if (!contact.memberships || contact.memberships.length === 0) {
       membershipCounts.noMembership++;
       return;
     }
-
     contact.memberships.forEach((membership) => {
       if (membership.status === "active") {
         membershipCounts.active++;
@@ -1265,60 +1271,149 @@ function prepareMembershipStatusCounts(
 
   return [
     {
-      name: "Sin estado",
+      name: "Sin membresía",
       value: membershipCounts.noMembership,
-      color: "#a1a1aa", // gris
+      color: "#a1a1aa",
       description:
-        "Contactos sin membresías: No tienen suscripciones registradas en el sistema.",
-      phase: "inicio", // Fase de inicio por defecto
+        "Contactos sin ninguna suscripción o membresía registrada en el sistema.",
+      phase: "inicio",
     },
     {
-      name: "Activo",
+      name: "Membresía Activa",
       value: membershipCounts.active,
-      color: "#00C851", // verde
+      color: "#00C851",
       description:
-        "Membresías activas: Suscripciones vigentes con acceso completo a todos los servicios contratados.",
-      phase: "desarrollo", // Fase de desarrollo
+        "Suscripciones vigentes que brindan acceso completo a los servicios contratados.",
+      phase: "desarrollo",
     },
     {
-      name: "Por iniciar",
+      name: "Membresía Pendiente",
       value: membershipCounts.pending,
-      color: "#2563eb", // azul oscuro
+      color: "#2563eb",
       description:
-        "Membresías pendientes de activación: Suscripciones que han sido adquiridas pero cuya fecha de inicio aún no ha llegado.",
-      phase: "inicio", // Fase de inicio
+        "Suscripciones adquiridas pero con activación pendiente, a la espera de la fecha de inicio.",
+      phase: "inicio",
     },
     {
-      name: "Por finalizar",
+      name: "Membresía Próxima a Vencer",
       value: membershipCounts.expiringSoon,
-      color: "#eab308", // amarillo
+      color: "#eab308",
       description:
-        "Membresías próximas a vencer: Suscripciones que expirarán en menos de 30 días y requieren atención para su renovación.",
-      phase: "desarrollo", // Fase de desarrollo
+        "Suscripciones que expirarán en menos de 30 días y requieren acción para su renovación.",
+      phase: "desarrollo",
     },
     {
-      name: "Desactivado",
+      name: "Membresía Inactiva",
       value: membershipCounts.inactive,
-      color: "#ef4444", // rojo
+      color: "#ef4444",
       description:
-        "Membresías inactivas: Suscripciones que han expirado y no han sido renovadas, por lo que el cliente no tiene acceso a los servicios contratados.",
-      phase: "cierre", // Fase de cierre
+        "Suscripciones expiradas o no renovadas, lo que impide el acceso a los servicios.",
+      phase: "cierre",
     },
     {
-      name: "Satisfecho",
+      name: "Membresía Cancelada Satisfactoriamente",
       value: membershipCounts.inactiveSatisfied,
-      color: "#047230", // Verde Oscuro
+      color: "#047230",
       description:
-        "Membresías canceladas por objetivos cumplidos: El cliente finalizó su suscripción porque alcanzó sus metas de aprendizaje o quedó satisfecho con el servicio recibido.",
-      phase: "cierre", // Fase de cierre
+        "Suscripciones canceladas tras cumplir los objetivos planteados o por decisión voluntaria del cliente.",
+      phase: "cierre",
     },
     {
-      name: "Insatisfecho",
+      name: "Membresía Cancelada por Insatisfacción",
       value: membershipCounts.inactiveUnsatisfied,
-      color: "#ef7b07", // Naranja
+      color: "#ef7b07",
       description:
-        "Membresías canceladas por insatisfacción: El cliente finalizó su suscripción debido a problemas con el servicio o porque no se cumplieron sus expectativas.",
-      phase: "cierre", // Fase de cierre
+        "Suscripciones canceladas debido a insatisfacción con el servicio, lo que requiere análisis y seguimiento.",
+      phase: "cierre",
+    },
+  ];
+}
+
+// Función para preparar datos de estado de consultorías
+function prepareConsultingStatusCounts(
+  contacts: ProcessedContact[]
+): ConsultingStatusCount[] {
+  const consultingCounts = {
+    scheduled: 0,
+    inProgress: 0,
+    completed: 0,
+    cancelled: 0,
+    noConsulting: 0,
+  };
+
+  contacts.forEach((contact) => {
+    const customFields: CustomField[] = contact.customFields || [];
+    const consultingFields = customFields.filter((field) =>
+      field.field.startsWith("CONSULTORÍA")
+    );
+
+    if (consultingFields.length === 0) {
+      consultingCounts.noConsulting++;
+      return;
+    }
+
+    const hasStartDate = consultingFields.some(
+      (field) => field.field.includes("Fecha de Inicio") && field.value
+    );
+    const hasEndDate = consultingFields.some(
+      (field) => field.field.includes("Fecha de Fin") && field.value
+    );
+    const isCancelled = consultingFields.some(
+      (field) =>
+        field.field.includes("Estado") &&
+        field.value?.toLowerCase() === "cancelada"
+    );
+
+    if (isCancelled) {
+      consultingCounts.cancelled++;
+    } else if (hasEndDate) {
+      consultingCounts.completed++;
+    } else if (hasStartDate) {
+      consultingCounts.inProgress++;
+    } else {
+      consultingCounts.scheduled++;
+    }
+  });
+
+  return [
+    {
+      name: "Sin consultoría",
+      value: consultingCounts.noConsulting,
+      color: "#a1a1aa",
+      description:
+        "Contactos sin servicios de consultoría registrados en el sistema.",
+      phase: "inicio",
+    },
+    {
+      name: "Consultoría Programada",
+      value: consultingCounts.scheduled,
+      color: "#2563eb",
+      description: "Servicio de consultoría agendado y pendiente de inicio.",
+      phase: "inicio",
+    },
+    {
+      name: "Consultoría en Progreso",
+      value: consultingCounts.inProgress,
+      color: "#60a5fa",
+      description:
+        "Consultoría en ejecución, con el consultor trabajando activamente en el proyecto.",
+      phase: "desarrollo",
+    },
+    {
+      name: "Consultoría Cancelada",
+      value: consultingCounts.cancelled,
+      color: "#ef4444",
+      description:
+        "Servicio de consultoría cancelado antes de su finalización, por motivos internos o externos.",
+      phase: "cierre",
+    },
+    {
+      name: "Consultoría Finalizada",
+      value: consultingCounts.completed,
+      color: "#00C851",
+      description:
+        "Proyecto de consultoría completado satisfactoriamente, cumpliendo los objetivos planteados.",
+      phase: "cierre",
     },
   ];
 }

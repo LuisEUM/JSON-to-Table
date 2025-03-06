@@ -33,7 +33,7 @@ export function PhaseLegend({
       name: "Fase de Inicio",
       color: "#2563eb", // Azul
       description:
-        "Representa el comienzo del ciclo de vida. Incluye clientes nuevos, procesos de onboarding, servicios programados y formaciones pendientes. Requiere especial seguimiento para garantizar una correcta adopción.",
+        "Representa la adquisición y activación de clientes. Incluye contactos sin estado asignado, clientes en pre-activación, clientes nuevos en onboarding, servicios programados pendientes de iniciar, formaciones pendientes de comenzar y consultorías agendadas.",
       icon: (
         <svg
           xmlns='http://www.w3.org/2000/svg'
@@ -54,7 +54,7 @@ export function PhaseLegend({
       name: "Fase de Desarrollo",
       color: "#4ade80", // Verde
       description:
-        "Representa la etapa de uso activo y crecimiento. Incluye clientes leales, formaciones en progreso, servicios en ejecución y clientes con posibilidad de renovación. El objetivo es maximizar el valor y preparar para la siguiente fase.",
+        "Representa la etapa de operación activa. Incluye clientes con membresías activas, servicios en ejecución o entrega, formaciones en progreso, consultorías en curso y clientes con antigüedad media que están recibiendo valor continuamente.",
       icon: (
         <svg
           xmlns='http://www.w3.org/2000/svg'
@@ -75,7 +75,7 @@ export function PhaseLegend({
       name: "Fase de Cierre",
       color: "#8b5cf6", // Morado
       description:
-        "Representa la conclusión del ciclo. Incluye clientes de larga duración, formaciones completadas, servicios entregados y clientes inactivos. Es crucial para evaluar resultados, obtener retroalimentación y planificar futuras acciones.",
+        "Representa la finalización del ciclo. Incluye clientes en pre-desactivación, clientes inactivos (satisfechos o insatisfechos), clientes inactivos con servicios pendientes, formaciones completadas, servicios entregados o finalizados y consultorías concluidas.",
       icon: (
         <svg
           xmlns='http://www.w3.org/2000/svg'

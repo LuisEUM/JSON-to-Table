@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+} from "@/components/ui/card";
 import {
   Tooltip,
   TooltipContent,
@@ -20,10 +22,11 @@ export interface StatusDescription {
 
 export interface StatusLegendProps {
   statusDescriptions: StatusDescription[];
-  tenureDescriptions?: StatusDescription[];
-  trainingDescriptions?: StatusDescription[];
-  serviceDescriptions?: StatusDescription[];
-  membershipDescriptions?: StatusDescription[];
+  tenureDescriptions: StatusDescription[];
+  trainingDescriptions: StatusDescription[];
+  serviceDescriptions: StatusDescription[];
+  membershipDescriptions: StatusDescription[];
+  consultingDescriptions: StatusDescription[];
 }
 
 function groupByPhase(items: StatusDescription[]) {
@@ -78,10 +81,11 @@ function PhaseGroup({
 
 export function StatusLegend({
   statusDescriptions,
-  tenureDescriptions = [],
-  trainingDescriptions = [],
-  serviceDescriptions = [],
-  membershipDescriptions = [],
+  tenureDescriptions,
+  trainingDescriptions,
+  serviceDescriptions,
+  membershipDescriptions,
+  consultingDescriptions,
 }: StatusLegendProps) {
   const statusWithPhases = statusDescriptions.map((status) => {
     if (status.phase) return status;
@@ -201,11 +205,44 @@ export function StatusLegend({
     return { ...membership, phase: "desarrollo" as const };
   });
 
+  const consultingWithPhases = consultingDescriptions.map((consulting) => {
+    if (consulting.phase) return consulting;
+
+    if (["Pendientes"].includes(consulting.name)) {
+      return { ...consulting, phase: "inicio" as const, color: "#f97316" };
+    } else if (
+      ["En Progreso", "Próximas a finalizar"].includes(consulting.name)
+    ) {
+      return {
+        ...consulting,
+        phase: "desarrollo" as const,
+        color: consulting.name === "En Progreso" ? "#60a5fa" : "#eab308",
+      };
+    } else if (
+      ["Completadas con certificado", "Completadas sin certificado"].includes(
+        consulting.name
+      )
+    ) {
+      return {
+        ...consulting,
+        phase: "cierre" as const,
+        color:
+          consulting.name === "Completadas con certificado"
+            ? "#4ade80"
+            : consulting.name === "Completadas sin certificado"
+            ? "#a3e635"
+            : "#8b5cf6",
+      };
+    }
+    return { ...consulting, phase: "desarrollo" as const };
+  });
+
   const statusGroups = groupByPhase(statusWithPhases);
   const tenureGroups = groupByPhase(tenureWithPhases);
   const trainingGroups = groupByPhase(trainingWithPhases);
   const serviceGroups = groupByPhase(serviceWithPhases);
   const membershipGroups = groupByPhase(membershipWithPhases);
+  const consultingGroups = groupByPhase(consultingWithPhases);
 
   return (
     <TooltipProvider>
@@ -236,6 +273,7 @@ export function StatusLegend({
             <TabsTrigger value='formacion'>Formación</TabsTrigger>
             <TabsTrigger value='servicios'>Servicio</TabsTrigger>
             <TabsTrigger value='antiguedad'>Antigüedad</TabsTrigger>
+            <TabsTrigger value='consultoria'>Consultoría</TabsTrigger>
           </TabsList>
 
           <TabsContent value='estados'>
@@ -325,6 +363,27 @@ export function StatusLegend({
             <PhaseGroup title='Fase de Cierre' items={serviceGroups.cierre} />
             {serviceGroups.other.length > 0 && (
               <PhaseGroup title='Otros Estados' items={serviceGroups.other} />
+            )}
+          </TabsContent>
+
+          <TabsContent value='consultoria'>
+            <PhaseGroup
+              title='Fase de Inicio'
+              items={consultingGroups.inicio}
+            />
+            <PhaseGroup
+              title='Fase de Desarrollo'
+              items={consultingGroups.desarrollo}
+            />
+            <PhaseGroup
+              title='Fase de Cierre'
+              items={consultingGroups.cierre}
+            />
+            {consultingGroups.other.length > 0 && (
+              <PhaseGroup
+                title='Otros Estados'
+                items={consultingGroups.other}
+              />
             )}
           </TabsContent>
         </Tabs>

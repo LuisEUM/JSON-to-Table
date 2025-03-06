@@ -1,23 +1,46 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserCheck, UserX, Clock } from "lucide-react";
+import {
+  Users,
+  UserCheck,
+  UserX,
+  Clock,
+  Award,
+  Briefcase,
+  Bookmark,
+  Lightbulb,
+} from "lucide-react";
 
-interface ContactosViewProps {
+interface ClientsViewProps {
   totalClients: number;
   activeClients: number;
   inactiveClients: number;
-  averageTenure: number;
+  averageTenure: number | string;
+  totalMemberships?: number;
+  totalServices?: number;
+  totalTrainings?: number;
+  totalConsultorias?: number;
 }
 
-export default function ContactosView({
+export default function ClientsView({
   totalClients,
   activeClients,
   inactiveClients,
   averageTenure,
-}: ContactosViewProps) {
+  totalMemberships = 0,
+  totalServices = 0,
+  totalTrainings = 0,
+  totalConsultorias = 0,
+}: ClientsViewProps) {
   // Calculate percentages
   const getPercentage = (value: number) =>
-    ((value / totalClients) * 100).toFixed(1);
+    totalClients > 0 ? ((value / totalClients) * 100).toFixed(1) : "0.0";
+
+  // Format average tenure display
+  const formattedTenure =
+    typeof averageTenure === "number"
+      ? `${averageTenure} meses`
+      : averageTenure;
 
   return (
     <div className='space-y-8'>
@@ -32,7 +55,7 @@ export default function ContactosView({
           <CardContent>
             <div className='text-2xl font-bold'>{totalClients}</div>
             <p className='text-xs text-muted-foreground'>
-              Clientes registrados en Holded
+              Clientes registrados en el sistema
             </p>
           </CardContent>
         </Card>
@@ -78,9 +101,68 @@ export default function ContactosView({
             <Clock className='h-5 w-5 text-amber-500' />
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>{averageTenure} meses</div>
+            <div className='text-2xl font-bold'>{formattedTenure}</div>
             <p className='text-xs text-muted-foreground'>
               Tiempo promedio como cliente
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Second Row: Client Services Information */}
+      <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+        {/* Memberships Card */}
+        <Card className='shadow-md border-t-4 border-t-purple-500'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-lg font-bold'>Membresías</CardTitle>
+            <Award className='h-5 w-5 text-purple-500' />
+          </CardHeader>
+          <CardContent>
+            <div className='text-2xl font-bold'>{totalMemberships}</div>
+            <p className='text-xs text-muted-foreground'>
+              Total de membresías activas
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Services Card */}
+        <Card className='shadow-md border-t-4 border-t-cyan-500'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-lg font-bold'>Servicios</CardTitle>
+            <Briefcase className='h-5 w-5 text-cyan-500' />
+          </CardHeader>
+          <CardContent>
+            <div className='text-2xl font-bold'>{totalServices}</div>
+            <p className='text-xs text-muted-foreground'>
+              Total de servicios asignados
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Trainings Card */}
+        <Card className='shadow-md border-t-4 border-t-emerald-500'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-lg font-bold'>Formaciones</CardTitle>
+            <Bookmark className='h-5 w-5 text-emerald-500' />
+          </CardHeader>
+          <CardContent>
+            <div className='text-2xl font-bold'>{totalTrainings}</div>
+            <p className='text-xs text-muted-foreground'>
+              Total de formaciones programadas
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Consultorías Card */}
+        <Card className='shadow-md border-t-4 border-t-blue-500'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-lg font-bold'>Consultorías</CardTitle>
+            <Lightbulb className='h-5 w-5 text-blue-500' />
+          </CardHeader>
+          <CardContent>
+            <div className='text-2xl font-bold'>{totalConsultorias}</div>
+            <p className='text-xs text-muted-foreground'>
+              Total de consultorías activas
             </p>
           </CardContent>
         </Card>

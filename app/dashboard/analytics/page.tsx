@@ -13,7 +13,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -50,8 +56,9 @@ import PhaseLegend from "./components/PhaseLegend";
 // Importar componentes nuevos
 import TodosView from "./components/TodosView";
 import LeadsView from "./components/LeadsView";
-import ContactosView from "./components/ContactosView";
+import ContactosView from "./components/ClientsView";
 import { Contact as ModalContact } from "./components/ContactDetailModal";
+import ResponsibleCountsView from "./components/ResponsibleCountsView";
 
 // Definir interfaces para los datos
 interface Contact {
@@ -82,6 +89,7 @@ interface AnalyticsData {
     totalTrainings: number;
     totalServices: number;
     averageTenure: number;
+    totalConsultorias: number;
   };
   contactCountByType: {
     client?: number;
@@ -149,6 +157,12 @@ interface AnalyticsData {
     color: string;
     description: string;
   }[];
+  consultingStatusCounts: {
+    name: string;
+    value: number;
+    color: string;
+    description: string;
+  }[];
   contactsByCategory: {
     active: Contact[];
     expiringSoon: Contact[];
@@ -165,23 +179,36 @@ interface AnalyticsData {
     minDate: string | null;
     maxDate: string | null;
   };
+  responsibleCounts: {
+    name: string;
+    subcategory: string;
+    count: number;
+  }[];
 }
 
 // Definir los tipos de contactos disponibles
 const contactTypes = [
   { value: "all", label: "Todos" },
-  { value: "leads", label: "Leads" },
-  { value: "clients", label: "Clientes" },
-]; // Revised contact types according to requirements
+  { value: "client", label: "Clientes" },
+  { value: "lead", label: "Leads" },
+  { value: "supplier", label: "Proveedores" },
+  { value: "creditor", label: "Acreedores" },
+  { value: "debtor", label: "Deudores" },
+];
 
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<string>("clients");
+  const [selectedType, setSelectedType] = useState<string>("all");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [diagnosisResult, setDiagnosisResult] = useState<string | null>(null);
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    fetchAnalyticsData("all");
+  }, []);
 
   const handleTypeChange = (value: string) => {
     setSelectedType(value);
@@ -253,11 +280,6 @@ export default function AnalyticsPage() {
     }
   };
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    fetchAnalyticsData();
-  }, []);
-
   // Manejar cambio de fecha de inicio
   const handleStartDateChange = (date: Date | undefined) => {
     setStartDate(date);
@@ -278,12 +300,12 @@ export default function AnalyticsPage() {
     );
   };
 
-  // Limpiar todos los filtros
+  // Función para limpiar filtros
   const handleClearFilters = () => {
     setSelectedType("all");
     setStartDate(undefined);
     setEndDate(undefined);
-    fetchAnalyticsData();
+    fetchAnalyticsData("all");
   };
 
   // Aplicar filtro predefinido de fecha
@@ -486,7 +508,7 @@ export default function AnalyticsPage() {
                     {startDate ? (
                       format(startDate, "dd/MM/yyyy", { locale: es })
                     ) : (
-                      <span>Fecha inicio</span>
+                      <span>Fecha creación desde</span>
                     )}
                   </Button>
                 </PopoverTrigger>
@@ -515,7 +537,7 @@ export default function AnalyticsPage() {
                     {endDate ? (
                       format(endDate, "dd/MM/yyyy", { locale: es })
                     ) : (
-                      <span>Fecha fin</span>
+                      <span>Fecha creación hasta</span>
                     )}
                   </Button>
                 </PopoverTrigger>
@@ -598,17 +620,21 @@ export default function AnalyticsPage() {
               />
             )}
 
-            {selectedType === "leads" && data && (
+            {selectedType === "lead" && data && (
               <LeadsView totalLeads={data.contactCountByType?.lead || 0} />
             )}
 
-            {selectedType === "clients" && data && (
+            {selectedType === "client" && data && (
               <>
                 <ContactosView
                   totalClients={data.contactCountByType?.client || 0}
                   activeClients={data.stats.activeContacts}
                   inactiveClients={data.stats.inactiveContacts}
                   averageTenure={data.stats.averageTenure}
+                  totalMemberships={data.stats.totalMemberships}
+                  totalServices={data.stats.totalServices}
+                  totalTrainings={data.stats.totalTrainings}
+                  totalConsultorias={data.stats.totalConsultorias}
                 />
 
                 {/* Sección de KPIs y Gráficos */}
@@ -623,6 +649,7 @@ export default function AnalyticsPage() {
                     trainingDescriptions={data.trainingStatusCounts}
                     serviceDescriptions={data.serviceStatusCounts}
                     membershipDescriptions={data.membershipStatusCounts}
+                    consultingDescriptions={data.consultingStatusCounts}
                   />
                 </section>
 
@@ -631,7 +658,9 @@ export default function AnalyticsPage() {
                   <TabsList className='w-full justify-start overflow-auto'>
                     <TabsTrigger value='membership'>Membresías</TabsTrigger>
                     <TabsTrigger value='training'>Formaciones</TabsTrigger>
+                    <TabsTrigger value='consultoria'>Consultoría</TabsTrigger>
                     <TabsTrigger value='distribution'>Distribución</TabsTrigger>
+                    <TabsTrigger value='responsible'>Responsables</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value='membership' className='pt-4'>
@@ -698,6 +727,24 @@ export default function AnalyticsPage() {
                     />
                   </TabsContent>
 
+                  <TabsContent value='consultoria'>
+                    <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Total Consultorías</CardTitle>
+                          <CardDescription>
+                            Número total de consultorías activas
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className='text-2xl font-bold'>
+                            {data.stats.totalConsultorias}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+
                   <TabsContent value='distribution' className='pt-4'>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                       <StatusPieChart
@@ -719,6 +766,12 @@ export default function AnalyticsPage() {
                         }
                       />
                     </div>
+                  </TabsContent>
+
+                  <TabsContent value='responsible'>
+                    <ResponsibleCountsView
+                      responsibleCounts={data.responsibleCounts}
+                    />
                   </TabsContent>
                 </Tabs>
               </>
