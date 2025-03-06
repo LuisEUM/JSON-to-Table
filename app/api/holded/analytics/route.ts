@@ -340,9 +340,7 @@ export async function GET(request: NextRequest) {
           "Clientes Leales": processedContacts.filter(
             (c) => c.tenure === "loyal"
           ),
-          "Clientes Veteranos": processedContacts.filter(
-            (c) => c.tenure === "legend"
-          ),
+
         },
         completed: processedContacts.reduce((acc, contact) => {
           const trainings = contact.trainings || [];
@@ -1027,15 +1025,7 @@ function prepareTenureCounts(contacts: ProcessedContact[]): TenureCount[] {
       description:
         "Contactos con más de 3 meses de relación, que demuestran un uso constante y alta retención de los servicios.",
       phase: "cierre",
-    },
-    {
-      name: "Veteranos",
-      value: counts.legend,
-      color: "#8b5cf6",
-      description:
-        "Contactos con más de 1 año de relación, clientes consolidados con gran potencial para promocionar los servicios.",
-      phase: "cierre",
-    },
+    }
   ];
 }
 
@@ -1339,6 +1329,7 @@ function prepareConsultingStatusCounts(
     completed: 0,
     cancelled: 0,
     noConsulting: 0,
+    inactive: 0,
   };
 
   contacts.forEach((contact) => {
@@ -1398,6 +1389,14 @@ function prepareConsultingStatusCounts(
       description:
         "Consultoría en ejecución, con el consultor trabajando activamente en el proyecto.",
       phase: "desarrollo",
+    },
+    {
+      name: "Desactivado",
+      value: consultingCounts.inactive,
+      color: "#ef4444",
+      description:
+        "El acceso del contacto se ha interrumpido por falta de pago o renovación.",
+      phase: "cierre",
     },
     {
       name: "Satisfecho",
