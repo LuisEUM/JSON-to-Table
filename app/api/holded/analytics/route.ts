@@ -1409,7 +1409,7 @@ function prepareConsultingStatusCounts(
     {
       name: "Insatisfecho",
       value: consultingCounts.cancelled,
-      color: "#ef4444", // rojo
+      color: "#f59e0b", // naranja
       description:
         "Consultoría cancelada: El servicio fue cancelado antes de su finalización por motivos internos o externos.",
       phase: "cierre",
