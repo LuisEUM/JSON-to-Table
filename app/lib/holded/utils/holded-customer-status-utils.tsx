@@ -1,11 +1,33 @@
 import React from "react";
-import { Circle } from "lucide-react";
+import { Circle, AlertTriangle } from "lucide-react";
 import { Customer } from "../interfaces/customer";
 import {
   MembershipStatus,
   CustomerStatusResult,
   StatusColumn,
+  IncidentType,
 } from "../interfaces/status-types";
+
+// TODO: These membership status states need to be updated to align with the standardized states defined in REQUERIMIENTOS2.MD.
+// Current states (ABOUT_TO_START, ACTIVE, ABOUT_TO_END, DEACTIVATED, NO_STATUS)
+// should be aligned with: "Cliente activo", "Cliente desactivado", "Cliente en período de pre-desactivación", etc.
+
+/**
+ * TODO: Actualizar completamente los estados de membresía para alinearlos con los estados estandarizados.
+ *
+ * Estados actuales:
+ * - ABOUT_TO_START (actualizado a "Por iniciar")
+ * - ACTIVE (actualizado a "Activo")
+ * - ABOUT_TO_END (actualizado a "Por finalizar")
+ * - DEACTIVATED (se mantiene como "Incidencia")
+ * - NO_STATUS (actualizado a "Sin estado")
+ *
+ * Estados estandarizados que faltan por implementar:
+ * - Completado
+ * - Error
+ *
+ * Esta actualización asegurará coherencia en todas las visualizaciones del sistema.
+ */
 
 /**
  * Determina el estado de membresía basado en fechas de inicio y fin
@@ -55,7 +77,7 @@ export function getStatusColorClasses(status: MembershipStatus): string {
     case MembershipStatus.ABOUT_TO_START:
       return "text-yellow-500 fill-current";
     case MembershipStatus.ACTIVE:
-      return "text-green-500 fill-current";
+      return "text-[#0A4D8C] fill-current";
     case MembershipStatus.ABOUT_TO_END:
       return "text-orange-500 fill-current";
     case MembershipStatus.DEACTIVATED:
@@ -71,15 +93,15 @@ export function getStatusColorClasses(status: MembershipStatus): string {
 export function getStatusLabel(status: MembershipStatus): string {
   switch (status) {
     case MembershipStatus.ABOUT_TO_START:
-      return "Va a ser Alta";
+      return "Por iniciar";
     case MembershipStatus.ACTIVE:
-      return "Servicio Activo";
+      return "Activo";
     case MembershipStatus.ABOUT_TO_END:
-      return "Va a ser Baja";
+      return "Por finalizar";
     case MembershipStatus.DEACTIVATED:
-      return "Servicio Desactivado";
+      return "Incidencia";
     default:
-      return "Sin Estado";
+      return "Sin estado";
   }
 }
 
@@ -280,9 +302,68 @@ export function getCustomerStatus(customer: Customer): CustomerStatusResult {
 }
 
 /**
+ * Obtiene el tipo de incidencia basado en las características del cliente
+ */
+export function getIncidentType(customer: Customer): IncidentType | null {
+  // Aquí iría la lógica para determinar el tipo de incidencia
+  // Por ejemplo, revisando campos personalizados para determinar el tipo
+
+  // Buscar campos relacionados con incidencias en los datos del cliente
+  // Por ahora, devolvemos un ejemplo simple
+  const { [MembershipStatus.DEACTIVATED]: deactivatedServices } =
+    getCustomerStatus(customer);
+
+  if (deactivatedServices.length > 0) {
+    // Esto es un ejemplo - la lógica real examinaría los campos específicos
+    if (
+      customer.customFields.some(
+        (field) =>
+          field.field.toLowerCase().includes("pago") &&
+          field.value.toLowerCase().includes("pendiente")
+      )
+    ) {
+      return IncidentType.PAYMENT_FAILURE;
+    }
+
+    if (
+      customer.customFields.some(
+        (field) =>
+          field.field.toLowerCase().includes("formación") &&
+          field.value.toLowerCase().includes("incompleto")
+      )
+    ) {
+      return IncidentType.INCOMPLETE_TRAINING;
+    }
+
+    return IncidentType.GENERAL;
+  }
+
+  return null;
+}
+
+/**
+ * Obtiene la descripción para un tipo de incidencia
+ */
+export function getIncidentDescription(type: IncidentType): string {
+  switch (type) {
+    case IncidentType.PAYMENT_FAILURE:
+      return "Falta de pago por parte del cliente";
+    case IncidentType.INCOMPLETE_TRAINING:
+      return "No completó todos los requisitos de la formación";
+    case IncidentType.SERVICE_INTERRUPTION:
+      return "Interrupción de servicio por causas técnicas";
+    case IncidentType.CONTRACT_BREACH:
+      return "Incumplimiento de contrato";
+    default:
+      return "Incidencia general";
+  }
+}
+
+/**
  * Crea las columnas personalizadas para mostrar:
  * - El Estado del Cliente (con ícono y etiqueta).
  * - Los nombres de los servicios en cada estado renderizados como badges.
+ * - Incidencias registradas.
  */
 export function createCustomStatusColumns(): StatusColumn[] {
   return [
@@ -294,28 +375,28 @@ export function createCustomStatusColumns(): StatusColumn[] {
         const { clientStatus } = getCustomerStatus(customer);
         if (!clientStatus) return "N/A";
         return (
-          <div className='flex items-center gap-1'>
+          <div className="flex items-center gap-1">
             <Circle
               className={`h-3 w-3 ${getStatusColorClasses(clientStatus)}`}
             />
-            <span className='text-sm'>{getStatusLabel(clientStatus)}</span>
+            <span className="text-sm">{getStatusLabel(clientStatus)}</span>
           </div>
         );
       },
     },
     {
       id: "activeServices",
-      header: "Servicio Activo",
+      header: "Activo",
       cell: ({ row }: { row: { original: Customer } }) => {
         const customer = row.original;
         const { [MembershipStatus.ACTIVE]: activeServices } =
           getCustomerStatus(customer);
         return activeServices.length > 0 ? (
-          <div className='flex flex-wrap gap-1'>
+          <div className="flex flex-wrap gap-1">
             {activeServices.map((name, idx) => (
               <span
                 key={idx}
-                className='bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded'
+                className="bg-[#0A4D8C]/10 text-[#0A4D8C] text-xs font-medium px-2 py-0.5 rounded"
               >
                 {name}
               </span>
@@ -328,17 +409,17 @@ export function createCustomStatusColumns(): StatusColumn[] {
     },
     {
       id: "aboutToStartServices",
-      header: "Va a ser Alta",
+      header: "Por iniciar",
       cell: ({ row }: { row: { original: Customer } }) => {
         const customer = row.original;
         const { [MembershipStatus.ABOUT_TO_START]: services } =
           getCustomerStatus(customer);
         return services.length > 0 ? (
-          <div className='flex flex-wrap gap-1'>
+          <div className="flex flex-wrap gap-1">
             {services.map((name, idx) => (
               <span
                 key={idx}
-                className='bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded'
+                className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded"
               >
                 {name}
               </span>
@@ -351,17 +432,17 @@ export function createCustomStatusColumns(): StatusColumn[] {
     },
     {
       id: "aboutToEndServices",
-      header: "Va a ser Baja",
+      header: "Por finalizar",
       cell: ({ row }: { row: { original: Customer } }) => {
         const customer = row.original;
         const { [MembershipStatus.ABOUT_TO_END]: services } =
           getCustomerStatus(customer);
         return services.length > 0 ? (
-          <div className='flex flex-wrap gap-1'>
+          <div className="flex flex-wrap gap-1">
             {services.map((name, idx) => (
               <span
                 key={idx}
-                className='bg-orange-100 text-orange-800 text-xs font-medium px-2 py-0.5 rounded'
+                className="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-0.5 rounded"
               >
                 {name}
               </span>
@@ -374,17 +455,17 @@ export function createCustomStatusColumns(): StatusColumn[] {
     },
     {
       id: "deactivatedServices",
-      header: "Servicio Desactivado",
+      header: "Incidencia",
       cell: ({ row }: { row: { original: Customer } }) => {
         const customer = row.original;
         const { [MembershipStatus.DEACTIVATED]: services } =
           getCustomerStatus(customer);
         return services.length > 0 ? (
-          <div className='flex flex-wrap gap-1'>
+          <div className="flex flex-wrap gap-1">
             {services.map((name, idx) => (
               <span
                 key={idx}
-                className='bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded'
+                className="bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded"
               >
                 {name}
               </span>
@@ -397,17 +478,17 @@ export function createCustomStatusColumns(): StatusColumn[] {
     },
     {
       id: "noStatusServices",
-      header: "Sin Estado",
+      header: "Completado",
       cell: ({ row }: { row: { original: Customer } }) => {
         const customer = row.original;
         const { [MembershipStatus.NO_STATUS]: services } =
           getCustomerStatus(customer);
         return services.length > 0 ? (
-          <div className='flex flex-wrap gap-1'>
+          <div className="flex flex-wrap gap-1">
             {services.map((name, idx) => (
               <span
                 key={idx}
-                className='bg-gray-100 text-gray-800 text-xs font-medium px-2 py-0.5 rounded'
+                className="bg-[#00C851]/10 text-[#00C851] text-xs font-medium px-2 py-0.5 rounded"
               >
                 {name}
               </span>
@@ -415,6 +496,38 @@ export function createCustomStatusColumns(): StatusColumn[] {
           </div>
         ) : (
           "N/A"
+        );
+      },
+    },
+    {
+      id: "incidencias",
+      header: "Detalles de Incidencias",
+      cell: ({ row }: { row: { original: Customer } }) => {
+        const customer = row.original;
+        const incidentType = getIncidentType(customer);
+
+        if (!incidentType) return "N/A";
+
+        return (
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-red-800">
+                {getIncidentDescription(incidentType)}
+              </p>
+              {customer.customFields
+                .filter(
+                  (field) =>
+                    field.field.toLowerCase().includes("incidencia") ||
+                    field.field.toLowerCase().includes("observación")
+                )
+                .map((field, idx) => (
+                  <p key={idx} className="text-xs text-gray-600">
+                    {field.value}
+                  </p>
+                ))}
+            </div>
+          </div>
         );
       },
     },

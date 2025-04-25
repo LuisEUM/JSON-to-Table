@@ -9,6 +9,14 @@ export enum MembershipStatus {
   NO_STATUS = "no-status",
 }
 
+export enum IncidentType {
+  PAYMENT_FAILURE = "payment-failure",
+  INCOMPLETE_TRAINING = "incomplete-training",
+  SERVICE_INTERRUPTION = "service-interruption",
+  CONTRACT_BREACH = "contract-breach",
+  GENERAL = "general",
+}
+
 export interface CustomerStatusResult {
   clientStatus: MembershipStatus | null;
   [MembershipStatus.ACTIVE]: string[];

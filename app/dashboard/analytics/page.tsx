@@ -44,6 +44,7 @@ import {
   getEndOfCurrentYear,
   getDateMonthsAgo,
 } from "../../lib/holded/utils/analytics-date-utils";
+import { toast } from "sonner";
 
 // Importar componentes de gráficos
 import MembershipTrendsChart from "./components/MembershipTrendsChart";
@@ -51,7 +52,6 @@ import TrainingsByYearChart from "./components/TrainingsByYearChart";
 import StatusPieChart from "./components/StatusPieChart";
 import TenurePieChart from "./components/TenurePieChart";
 import StatusLegend from "./components/StatusLegend";
-import PhaseLegend from "./components/PhaseLegend";
 
 // Importar componentes nuevos
 import TodosView from "./components/TodosView";
@@ -204,6 +204,7 @@ export default function AnalyticsPage() {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [diagnosisResult, setDiagnosisResult] = useState<string | null>(null);
+  const [showFullJson, setShowFullJson] = useState<boolean>(false);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -385,26 +386,31 @@ export default function AnalyticsPage() {
     }
   };
 
+  // Función para mostrar/ocultar JSON completo
+  const toggleJsonView = () => {
+    setShowFullJson(!showFullJson);
+  };
+
   // Renderizar estado de carga
   if (loading && !data) {
     return (
-      <div className='container mx-auto py-10 space-y-8 '>
-        <h1 className='text-3xl font-bold'>Análisis de Contactos</h1>
-        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+      <div className="container mx-auto py-10 space-y-8 ">
+        <h1 className="text-3xl font-bold">Análisis de Contactos</h1>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array(6)
             .fill(0)
             .map((_, i) => (
-              <Skeleton key={i} className='h-[150px] w-full' />
+              <Skeleton key={i} className="h-[150px] w-full" />
             ))}
         </div>
-        <Tabs defaultValue='membership'>
-          <TabsList className='w-full justify-start'>
-            <TabsTrigger value='membership'>Membresías</TabsTrigger>
-            <TabsTrigger value='trainings'>Formaciones</TabsTrigger>
-            <TabsTrigger value='distribution'>Distribución</TabsTrigger>
+        <Tabs defaultValue="membership">
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="membership">Membresías</TabsTrigger>
+            <TabsTrigger value="trainings">Formaciones</TabsTrigger>
+            <TabsTrigger value="distribution">Distribución</TabsTrigger>
           </TabsList>
-          <TabsContent value='membership' className='mt-6'>
-            <Skeleton className='h-[400px] w-full' />
+          <TabsContent value="membership" className="mt-6">
+            <Skeleton className="h-[400px] w-full" />
           </TabsContent>
         </Tabs>
       </div>
@@ -414,9 +420,9 @@ export default function AnalyticsPage() {
   // Renderizar estado de error
   if (error && !data) {
     return (
-      <div className='container mx-auto py-10'>
-        <Alert variant='destructive'>
-          <AlertCircle className='h-4 w-4' />
+      <div className="container mx-auto py-10">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -426,24 +432,24 @@ export default function AnalyticsPage() {
 
   // Renderizar datos
   return (
-    <div className='container mx-auto py-6 md:py-10 space-y-4 md:space-y-8 px-4 sm:px-6 lg:px-8'>
-      <div className='flex flex-col space-y-4 md:space-y-0 md:flex-row md:justify-between md:items-center'>
-        <h1 className='text-2xl md:text-3xl font-bold'>
+    <div className="container mx-auto py-6 md:py-10 space-y-4 md:space-y-8 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:justify-between md:items-center">
+        <h1 className="text-2xl md:text-3xl font-bold">
           Análisis de Contactos
         </h1>
 
-        <Card className='w-full md:w-auto'>
-          <CardContent className='p-3 md:p-4'>
-            <div className='flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:flex-wrap sm:items-center gap-2 md:gap-4'>
-              <div className='flex items-center gap-2'>
-                <Filter className='h-4 w-4' />
-                <span className='text-sm font-medium'>Filtros:</span>
+        <Card className="w-full md:w-auto">
+          <CardContent className="p-3 md:p-4">
+            <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:flex-wrap sm:items-center gap-2 md:gap-4">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                <span className="text-sm font-medium">Filtros:</span>
               </div>
 
               {/* Selector de tipo */}
               <Select value={selectedType} onValueChange={handleTypeChange}>
-                <SelectTrigger className='w-full sm:w-[180px]'>
-                  <SelectValue placeholder='Tipo de contacto' />
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Tipo de contacto" />
                 </SelectTrigger>
                 <SelectContent>
                   {contactTypes.map((type) => (
@@ -457,12 +463,12 @@ export default function AnalyticsPage() {
               {/* Filtros predefinidos de fecha */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant='outline' className='w-full sm:w-[180px]'>
-                    <CalendarIcon className='mr-2 h-4 w-4' />
+                  <Button variant="outline" className="w-full sm:w-[180px]">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
                     <span>Período</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align='end' className='w-[200px]'>
+                <DropdownMenuContent align="end" className="w-[200px]">
                   <DropdownMenuItem
                     onClick={() => applyDatePreset("current-month")}
                   >
@@ -498,13 +504,13 @@ export default function AnalyticsPage() {
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
-                    variant='outline'
+                    variant="outline"
                     className={cn(
                       "w-full sm:w-[180px] justify-start text-left font-normal",
                       !startDate && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className='mr-2 h-4 w-4' />
+                    <CalendarIcon className="mr-2 h-4 w-4" />
                     {startDate ? (
                       format(startDate, "dd/MM/yyyy", { locale: es })
                     ) : (
@@ -512,9 +518,9 @@ export default function AnalyticsPage() {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className='w-auto p-0'>
+                <PopoverContent className="w-auto p-0">
                   <Calendar
-                    mode='single'
+                    mode="single"
                     selected={startDate}
                     onSelect={handleStartDateChange}
                     initialFocus
@@ -527,13 +533,13 @@ export default function AnalyticsPage() {
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
-                    variant='outline'
+                    variant="outline"
                     className={cn(
                       "w-full sm:w-[180px] justify-start text-left font-normal",
                       !endDate && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className='mr-2 h-4 w-4' />
+                    <CalendarIcon className="mr-2 h-4 w-4" />
                     {endDate ? (
                       format(endDate, "dd/MM/yyyy", { locale: es })
                     ) : (
@@ -541,9 +547,9 @@ export default function AnalyticsPage() {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className='w-auto p-0'>
+                <PopoverContent className="w-auto p-0">
                   <Calendar
-                    mode='single'
+                    mode="single"
                     selected={endDate}
                     onSelect={handleEndDateChange}
                     initialFocus
@@ -555,10 +561,10 @@ export default function AnalyticsPage() {
               {/* Botón para limpiar filtros */}
               {(selectedType !== "all" || startDate || endDate) && (
                 <Button
-                  variant='outline'
-                  size='sm'
+                  variant="outline"
+                  size="sm"
                   onClick={handleClearFilters}
-                  className='w-full sm:w-auto'
+                  className="w-full sm:w-auto"
                 >
                   Limpiar filtros
                 </Button>
@@ -566,11 +572,20 @@ export default function AnalyticsPage() {
 
               {/* Botón de diagnóstico */}
               <Button
-                variant='outline'
+                variant="outline"
                 onClick={runDateDiagnosis}
-                className='w-full sm:w-auto'
+                className="w-full sm:w-auto"
               >
                 Diagnosticar fechas
+              </Button>
+
+              {/* Nuevo botón para ver JSON completo */}
+              <Button
+                variant="outline"
+                onClick={toggleJsonView}
+                className="w-full sm:w-auto"
+              >
+                {showFullJson ? "Ocultar JSON" : "Ver JSON completo"}
               </Button>
             </div>
           </CardContent>
@@ -579,15 +594,15 @@ export default function AnalyticsPage() {
 
       {loading && (
         <Alert>
-          <AlertCircle className='h-4 w-4' />
+          <AlertCircle className="h-4 w-4" />
           <AlertTitle>Cargando</AlertTitle>
           <AlertDescription>Actualizando datos de análisis...</AlertDescription>
         </Alert>
       )}
 
       {error && (
-        <Alert variant='destructive'>
-          <AlertCircle className='h-4 w-4' />
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -595,19 +610,41 @@ export default function AnalyticsPage() {
 
       {/* Mostrar resultado del diagnóstico si existe */}
       {diagnosisResult && (
-        <div className='p-4 bg-white rounded-lg shadow'>
-          <h2 className='text-xl font-semibold mb-2'>
+        <div className="p-4 bg-white rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-2">
             Resultado del diagnóstico
           </h2>
-          <pre className='bg-gray-100 p-4 rounded overflow-auto max-h-96 text-xs sm:text-sm'>
+          <pre className="bg-gray-100 p-4 rounded overflow-auto max-h-96 text-xs sm:text-sm">
             {diagnosisResult}
+          </pre>
+        </div>
+      )}
+
+      {/* Mostrar JSON completo cuando showFullJson es true */}
+      {showFullJson && data && (
+        <div className="p-4 bg-white rounded-lg shadow mt-4">
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-xl font-semibold">JSON completo de datos</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+                toast.success("JSON copiado al portapapeles");
+              }}
+            >
+              Copiar JSON
+            </Button>
+          </div>
+          <pre className="bg-gray-100 p-4 rounded overflow-auto max-h-[600px] text-xs sm:text-sm">
+            {JSON.stringify(data, null, 2)}
           </pre>
         </div>
       )}
 
       {data && (
         <>
-          <div className='grid gap-4 md:gap-8 mt-4'>
+          <div className="grid gap-4 md:gap-8 mt-4">
             {/* Renderiza el componente adecuado según el tipo seleccionado */}
             {selectedType === "all" && data && (
               <TodosView
@@ -638,11 +675,8 @@ export default function AnalyticsPage() {
                 />
 
                 {/* Sección de KPIs y Gráficos */}
-                <section className='space-y-6'>
-                  {/* Leyenda de Fases */}
-                  <PhaseLegend />
-
-                  {/* Leyenda de Estados */}
+                <section className="space-y-6">
+                  {/* Leyendas de estados y fases del ciclo de vida */}
                   <StatusLegend
                     statusDescriptions={data.statusCounts}
                     tenureDescriptions={data.tenureCounts}
@@ -653,17 +687,22 @@ export default function AnalyticsPage() {
                   />
                 </section>
 
+                {/* Análisis de Contactos por Estado */}
+                <Card className="shadow-sm">
+                  {/* ... resto del código ... */}
+                </Card>
+
                 {/* Solo mostrar las pestañas de gráficas para la vista de Clientes */}
-                <Tabs defaultValue='membership' className='w-full'>
-                  <TabsList className='w-full justify-start overflow-auto'>
-                    <TabsTrigger value='membership'>Membresías</TabsTrigger>
-                    <TabsTrigger value='training'>Formaciones</TabsTrigger>
-                    <TabsTrigger value='consultoria'>Consultoría</TabsTrigger>
-                    <TabsTrigger value='distribution'>Distribución</TabsTrigger>
-                    <TabsTrigger value='responsible'>Responsables</TabsTrigger>
+                <Tabs defaultValue="membership" className="w-full">
+                  <TabsList className="w-full justify-start overflow-auto">
+                    <TabsTrigger value="membership">Membresías</TabsTrigger>
+                    <TabsTrigger value="training">Formaciones</TabsTrigger>
+                    <TabsTrigger value="consultoria">Consultoría</TabsTrigger>
+                    <TabsTrigger value="distribution">Distribución</TabsTrigger>
+                    <TabsTrigger value="responsible">Responsables</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value='membership' className='pt-4'>
+                  <TabsContent value="membership" className="pt-4">
                     <MembershipTrendsChart
                       data={data.membershipTrends}
                       contactsByCategory={{
@@ -690,7 +729,7 @@ export default function AnalyticsPage() {
                     />
                   </TabsContent>
 
-                  <TabsContent value='training' className='pt-4'>
+                  <TabsContent value="training" className="pt-4">
                     <TrainingsByYearChart
                       data={data.trainingsByYear}
                       contactsByCategory={{
@@ -727,8 +766,8 @@ export default function AnalyticsPage() {
                     />
                   </TabsContent>
 
-                  <TabsContent value='consultoria'>
-                    <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                  <TabsContent value="consultoria">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                       <Card>
                         <CardHeader>
                           <CardTitle>Total Consultorías</CardTitle>
@@ -737,7 +776,7 @@ export default function AnalyticsPage() {
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <div className='text-2xl font-bold'>
+                          <div className="text-2xl font-bold">
                             {data.stats.totalConsultorias}
                           </div>
                         </CardContent>
@@ -745,8 +784,8 @@ export default function AnalyticsPage() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value='distribution' className='pt-4'>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                  <TabsContent value="distribution" className="pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <StatusPieChart
                         data={data.statusCounts}
                         contactsByCategory={
@@ -768,7 +807,7 @@ export default function AnalyticsPage() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value='responsible'>
+                  <TabsContent value="responsible">
                     <ResponsibleCountsView
                       responsibleCounts={data.responsibleCounts}
                     />

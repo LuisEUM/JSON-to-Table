@@ -340,7 +340,6 @@ export async function GET(request: NextRequest) {
           "Clientes Leales": processedContacts.filter(
             (c) => c.tenure === "loyal"
           ),
-
         },
         completed: processedContacts.reduce((acc, contact) => {
           const trainings = contact.trainings || [];
@@ -911,6 +910,14 @@ function prepareStatusCounts(contacts: ProcessedContact[]): StatusCount[] {
 
   return [
     {
+      name: "Por Iniciar",
+      value: counts.preActivation,
+      color: "#2563eb",
+      description:
+        "Contactos que han mostrado interés pero aún no han contratado servicios. En fase de captación y negociación.",
+      phase: "inicio",
+    },
+    {
       name: "Sin estado",
       value: counts.noStatus,
       color: "#a1a1aa",
@@ -919,19 +926,11 @@ function prepareStatusCounts(contacts: ProcessedContact[]): StatusCount[] {
       phase: "inicio",
     },
     {
-      name: "Por iniciar",
-      value: counts.preActivation,
-      color: "#2563eb",
-      description:
-        "Contactos con servicios contratados pero que aún no han iniciado; la activación está programada para una fecha futura.",
-      phase: "inicio",
-    },
-    {
-      name: "Activos",
+      name: "Activo",
       value: counts.active,
-      color: "#00C851",
+      color: "#0A4D8C",
       description:
-        "Contactos con suscripciones activas que utilizan de forma continua los servicios contratados.",
+        "Clientes que tienen productos o servicios activos y están haciendo uso de ellos regularmente.",
       phase: "desarrollo",
     },
     {
@@ -939,32 +938,32 @@ function prepareStatusCounts(contacts: ProcessedContact[]): StatusCount[] {
       value: counts.preDeactivation,
       color: "#eab308",
       description:
-        "Contactos en fase de pre-desactivación, con servicios próximos a vencerse (menos de 30 días), que requieren acción para su renovación.",
+        "Clientes con productos o servicios próximos a vencer (menos de 30 días) y que requieren seguimiento para su renovación.",
       phase: "desarrollo",
     },
     {
-      name: "Desactivado",
-      value: counts.inactive,
+      name: "Incidencia",
+      value: counts.inactive + counts.inactiveUnsatisfied,
       color: "#ef4444",
       description:
-        "Contactos sin suscripciones activas; su acceso a los servicios se ha interrumpido por falta de pago o renovación.",
+        "Contactos que ya no tienen productos o servicios activos, han dejado de utilizar los servicios de la empresa o tienen algún problema asociado.",
       phase: "cierre",
     },
     {
-      name: "Satisfecho",
+      name: "Completado",
       value: counts.inactiveSatisfied,
-      color: "#047230",
+      color: "#00C851",
       description:
-        "Contactos que completaron su ciclo de servicio de manera satisfactoria, finalizando voluntariamente al cumplir sus objetivos.",
+        "Clientes que finalizaron su relación comercial habiendo cumplido sus objetivos, con experiencia positiva.",
       phase: "cierre",
     },
     {
-      name: "Insatisfecho",
-      value: counts.inactiveUnsatisfied,
-      color: "#ef7b07",
+      name: "Error",
+      value: 5,
+      color: "#000000",
       description:
-        "Contactos que concluyeron la relación por insatisfacción con el servicio, lo que requiere un análisis y seguimiento posterior.",
-      phase: "cierre",
+        "Representa un error en el procesamiento de los datos. Esto puede deberse a problemas con los datos de origen, errores en la sincronización o inconsistencias en la información del contacto.",
+      phase: "inicio",
     },
   ];
 }
@@ -995,37 +994,44 @@ function prepareTenureCounts(contacts: ProcessedContact[]): TenureCount[] {
 
   return [
     {
+      name: "Bronce",
+      value: counts.new,
+      color: "#CD7F32",
+      description:
+        "Clientes nuevos con menos de 1 mes de antigüedad. Comienzan su relación con la empresa.",
+      phase: "inicio",
+    },
+    {
       name: "Sin estado",
       value: counts.noTenure,
       color: "#a1a1aa",
       description:
-        "Contactos sin fecha de inicio registrada, lo que impide determinar el tiempo de relación.",
+        "Contactos sin fecha de inicio registrada, lo que impide determinar su antigüedad como cliente.",
       phase: "inicio",
     },
     {
-      name: "Recién llegados",
-      value: counts.new,
-      color: "#2563eb",
-      description:
-        "Contactos con menos de 1 mes de relación, en fase de incorporación y adaptación inicial.",
-      phase: "inicio",
-    },
-    {
-      name: "Exploradores",
+      name: "Plata",
       value: counts.onboarding,
-      color: "#eab308",
+      color: "#C0C0C0",
       description:
-        "Contactos con 1 a 3 meses de relación, en proceso de onboarding y exploración de los servicios.",
+        "Clientes con 1 a 3 meses de relación, que están estableciendo una relación duradera con la empresa.",
       phase: "desarrollo",
     },
     {
-      name: "Leales",
+      name: "Oro",
       value: counts.loyal,
-      color: "#00C851",
+      color: "#FFD700",
       description:
-        "Contactos con más de 3 meses de relación, que demuestran un uso constante y alta retención de los servicios.",
+        "Clientes consolidados con más de 3 meses de relación, que son leales y de alto valor para la empresa.",
       phase: "cierre",
-    }
+    },
+    {
+      name: "Error",
+      value: 5,
+      color: "#000000",
+      description: "Error al determinar la antigüedad del cliente.",
+      phase: "inicio",
+    },
   ];
 }
 
@@ -1076,14 +1082,6 @@ function prepareTrainingStatusCounts(
 
   return [
     {
-      name: "Sin estado",
-      value: trainingCounts.noTraining,
-      color: "#a1a1aa",
-      description:
-        "Contactos sin ningún curso o programa formativo registrado en el sistema.",
-      phase: "inicio",
-    },
-    {
       name: "Por iniciar",
       value: trainingCounts.pending,
       color: "#2563eb",
@@ -1092,9 +1090,17 @@ function prepareTrainingStatusCounts(
       phase: "inicio",
     },
     {
-      name: "En progreso",
+      name: "Sin estado",
+      value: trainingCounts.noTraining,
+      color: "#a1a1aa",
+      description:
+        "Contactos sin ningún curso o programa formativo registrado en el sistema.",
+      phase: "inicio",
+    },
+    {
+      name: "Activo",
       value: trainingCounts.inProgress,
-      color: "#60a5fa",
+      color: "#0A4D8C",
       description:
         "Formación en proceso, con el contacto participando activamente en sesiones o módulos del curso.",
       phase: "desarrollo",
@@ -1108,11 +1114,12 @@ function prepareTrainingStatusCounts(
       phase: "desarrollo",
     },
     {
-      name: "Desactivado",
-      value: trainingCounts.deactivated,
+      name: "Incidencia",
+      value:
+        trainingCounts.deactivated + trainingCounts.completedWithoutCertificate,
       color: "#ef4444",
       description:
-        "Acceso a la formación suspendido por impagos o incumplimientos, interrumpiendo el avance del curso.",
+        "Formaciones con incidencias: suspendidas por impagos, incumplimientos o completadas sin certificación debido a requisitos incompletos.",
       phase: "cierre",
     },
     {
@@ -1124,12 +1131,12 @@ function prepareTrainingStatusCounts(
       phase: "cierre",
     },
     {
-      name: "Sin certificado",
-      value: trainingCounts.completedWithoutCertificate,
-      color: "#ef7b07",
+      name: "Error",
+      value: 5,
+      color: "#000000",
       description:
-        "Programa formativo completado sin certificación, posiblemente por no cumplir los requisitos necesarios.",
-      phase: "cierre",
+        "Error en el procesamiento de datos de formación. Ocurre cuando hay fecha de inicio sin fecha de fin, o cuando las fechas no están correctamente formateadas.",
+      phase: "inicio",
     },
   ];
 }
@@ -1147,6 +1154,7 @@ function prepareServiceStatusCounts(
     scheduled: 0,
     deactivated: 0,
     noService: 0,
+    finalizingSoon: 5,
   };
 
   contacts.forEach((contact) => {
@@ -1174,13 +1182,6 @@ function prepareServiceStatusCounts(
 
   return [
     {
-      name: "Sin estado",
-      value: serviceCounts.noService,
-      color: "#a1a1aa",
-      description: "Contactos sin ningún servicio vinculado en el sistema.",
-      phase: "inicio",
-    },
-    {
       name: "Por iniciar",
       value: serviceCounts.scheduled,
       color: "#2563eb",
@@ -1189,19 +1190,34 @@ function prepareServiceStatusCounts(
       phase: "inicio",
     },
     {
-      name: "En progreso",
+      name: "Sin estado",
+      value: serviceCounts.noService,
+      color: "#a1a1aa",
+      description: "Contactos sin ningún servicio vinculado en el sistema.",
+      phase: "inicio",
+    },
+    {
+      name: "Activo",
       value: serviceCounts.inProgress,
-      color: "#60a5fa",
+      color: "#0A4D8C",
       description:
         "Servicio actualmente en ejecución, con el equipo trabajando activamente en su prestación.",
       phase: "desarrollo",
     },
     {
-      name: "Desactivado",
-      value: serviceCounts.deactivated,
+      name: "Por finalizar",
+      value: serviceCounts.finalizingSoon,
+      color: "#eab308",
+      description:
+        "Servicios que están próximos a completarse en los siguientes 30 días y requieren seguimiento para su cierre exitoso.",
+      phase: "desarrollo",
+    },
+    {
+      name: "Incidencia",
+      value: serviceCounts.deactivated + serviceCounts.deliveredFailed,
       color: "#ef4444",
       description:
-        "Servicio interrumpido o suspendido debido a incumplimientos o impagos por parte del cliente.",
+        "Servicios con problemas: interrumpidos, suspendidos o que no pudieron completarse debido a incidencias técnicas o administrativas.",
       phase: "cierre",
     },
     {
@@ -1213,12 +1229,12 @@ function prepareServiceStatusCounts(
       phase: "cierre",
     },
     {
-      name: "No completado",
-      value: serviceCounts.deliveredFailed,
-      color: "#ef7b07",
+      name: "Error",
+      value: 5,
+      color: "#000000",
       description:
-        "Servicio que no pudo completarse debido a problemas técnicos, falta de información u otros inconvenientes.",
-      phase: "cierre",
+        "Error en el procesamiento de datos del servicio. Ocurre cuando hay fecha de inicio sin fecha de fin, o cuando las fechas no están correctamente formateadas.",
+      phase: "inicio",
     },
   ];
 }
@@ -1261,6 +1277,14 @@ function prepareMembershipStatusCounts(
 
   return [
     {
+      name: "Por iniciar",
+      value: membershipCounts.pending,
+      color: "#2563eb",
+      description:
+        "Suscripciones adquiridas pero con activación pendiente, a la espera de la fecha de inicio.",
+      phase: "inicio",
+    },
+    {
       name: "Sin estado",
       value: membershipCounts.noMembership,
       color: "#a1a1aa",
@@ -1271,18 +1295,10 @@ function prepareMembershipStatusCounts(
     {
       name: "Activo",
       value: membershipCounts.active,
-      color: "#00C851",
+      color: "#0A4D8C",
       description:
         "Suscripciones vigentes que brindan acceso completo a los servicios contratados.",
       phase: "desarrollo",
-    },
-    {
-      name: "Por iniciar",
-      value: membershipCounts.pending,
-      color: "#2563eb",
-      description:
-        "Suscripciones adquiridas pero con activación pendiente, a la espera de la fecha de inicio.",
-      phase: "inicio",
     },
     {
       name: "Por finalizar",
@@ -1293,28 +1309,28 @@ function prepareMembershipStatusCounts(
       phase: "desarrollo",
     },
     {
-      name: "Desactivado",
-      value: membershipCounts.inactive,
+      name: "Incidencia",
+      value: membershipCounts.inactive + membershipCounts.inactiveUnsatisfied,
       color: "#ef4444",
       description:
-        "Suscripciones expiradas o no renovadas, lo que impide el acceso a los servicios.",
+        "Suscripciones con problemas: expiradas, no renovadas, canceladas por insatisfacción o con impedimentos de acceso.",
       phase: "cierre",
     },
     {
-      name: "Satisfecho",
+      name: "Completado",
       value: membershipCounts.inactiveSatisfied,
-      color: "#047230",
+      color: "#00C851",
       description:
         "Suscripciones canceladas tras cumplir los objetivos planteados o por decisión voluntaria del cliente.",
       phase: "cierre",
     },
     {
-      name: "Insatisfecho",
-      value: membershipCounts.inactiveUnsatisfied,
-      color: "#ef7b07",
+      name: "Error",
+      value: 5,
+      color: "#000000",
       description:
-        "Suscripciones canceladas debido a insatisfacción con el servicio, lo que requiere análisis y seguimiento.",
-      phase: "cierre",
+        "Error en el procesamiento de datos de membresía. Ocurre cuando hay fecha de inicio sin fecha de fin, o cuando las fechas no están correctamente formateadas.",
+      phase: "inicio",
     },
   ];
 }
@@ -1330,6 +1346,7 @@ function prepareConsultingStatusCounts(
     cancelled: 0,
     noConsulting: 0,
     inactive: 0,
+    finalizingSoon: 5,
   };
 
   contacts.forEach((contact) => {
@@ -1368,14 +1385,6 @@ function prepareConsultingStatusCounts(
 
   return [
     {
-      name: "Sin consultoría",
-      value: consultingCounts.noConsulting,
-      color: "#a1a1aa",
-      description:
-        "Contactos sin servicios de consultoría registrados en el sistema.",
-      phase: "inicio",
-    },
-    {
       name: "Por Iniciar",
       value: consultingCounts.scheduled,
       color: "#2563eb",
@@ -1383,36 +1392,52 @@ function prepareConsultingStatusCounts(
       phase: "inicio",
     },
     {
-      name: "En progreso",
+      name: "Sin estado",
+      value: consultingCounts.noConsulting,
+      color: "#a1a1aa",
+      description:
+        "Contactos sin servicios de consultoría registrados en el sistema.",
+      phase: "inicio",
+    },
+    {
+      name: "Activo",
       value: consultingCounts.inProgress,
-      color: "#60a5fa",
+      color: "#0A4D8C",
       description:
         "Consultoría en ejecución, con el consultor trabajando activamente en el proyecto.",
       phase: "desarrollo",
     },
     {
-      name: "Desactivado",
-      value: consultingCounts.inactive,
+      name: "Por finalizar",
+      value: consultingCounts.finalizingSoon,
+      color: "#eab308",
+      description:
+        "Consultoría próxima a concluir en menos de 30 días, que requiere seguimiento para su cierre exitoso.",
+      phase: "desarrollo",
+    },
+    {
+      name: "Incidencia",
+      value: consultingCounts.inactive + consultingCounts.cancelled,
       color: "#ef4444",
       description:
-        "El acceso del contacto se ha interrumpido por falta de pago o renovación.",
+        "Consultorías con problemas: interrumpidas por falta de pago, canceladas por el cliente o terminadas antes de su finalización por motivos internos o externos.",
       phase: "cierre",
     },
     {
-      name: "Satisfecho",
+      name: "Completado",
       value: consultingCounts.completed,
-      color: "#00C851", // verde
+      color: "#00C851",
       description:
         "Consultoría finalizada: El proyecto de consultoría ha sido completado satisfactoriamente.",
       phase: "cierre",
     },
     {
-      name: "Insatisfecho",
-      value: consultingCounts.cancelled,
-      color: "#f59e0b", // naranja
+      name: "Error",
+      value: 5,
+      color: "#000000",
       description:
-        "Consultoría cancelada: El servicio fue cancelado antes de su finalización por motivos internos o externos.",
-      phase: "cierre",
+        "Error en el procesamiento de datos de consultoría. Ocurre cuando hay fecha de inicio sin fecha de fin, o cuando las fechas no están correctamente formateadas.",
+      phase: "inicio",
     },
   ];
 }
