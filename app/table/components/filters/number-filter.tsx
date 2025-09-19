@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +22,7 @@ import {
 import type { FilterComponentProps } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
 import { getTypeStyle } from "../type-indicators";
+import { FilterTabs, useFilterTabs } from "./filter-tabs";
 import { DialogTitle } from "@/components/ui/dialog";
 import { Search } from "lucide-react";
 
@@ -117,6 +120,21 @@ export function NumberFilter({
     setNumberOptions(options);
   }, [uniqueValues]);
 
+  // Hook para manejar los tabs
+  const { filteredItems, counts } = useFilterTabs(
+    numberOptions,
+    Array.from(selectedNumbers).map(
+      (numStr) =>
+        ({
+          value: Number(numStr),
+          label: numStr,
+          checked: false,
+          count: 0,
+        } as NumberOption)
+    ),
+    (item, selected) => item.value === selected.value
+  );
+
   const getPresetRange = (preset: string): NumberRange => {
     switch (preset) {
       case "positive":
@@ -211,6 +229,48 @@ export function NumberFilter({
     setSelectedNumbers(newSelected);
   };
 
+  // Función para renderizar lista de números
+  const renderNumbersList = (options: NumberOption[]) => (
+    <ScrollArea className='w-full rounded-md border'>
+      <div className='p-4 space-y-2 min-h-[250px] max-h-[300px]'>
+        {options
+          .filter(
+            (option) =>
+              !searchTerm ||
+              option.label.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+          .map((option) => (
+            <div
+              key={option.value}
+              className='flex items-center justify-between p-2 hover:bg-muted/50 rounded-sm'
+            >
+              <div className='flex items-center space-x-2'>
+                <Checkbox
+                  id={`number-${option.value}`}
+                  checked={selectedNumbers.has(option.label)}
+                  onCheckedChange={(checked) => {
+                    handleCheckboxChange(option.label, !!checked);
+                  }}
+                />
+                <label
+                  htmlFor={`number-${option.value}`}
+                  className='text-sm cursor-pointer'
+                  style={{
+                    color: getTypeStyle("número").text,
+                  }}
+                >
+                  {option.label}
+                </label>
+              </div>
+              <span className='text-xs text-muted-foreground'>
+                ({option.count})
+              </span>
+            </div>
+          ))}
+      </div>
+    </ScrollArea>
+  );
+
   // Mantener sincronizadas las selecciones cuando cambia el modo
   useEffect(() => {
     if (numberOptions.length === 0) return;
@@ -258,7 +318,7 @@ export function NumberFilter({
           Filtro para:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
-              getTypeStyle(columnType).bg
+              getTypeStyle(columnType || "número").bg
             }`}
           ></span>{" "}
           {columnName}
@@ -348,43 +408,15 @@ export function NumberFilter({
                         className='pl-8 mb-2'
                       />
                     </div>
-                    <ScrollArea className='w-full rounded-md border'>
-                      <div className='p-4 space-y-2 h-[200px]'>
-                        {numberOptions
-                          .filter(
-                            (option) =>
-                              !searchTerm ||
-                              option.label
-                                .toLowerCase()
-                                .includes(searchTerm.toLowerCase())
-                          )
-                          .map((option) => (
-                            <div
-                              key={option.label}
-                              className='flex items-center justify-between'
-                            >
-                              <div className='flex items-center space-x-2'>
-                                <Checkbox
-                                  id={option.label}
-                                  checked={selectedNumbers.has(option.label)}
-                                  onCheckedChange={(checked) =>
-                                    handleCheckboxChange(
-                                      option.label,
-                                      checked as boolean
-                                    )
-                                  }
-                                />
-                                <Label htmlFor={option.label}>
-                                  {option.label}
-                                </Label>
-                              </div>
-                              <span className='text-sm text-muted-foreground'>
-                                {option.count}
-                              </span>
-                            </div>
-                          ))}
-                      </div>
-                    </ScrollArea>
+                    <div className='flex-1'>
+                      <FilterTabs counts={counts} defaultTab='todos'>
+                        {{
+                          todos: renderNumbersList(filteredItems.todos),
+                          activos: renderNumbersList(filteredItems.activos),
+                          inactivos: renderNumbersList(filteredItems.inactivos),
+                        }}
+                      </FilterTabs>
+                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>

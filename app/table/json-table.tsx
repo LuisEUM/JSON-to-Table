@@ -442,6 +442,24 @@ export function JsonTable({
         const processedValue = row.original[columnId] as ProcessedItem;
         if (!processedValue) return false;
 
+        // Debug: Ver la estructura del processedValue para arrays
+        if (
+          columnId.includes("shippingAddresses") ||
+          columnId.includes("memberships")
+        ) {
+          console.log("🔍 ProcessedValue debug:", {
+            columnId,
+            processedValue: {
+              type: processedValue.type,
+              value: processedValue.value,
+              items: processedValue.items,
+              hasItems: !!processedValue.items,
+              itemsLength: processedValue.items?.length,
+              firstItem: processedValue.items?.[0],
+            },
+          });
+        }
+
         const rawValue = processedValue.value;
         const columnType = processedValue.type;
 
@@ -496,6 +514,87 @@ export function JsonTable({
                 console.error("Error al comparar fechas:", error);
                 return false;
               }
+            } else if (
+              columnType === "array[objeto]" ||
+              columnType === "array"
+            ) {
+              // Debug: Log para arrays
+              console.log("🔍 Filtering array column:", {
+                columnId,
+                columnType,
+                rawValue,
+                filterValue,
+                rawValueType: typeof rawValue,
+                isRawValueArray: Array.isArray(rawValue),
+              });
+
+              // Manejar arrays de objetos específicamente
+              const filterValues = Array.isArray(filterValue.value)
+                ? filterValue.value
+                : [filterValue.value];
+
+              // Para arrays procesados, los elementos están en processedValue.items
+              let arrayToCheck = rawValue;
+              if (processedValue.items && Array.isArray(processedValue.items)) {
+                // Extraer los valores reales de los ProcessedValue items
+                arrayToCheck = processedValue.items.map((item) => item.value);
+                console.log("🔍 Using items array:", {
+                  originalRawValue: rawValue,
+                  itemsArray: arrayToCheck,
+                  itemsLength: arrayToCheck.length,
+                });
+              }
+
+              // Si tenemos un array para verificar, verificar si algún elemento coincide
+              if (Array.isArray(arrayToCheck)) {
+                const result = arrayToCheck.some((arrayItem: unknown) => {
+                  return filterValues.some((filterVal: unknown) => {
+                    console.log("🔍 Comparing array items:", {
+                      arrayItem:
+                        typeof arrayItem === "object"
+                          ? JSON.stringify(arrayItem).slice(0, 100)
+                          : arrayItem,
+                      filterVal:
+                        typeof filterVal === "object"
+                          ? JSON.stringify(filterVal).slice(0, 100)
+                          : filterVal,
+                      arrayItemType: typeof arrayItem,
+                      filterValType: typeof filterVal,
+                    });
+
+                    // Para objetos, comparar por contenido
+                    if (
+                      typeof arrayItem === "object" &&
+                      typeof filterVal === "object" &&
+                      arrayItem !== null &&
+                      filterVal !== null
+                    ) {
+                      try {
+                        const match =
+                          JSON.stringify(arrayItem) ===
+                          JSON.stringify(filterVal);
+                        console.log("🔍 Object comparison result:", match);
+                        return match;
+                      } catch {
+                        console.log("🔍 Object comparison failed");
+                        return false;
+                      }
+                    }
+                    // Para primitivos, comparación directa
+                    const match = arrayItem === filterVal;
+                    console.log("🔍 Primitive comparison result:", match);
+                    return match;
+                  });
+                });
+
+                console.log("🔍 Array filter result:", result);
+                return result;
+              }
+
+              console.log(
+                "🔍 Array filter - arrayToCheck is not array, returning false"
+              );
+              return false;
             } else {
               const filterValues = Array.isArray(filterValue.value)
                 ? filterValue.value
@@ -597,6 +696,71 @@ export function JsonTable({
               );
             }
             return false;
+          case "objectPropertyFilter":
+            // Usar la función objectPropertyFilter importada
+            if (!Array.isArray(filterValue.value)) return false;
+
+            // Helper function to extract property values from objects
+            const extractPropertyValues = (obj: unknown): string[] => {
+              const values: string[] = [];
+
+              if (typeof obj === "object" && obj !== null) {
+                if (Array.isArray(obj)) {
+                  // For arrays, extract from each item
+                  obj.forEach((item) => {
+                    if (typeof item === "object" && item !== null) {
+                      Object.values(item).forEach((value) => {
+                        if (value !== null && value !== undefined) {
+                          values.push(String(value).toLowerCase());
+                        }
+                      });
+                    } else {
+                      values.push(String(item).toLowerCase());
+                    }
+                  });
+                } else {
+                  // For objects, extract all property values
+                  Object.values(obj).forEach((value) => {
+                    if (value !== null && value !== undefined) {
+                      if (typeof value === "object") {
+                        values.push(...extractPropertyValues(value));
+                      } else {
+                        values.push(String(value).toLowerCase());
+                      }
+                    }
+                  });
+                }
+              } else {
+                values.push(String(obj).toLowerCase());
+              }
+
+              return values;
+            };
+
+            const objectValues = extractPropertyValues(rawValue);
+            const searchTerms = (filterValue.value as string[]).map((term) =>
+              String(term).toLowerCase()
+            );
+
+            // Check if any of the search terms match any of the object property values
+            const hasMatch = searchTerms.some((searchTerm) =>
+              objectValues.some((objValue) => objValue.includes(searchTerm))
+            );
+
+            // Handle inclusion/exclusion logic
+            const isInclude = filterValue.additionalValue === "include";
+            const matchResult = isInclude ? hasMatch : !hasMatch;
+
+            console.log("🔍 ObjectPropertyFilter resultado:", {
+              columnId,
+              searchTerms,
+              objectValues: objectValues.slice(0, 5), // Show first 5 for debugging
+              hasMatch,
+              isInclude,
+              finalResult: matchResult,
+            });
+
+            return matchResult;
           default:
             return true;
         }
@@ -697,7 +861,25 @@ export function JsonTable({
   // 4. Callbacks
   const applyFilter = useCallback(
     (columnId: string, filterValue: FilterCondition) => {
-      table.getColumn(columnId)?.setFilterValue(filterValue);
+      console.log("🎯 Aplicando filtro:", {
+        columnId,
+        operator: filterValue.operator,
+        value: filterValue.value,
+        additionalValue: filterValue.additionalValue,
+      });
+
+      const column = table.getColumn(columnId);
+      if (column) {
+        // Set the filter function based on the operator
+        if (filterValue.operator === "objectPropertyFilter") {
+          column.setFilterValue(filterValue);
+          console.log("✅ Filtro objectPropertyFilter aplicado");
+        } else {
+          column.setFilterValue(filterValue);
+        }
+      } else {
+        console.warn("❌ Columna no encontrada:", columnId);
+      }
     },
     [table]
   );
@@ -904,6 +1086,29 @@ export function JsonTable({
     };
   }, [sorting, columnVisibility, columnFilters, globalFilter, table]);
 
+  // Función para extraer tipos de columnas de la tabla y datos procesados
+  const getColumnTypesFromTable = useCallback(
+    (table: any, processedData: ProcessedItem[][]) => {
+      const columnTypes: Record<string, string> = {};
+
+      if (processedData.length > 0) {
+        const firstRow = processedData[0];
+        firstRow.forEach((item) => {
+          if (
+            item.id &&
+            item.type &&
+            !["index", "selection", "actions"].includes(item.id)
+          ) {
+            columnTypes[item.id] = item.type;
+          }
+        });
+      }
+
+      return columnTypes;
+    },
+    []
+  );
+
   // Actualizar la configuración actual cuando cambian los filtros, ordenación, etc.
   useEffect(() => {
     setCurrentViewConfig(getCurrentConfiguration());
@@ -920,20 +1125,42 @@ export function JsonTable({
     (config: Record<string, unknown>) => {
       try {
         // Validar compatibilidad de columnas si existe metadata
-        const columnMetadata = config.columnMetadata as
-          | {
-              availableColumns?: string[];
-              filteredColumns?: string[];
-              sortedColumns?: string[];
-            }
-          | undefined;
+        const tableMetadata =
+          config.tableMetadata ||
+          (config.columnMetadata as
+            | {
+                availableColumns?: string[];
+                filteredColumns?: string[];
+                sortedColumns?: string[];
+                compatibilityHash?: string;
+                totalColumns?: number;
+                columnTypes?: Record<string, string>;
+              }
+            | undefined);
 
-        if (columnMetadata?.availableColumns) {
+        if (tableMetadata?.availableColumns) {
           const currentColumns = table.getAllColumns().map((col) => col.id);
           const missingColumns =
-            columnMetadata.filteredColumns?.filter(
+            tableMetadata.filteredColumns?.filter(
               (col) => !currentColumns.includes(col)
             ) || [];
+
+          // Verificar compatibilidad por hash si está disponible
+          if (tableMetadata.compatibilityHash) {
+            const currentCoreColumns = currentColumns
+              .filter((col) => !["index", "selection", "actions"].includes(col))
+              .sort();
+            const currentHash = Buffer.from(currentCoreColumns.join("|"))
+              .toString("base64")
+              .slice(0, 16);
+
+            if (currentHash !== tableMetadata.compatibilityHash) {
+              toast.warning(
+                "Esta vista fue creada para una tabla con estructura diferente. Algunos filtros podrían no funcionar correctamente.",
+                { duration: 6000 }
+              );
+            }
+          }
 
           if (missingColumns.length > 0) {
             toast.warning(
@@ -1010,7 +1237,13 @@ export function JsonTable({
           table.setPageSize(pagination.pageSize);
         }
 
-        toast.success("Vista cargada correctamente");
+        // Mensaje de éxito con información adicional
+        const compatibilityInfo = tableMetadata?.compatibilityHash
+          ? " (100% compatible)"
+          : tableMetadata?.availableColumns
+          ? " (verificada)"
+          : "";
+        toast.success(`Vista cargada correctamente${compatibilityInfo}`);
       } catch (error) {
         console.error("Error al cargar vista:", error);
         toast.error("Error al cargar la vista");
@@ -1241,7 +1474,11 @@ export function JsonTable({
           searchPlaceholder={`Buscar en ${processedData.length} ${
             isSecondaryTable ? "registros relacionados" : "registros"
           }...`}
-          currentConfig={currentViewConfig}
+          currentConfig={{
+            ...currentViewConfig,
+            // Agregar información de tipos de columnas para mejor compatibilidad
+            columnTypes: getColumnTypesFromTable(table, processedData),
+          }}
           onLoadView={handleLoadView}
           onExportJSON={() => {
             const jsonData = JSON.stringify(processedData, null, 2);

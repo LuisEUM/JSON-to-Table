@@ -20,7 +20,8 @@ export type FilterOperator =
   | "arrIncludesSome"
   | "includesString"
   | "exactWordMatch"
-  | "notExactWordMatch";
+  | "notExactWordMatch"
+  | "objectPropertyFilter";
 
 export type FilterValue =
   | string
@@ -63,7 +64,7 @@ export type DateRange = {
 };
 
 export interface FilterOption {
-  value: string;
+  value: unknown; // Cambiado de string a unknown para soportar objetos y arrays
   count: number;
   original: unknown;
 }
@@ -369,6 +370,52 @@ export const filterFns = {
         return !patterns.some((pattern) => pattern.test(String(rawValue)));
       }
 
+      case "objectPropertyFilter": {
+        if (!Array.isArray(filterValue.value)) return false;
+        
+        // Use the same logic as the objectPropertyFilter function
+        const extractPropertyValues = (obj: unknown): string[] => {
+          const values: string[] = [];
+          
+          if (typeof obj === 'object' && obj !== null) {
+            if (Array.isArray(obj)) {
+              obj.forEach(item => {
+                if (typeof item === 'object' && item !== null) {
+                  Object.values(item).forEach(value => {
+                    if (value !== null && value !== undefined) {
+                      values.push(String(value).toLowerCase());
+                    }
+                  });
+                } else {
+                  values.push(String(item).toLowerCase());
+                }
+              });
+            } else {
+              Object.values(obj).forEach(value => {
+                if (value !== null && value !== undefined) {
+                  if (typeof value === 'object') {
+                    values.push(...extractPropertyValues(value));
+                  } else {
+                    values.push(String(value).toLowerCase());
+                  }
+                }
+              });
+            }
+          } else {
+            values.push(String(obj).toLowerCase());
+          }
+          
+          return values;
+        };
+
+        const objectValues = extractPropertyValues(rawValue);
+        const searchTerms = (filterValue.value as string[]).map(term => String(term).toLowerCase());
+
+        return searchTerms.some(searchTerm => 
+          objectValues.some(objValue => objValue.includes(searchTerm))
+        );
+      }
+
       default:
         return true;
     }
@@ -477,6 +524,79 @@ export const filterFns = {
       searchTerms,
       result,
     });
+    return result;
+  },
+
+  objectPropertyFilter: (
+    row: ProcessedRow,
+    columnId: string,
+    filterValue: string[]
+  ) => {
+    console.log("🔍 Ejecutando filtro de propiedades de objeto:", {
+      columnId,
+      filterValue,
+      rowValue: row[columnId],
+    });
+
+    const processedValue = row[columnId] as ProcessedItem;
+    if (!processedValue?.value) {
+      console.log("⚠️ Valor no encontrado para la columna:", { columnId });
+      return false;
+    }
+
+    const rawValue = processedValue.value;
+    
+    // Helper function to extract property values from objects
+    const extractPropertyValues = (obj: unknown): string[] => {
+      const values: string[] = [];
+      
+      if (typeof obj === 'object' && obj !== null) {
+        if (Array.isArray(obj)) {
+          // For arrays, extract from each item
+          obj.forEach(item => {
+            if (typeof item === 'object' && item !== null) {
+              Object.values(item).forEach(value => {
+                if (value !== null && value !== undefined) {
+                  values.push(String(value).toLowerCase());
+                }
+              });
+            } else {
+              values.push(String(item).toLowerCase());
+            }
+          });
+        } else {
+          // For objects, extract all property values
+          Object.values(obj).forEach(value => {
+            if (value !== null && value !== undefined) {
+              if (typeof value === 'object') {
+                values.push(...extractPropertyValues(value));
+              } else {
+                values.push(String(value).toLowerCase());
+              }
+            }
+          });
+        }
+      } else {
+        values.push(String(obj).toLowerCase());
+      }
+      
+      return values;
+    };
+
+    const objectValues = extractPropertyValues(rawValue);
+    const searchTerms = filterValue.map(term => String(term).toLowerCase());
+
+    // Check if any of the search terms match any of the object property values
+    const result = searchTerms.some(searchTerm => 
+      objectValues.some(objValue => objValue.includes(searchTerm))
+    );
+
+    console.log("🔍 Comparación propiedades objeto:", {
+      objectValues: objectValues.slice(0, 5), // Show first 5 for debugging
+      searchTerms,
+      result,
+    });
+
     return result;
   },
 };

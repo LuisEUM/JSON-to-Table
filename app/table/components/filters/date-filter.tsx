@@ -26,6 +26,7 @@ import type {
 } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
 import { getTypeStyle } from "../type-indicators";
+import { FilterTabs, useFilterTabs } from "./filter-tabs";
 import { formatDate } from "../../utils/error-handling";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Search } from "lucide-react";
@@ -194,6 +195,16 @@ export function DateFilter({
       })
       .sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [uniqueValues]);
+
+  // Hook para manejar los tabs
+  const { filteredItems, counts } = useFilterTabs(
+    dateOptions,
+    Array.from(selectedDatesSet).map((dateStr) => {
+      const found = dateOptions.find((opt) => opt.label === dateStr);
+      return found || { date: new Date(), label: dateStr, count: 0 };
+    }),
+    (item, selected) => item.label === selected.label
+  );
 
   // Inicializar estado de búsqueda
   const [searchTerm, setSearchTerm] = useState("");
@@ -501,6 +512,60 @@ export function DateFilter({
     [setSelectedDatesSet]
   );
 
+  // Función para renderizar lista de fechas
+  const renderDatesList = (options: DateOptionItem[]) => (
+    <ScrollArea className='w-full rounded-md border'>
+      <div className='p-4 space-y-2 min-h-[250px] max-h-[300px]'>
+        {options
+          .filter(
+            (option) =>
+              !searchTerm ||
+              option.label.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+          .map((option) => {
+            // Calcular si está seleccionado basado en el rango y modo
+            const selectedDates = getSelectedDates();
+            const isSelected = selectedDates.has(option.label);
+
+            return (
+              <div
+                key={option.label}
+                className='flex items-center justify-between p-2 hover:bg-muted/50 rounded-sm'
+              >
+                <div className='flex items-center space-x-2'>
+                  <Checkbox
+                    id={`date-${option.label}`}
+                    checked={isSelected}
+                    onCheckedChange={(checked) => {
+                      const newSelected = new Set(selectedDatesSet);
+                      if (checked) {
+                        newSelected.add(option.label);
+                      } else {
+                        newSelected.delete(option.label);
+                      }
+                      setSelectedDatesSet(newSelected);
+                    }}
+                  />
+                  <label
+                    htmlFor={`date-${option.label}`}
+                    className='text-sm cursor-pointer'
+                    style={{
+                      color: getTypeStyle("fecha").text,
+                    }}
+                  >
+                    {option.label}
+                  </label>
+                </div>
+                <span className='text-xs text-muted-foreground'>
+                  ({option.count})
+                </span>
+              </div>
+            );
+          })}
+      </div>
+    </ScrollArea>
+  );
+
   return (
     <div className='w-full h-full min-h-[350px] flex flex-col'>
       <div className='flex items-center justify-between mb-4'>
@@ -508,7 +573,7 @@ export function DateFilter({
           Filtro para:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
-              getTypeStyle(columnType).bg
+              getTypeStyle(columnType || "fecha").bg
             }`}
           ></span>{" "}
           {columnName}
@@ -595,38 +660,15 @@ export function DateFilter({
                       />
                     </div>
 
-                    <ScrollArea className='w-full rounded-md border'>
-                      <div className='p-4 space-y-2 h-[200px]'>
-                        {filteredOptions.map((option) => {
-                          // Calcular si está seleccionado basado en el rango y modo
-                          const selectedDates = getSelectedDates();
-                          const isSelected = selectedDates.has(option.label);
-
-                          return (
-                            <div
-                              key={option.label}
-                              className='flex items-center justify-between'
-                            >
-                              <div className='flex items-center space-x-2'>
-                                <Checkbox
-                                  id={option.label}
-                                  checked={isSelected}
-                                  onCheckedChange={() =>
-                                    toggleDateSelection(option)
-                                  }
-                                />
-                                <Label htmlFor={option.label}>
-                                  {option.label}
-                                </Label>
-                              </div>
-                              <span className='text-sm text-muted-foreground'>
-                                {option.count}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </ScrollArea>
+                    <div className='flex-1'>
+                      <FilterTabs counts={counts} defaultTab='todos'>
+                        {{
+                          todos: renderDatesList(filteredItems.todos),
+                          activos: renderDatesList(filteredItems.activos),
+                          inactivos: renderDatesList(filteredItems.inactivos),
+                        }}
+                      </FilterTabs>
+                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>

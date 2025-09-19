@@ -64,24 +64,42 @@ export default function ViewsToolbar({
 
   // Estado para el diálogo de administrar vistas
   const [showManageDialog, setShowManageDialog] = useState(false);
-  
+
   // Verificar si hay filtros aplicados
   const hasFilters = Boolean(
-    (currentConfig.columnFilters && Array.isArray(currentConfig.columnFilters) && currentConfig.columnFilters.length > 0) ||
-    (currentConfig.globalFilter && String(currentConfig.globalFilter).trim() !== "")
+    (currentConfig.columnFilters &&
+      Array.isArray(currentConfig.columnFilters) &&
+      currentConfig.columnFilters.length > 0) ||
+      (currentConfig.globalFilter &&
+        String(currentConfig.globalFilter).trim() !== "")
   );
 
-  // Cargar la lista de vistas del usuario
+  // Cargar la lista de vistas del usuario (solo las compatibles con la tabla actual)
   const loadViews = useCallback(async () => {
     if (!session?.user) return;
 
     setIsLoading(true);
     try {
-      const response = await fetch("/api/views");
+      // Generar hash de compatibilidad y lista de columnas de la tabla actual
+      const currentColumns = Object.keys(currentConfig.columnVisibility || {});
+      const compatibilityHash = generateTableCompatibilityHash(currentColumns);
+      const columnsParam = currentColumns.join(",");
+
+      // Solicitar solo vistas compatibles
+      const response = await fetch(
+        `/api/views?compatibilityHash=${compatibilityHash}&columns=${columnsParam}`
+      );
       const data = await response.json();
 
       if (response.ok) {
         setViews(data.views);
+
+        // Mostrar información de filtrado si es relevante
+        if (data.filtered && data.totalViews > data.compatibleViews) {
+          console.log(
+            `📊 Vistas filtradas: ${data.compatibleViews}/${data.totalViews} compatibles con esta tabla`
+          );
+        }
       } else {
         throw new Error(data.error || "Error al cargar las vistas");
       }
@@ -91,7 +109,58 @@ export default function ViewsToolbar({
     } finally {
       setIsLoading(false);
     }
-  }, [session, setIsLoading]);
+  }, [session, setIsLoading, currentConfig]);
+
+  // Función auxiliar para generar hash de compatibilidad (misma lógica que en la API)
+  const generateTableCompatibilityHash = (columns: string[]): string => {
+    const sortedColumns = [...columns].sort();
+    const coreColumns = sortedColumns.filter(
+      (col) => !["index", "selection", "actions"].includes(col)
+    );
+    return Buffer.from(coreColumns.join("|")).toString("base64").slice(0, 16);
+  };
+
+  // Función auxiliar para extraer tipos de columnas de la configuración actual
+  const extractColumnTypes = (
+    config: Record<string, unknown>
+  ): Record<string, string> => {
+    // Esta función intentará extraer los tipos de columnas de la configuración
+    // En el futuro, esto podría mejorarse para obtener tipos reales de las columnas
+    const columnTypes: Record<string, string> = {};
+
+    // Si hay información de filtros, podemos inferir algunos tipos
+    if (config.columnFilters && Array.isArray(config.columnFilters)) {
+      config.columnFilters.forEach(
+        (filter: { id?: string; value?: unknown }) => {
+          if (filter.id && filter.value) {
+            // Inferir tipo basado en el valor del filtro
+            if (
+              typeof filter.value === "object" &&
+              filter.value !== null &&
+              "operator" in filter.value
+            ) {
+              // Es un filtro complejo, intentar inferir del operador
+              const filterValue = filter.value as { operator: string };
+              switch (filterValue.operator) {
+                case "greaterThan":
+                case "lessThan":
+                case "between":
+                  columnTypes[filter.id] = "número";
+                  break;
+                case "dateBetween":
+                  columnTypes[filter.id] = "fecha";
+                  break;
+                default:
+                  columnTypes[filter.id] = "string";
+              }
+            }
+          }
+        }
+      );
+    }
+
+    return columnTypes;
+  };
 
   // Cargar vistas cuando cambie el usuario
   useEffect(() => {
@@ -113,10 +182,13 @@ export default function ViewsToolbar({
     }
 
     // Validar que haya filtros aplicados
-    const hasFilters = 
-      (currentConfig.columnFilters && Array.isArray(currentConfig.columnFilters) && currentConfig.columnFilters.length > 0) ||
-      (currentConfig.globalFilter && String(currentConfig.globalFilter).trim() !== "");
-    
+    const hasFilters =
+      (currentConfig.columnFilters &&
+        Array.isArray(currentConfig.columnFilters) &&
+        currentConfig.columnFilters.length > 0) ||
+      (currentConfig.globalFilter &&
+        String(currentConfig.globalFilter).trim() !== "");
+
     if (!hasFilters) {
       toast.error("Debes aplicar al menos un filtro antes de guardar la vista");
       return;
@@ -133,7 +205,11 @@ export default function ViewsToolbar({
           name: viewName,
           description: viewDescription,
           isPublic,
-          configuration: currentConfig,
+          configuration: {
+            ...currentConfig,
+            // Agregar información adicional para mejorar la compatibilidad
+            columnTypes: extractColumnTypes(currentConfig),
+          },
         }),
       });
 
@@ -167,12 +243,12 @@ export default function ViewsToolbar({
       if (response.ok) {
         // El campo en la DB es 'config', no 'configuration'
         const viewConfig = data.view.config || data.view.configuration;
-        
+
         // Validar que la configuración existe
         if (!viewConfig) {
           throw new Error("La vista no tiene configuración válida");
         }
-        
+
         onLoadView(viewConfig);
         toast.success(`"${data.view.name}" se ha cargado correctamente.`);
       } else {
@@ -265,11 +341,15 @@ export default function ViewsToolbar({
 
           <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
             <DialogTrigger asChild>
-              <Button 
-                className='gap-2' 
+              <Button
+                className='gap-2'
                 disabled={!hasFilters}
                 variant={hasFilters ? "default" : "outline"}
-                title={!hasFilters ? "Aplica al menos un filtro antes de guardar una vista" : "Guardar la configuración actual como una vista"}
+                title={
+                  !hasFilters
+                    ? "Aplica al menos un filtro antes de guardar una vista"
+                    : "Guardar la configuración actual como una vista"
+                }
               >
                 <Save className='h-4 w-4' />
                 <span>Guardar vista</span>
@@ -281,8 +361,9 @@ export default function ViewsToolbar({
                 <DialogDescription>
                   Guarda la configuración actual para acceder a ella más tarde.
                   {!hasFilters && (
-                    <span className="text-destructive block mt-2">
-                      Nota: Debes aplicar al menos un filtro antes de guardar la vista.
+                    <span className='text-destructive block mt-2'>
+                      Nota: Debes aplicar al menos un filtro antes de guardar la
+                      vista.
                     </span>
                   )}
                 </DialogDescription>
@@ -330,7 +411,13 @@ export default function ViewsToolbar({
                   onClick={saveView}
                   disabled={isLoading || !hasFilters || !viewName.trim()}
                   className='gap-2'
-                  title={!hasFilters ? "Aplica filtros primero" : !viewName.trim() ? "Ingresa un nombre" : "Guardar vista"}
+                  title={
+                    !hasFilters
+                      ? "Aplica filtros primero"
+                      : !viewName.trim()
+                      ? "Ingresa un nombre"
+                      : "Guardar vista"
+                  }
                 >
                   {isLoading && <RefreshCw className='h-4 w-4 animate-spin' />}
                   Guardar

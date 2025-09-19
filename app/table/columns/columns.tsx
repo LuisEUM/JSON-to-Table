@@ -155,11 +155,20 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
                       columnId={column.id}
                       columnName={displayName}
                       columnType={isReferenceColumn ? "string" : item.type}
-                      uniqueValues={[]}
+                      uniqueValues={[]} // This will be overridden in FilterFactory
+                      initialValue={column.getFilterValue() as FilterCondition}
                       onApply={(condition) => {
+                        console.log("🎯 Applying filter condition:", {
+                          columnId: column.id,
+                          condition,
+                        });
                         column.setFilterValue(condition);
                       }}
                       onClear={() => {
+                        console.log(
+                          "🧹 Clearing filter for column:",
+                          column.id
+                        );
                         column.setFilterValue(undefined);
                       }}
                       onClose={() => {

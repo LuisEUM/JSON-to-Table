@@ -26,10 +26,11 @@ import {
 import { Input } from "@/components/ui/input";
 import type { Table } from "@tanstack/react-table";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 import type { ProcessedRow } from "../../data-processor";
 import { TypeDot } from "../type-indicators";
@@ -308,87 +309,105 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
                               : ""
                           }
                         />
-                        <div className='flex items-center gap-0.5'>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant='ghost'
-                                size='sm'
-                                className='h-8 w-8 p-0'
-                                disabled={
-                                  index <= 1 ||
-                                  (column.id === fixedColumnId &&
-                                    useFixedColumn)
-                                }
-                              >
-                                <ChevronsUp className='h-4 w-4' />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='p-2'>
-                              <p>Mover &quot;{column.id}&quot; al inicio</p>
-                            </PopoverContent>
-                          </Popover>
+                        <TooltipProvider>
+                          <div className='flex items-center gap-0.5'>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                  className='h-8 w-8 p-0'
+                                  disabled={
+                                    index <= 1 ||
+                                    (column.id === fixedColumnId &&
+                                      useFixedColumn)
+                                  }
+                                  onClick={() => {
+                                    console.log('🔝 Mover al inicio:', column.id);
+                                    // TODO: Implementar lógica de mover al inicio
+                                  }}
+                                >
+                                  <ChevronsUp className='h-4 w-4' />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Mover &quot;{column.id}&quot; al inicio
+                              </TooltipContent>
+                            </Tooltip>
 
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant='ghost'
-                                size='sm'
-                                className='h-8 w-8 p-0'
-                                disabled={
-                                  index <= 1 ||
-                                  (column.id === fixedColumnId &&
-                                    useFixedColumn)
-                                }
-                              >
-                                <ChevronUp className='h-4 w-4' />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='p-2'>
-                              <p>Mover &quot;{column.id}&quot; arriba</p>
-                            </PopoverContent>
-                          </Popover>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                  className='h-8 w-8 p-0'
+                                  disabled={
+                                    index <= 1 ||
+                                    (column.id === fixedColumnId &&
+                                      useFixedColumn)
+                                  }
+                                  onClick={() => {
+                                    console.log('⬆️ Mover arriba:', column.id);
+                                    // TODO: Implementar lógica de mover arriba
+                                  }}
+                                >
+                                  <ChevronUp className='h-4 w-4' />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Mover &quot;{column.id}&quot; arriba
+                              </TooltipContent>
+                            </Tooltip>
 
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant='ghost'
-                                size='sm'
-                                className='h-8 w-8 p-0'
-                                disabled={
-                                  index >= filteredColumns.length - 1 ||
-                                  (column.id === fixedColumnId &&
-                                    useFixedColumn)
-                                }
-                              >
-                                <ChevronDown className='h-4 w-4' />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='p-2'>
-                              <p>Mover &quot;{column.id}&quot; abajo</p>
-                            </PopoverContent>
-                          </Popover>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                  className='h-8 w-8 p-0'
+                                  disabled={
+                                    index >= filteredColumns.length - 1 ||
+                                    (column.id === fixedColumnId &&
+                                      useFixedColumn)
+                                  }
+                                  onClick={() => {
+                                    console.log('⬇️ Mover abajo:', column.id);
+                                    // TODO: Implementar lógica de mover abajo
+                                  }}
+                                >
+                                  <ChevronDown className='h-4 w-4' />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Mover &quot;{column.id}&quot; abajo
+                              </TooltipContent>
+                            </Tooltip>
 
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant='ghost'
-                                size='sm'
-                                className='h-8 w-8 p-0'
-                                disabled={
-                                  index >= filteredColumns.length - 1 ||
-                                  (column.id === fixedColumnId &&
-                                    useFixedColumn)
-                                }
-                              >
-                                <ChevronsDown className='h-4 w-4' />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='p-2'>
-                              <p>Mover &quot;{column.id}&quot; al final</p>
-                            </PopoverContent>
-                          </Popover>
-                        </div>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                  className='h-8 w-8 p-0'
+                                  disabled={
+                                    index >= filteredColumns.length - 1 ||
+                                    (column.id === fixedColumnId &&
+                                      useFixedColumn)
+                                  }
+                                  onClick={() => {
+                                    console.log('🔽 Mover al final:', column.id);
+                                    // TODO: Implementar lógica de mover al final
+                                  }}
+                                >
+                                  <ChevronsDown className='h-4 w-4' />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Mover &quot;{column.id}&quot; al final
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TooltipProvider>
                       </div>
                     </div>
                   );

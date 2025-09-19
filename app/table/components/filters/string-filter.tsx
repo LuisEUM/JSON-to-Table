@@ -18,6 +18,7 @@ import { getTypeStyle } from "../type-indicators";
 import { DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { FilterTabs, useFilterTabs } from "./filter-tabs";
 
 const SEPARATORS = [
   { label: "Ninguno", value: "none" },
@@ -50,9 +51,8 @@ const getSeparatorRegex = (separator: SeparatorType): RegExp => {
       return /\s+/g;
     case "newline":
       return /\n/g;
-    case "none":
     default:
-      return /(?!)/g; // Regex que no coincide con nada
+      return /$/; // No splitting
   }
 };
 
@@ -66,22 +66,25 @@ export function StringFilter({
   columnType,
   uniqueValues,
 }: FilterComponentProps) {
-  const [selectedSeparator, setSelectedSeparator] = useState<SeparatorType>(
+  const [selectedOperator, setSelectedOperator] = useState<FilterOperator>(
     () => {
-      if (!initialValue?.value) return "none";
-      return typeof initialValue.value === "string" ? "comma" : "none";
+      return (
+        (initialValue?.operator as FilterOperator) ||
+        (uniqueValues.length <= 50 ? "in" : "contains")
+      );
     }
   );
 
-  const [isInverted, setIsInverted] = useState(() => {
-    if (!initialValue) return true;
-    return !["notIn", "notContains"].includes(initialValue.operator);
-  });
+  const [selectedSeparator, setSelectedSeparator] = useState<SeparatorType>(
+    () => {
+      return (initialValue?.additionalValue as SeparatorType) || "none";
+    }
+  );
 
-  const [exactMatch, setExactMatch] = useState(() => {
-    if (!initialValue) return false;
-    return ["exactWordMatch", "notExactWordMatch"].includes(
-      initialValue.operator
+  const [exactMatch, setExactMatch] = useState<boolean>(() => {
+    return (
+      initialValue?.operator === "exactMatch" ||
+      initialValue?.operator === "exactMatchAny"
     );
   });
 
@@ -109,60 +112,42 @@ export function StringFilter({
   };
 
   const handleApply = () => {
-    if (selectedStrings.size === 0) {
-      onClear();
-      onClose();
-      return;
-    }
-
-    const selectedValues = Array.from(selectedStrings);
-
-    let operator: FilterOperator;
-    if (selectedSeparator === "none") {
-      operator = isInverted ? "arrIncludesSome" : "notIn";
-    } else {
-      if (exactMatch) {
-        // Use a custom operator for exact word matching
-        operator = isInverted ? "exactWordMatch" : "notExactWordMatch";
-      } else {
-        operator = isInverted ? "includesString" : "notContains";
-      }
-    }
-
+    const values = Array.from(selectedStrings);
     onApply({
       field: columnId,
-      operator,
-      value:
-        selectedSeparator === "none"
-          ? selectedValues
-          : selectedValues.join("|"),
+      operator: selectedOperator,
+      value: values,
+      additionalValue: selectedSeparator,
     });
     onClose();
   };
 
+  // Process unique values based on separator
   useEffect(() => {
     const valueCounts = new Map<string, number>();
     const validValues = new Set<string>();
 
     uniqueValues.forEach((option) => {
-      if (typeof option.value === "string") {
-        if (selectedSeparator === "none") {
-          valueCounts.set(
-            option.value,
-            (valueCounts.get(option.value) || 0) + option.count
-          );
-          validValues.add(option.value);
-        } else {
-          const parts = option.value
-            .split(getSeparatorRegex(selectedSeparator))
-            .map((part) => part.trim())
-            .filter(Boolean);
+      const displayValue =
+        typeof option.value === "string" ? option.value : String(option.value);
 
-          parts.forEach((part) => {
-            valueCounts.set(part, (valueCounts.get(part) || 0) + option.count);
-            validValues.add(part);
-          });
-        }
+      if (selectedSeparator === "none") {
+        valueCounts.set(
+          displayValue,
+          (valueCounts.get(displayValue) || 0) + option.count
+        );
+        validValues.add(displayValue);
+      } else {
+        const regex = getSeparatorRegex(selectedSeparator);
+        const parts = displayValue
+          .split(regex)
+          .map((part) => part.trim())
+          .filter((part) => part.length > 0);
+
+        parts.forEach((part) => {
+          valueCounts.set(part, (valueCounts.get(part) || 0) + option.count);
+          validValues.add(part);
+        });
       }
     });
 
@@ -187,69 +172,147 @@ export function StringFilter({
     });
   }, [uniqueValues, selectedSeparator]);
 
+  // Hook para manejar los tabs
+  const { filteredItems, counts } = useFilterTabs(
+    stringOptions,
+    Array.from(selectedStrings).map((str) => ({ value: str } as StringOption)),
+    (item, selected) => item.value === selected.value
+  );
+
   // Filter options based on search term and exact match setting
-  const filteredOptions = stringOptions.filter((option) => {
-    if (!searchTerm.trim()) return true;
+  const getFilteredOptions = (options: StringOption[]) =>
+    options.filter((option) => {
+      if (!searchTerm.trim()) return true;
 
-    const searchLower = searchTerm.toLowerCase();
-    const valueLower = option.value.toLowerCase();
+      const searchLower = searchTerm.toLowerCase();
+      const valueLower = option.value.toLowerCase();
 
-    if (exactMatch) {
-      // For exact match, create a regex that matches the whole word
-      const regex = new RegExp(`\\b${searchLower}\\b`, "i");
-      return regex.test(valueLower);
-    } else {
-      // For contains match, use simple includes
-      return valueLower.includes(searchLower);
-    }
-  });
+      if (exactMatch) {
+        // For exact match, create a regex that matches the whole word
+        const regex = new RegExp(`\\b${searchLower}\\b`, "i");
+        return regex.test(valueLower);
+      } else {
+        // For contains match, use simple includes
+        return valueLower.includes(searchLower);
+      }
+    });
+
+  // Aplicar filtro de búsqueda a cada tab
+  const searchFilteredOptions = {
+    todos: getFilteredOptions(filteredItems.todos),
+    activos: getFilteredOptions(filteredItems.activos),
+    inactivos: getFilteredOptions(filteredItems.inactivos),
+  };
+
+  // Función para renderizar lista de opciones
+  const renderOptionsList = (options: StringOption[]) => (
+    <ScrollArea className='flex-1 w-full rounded-md border'>
+      <div className='p-4 space-y-1 min-h-[250px] max-h-[300px]'>
+        {options.map((option, index) => (
+          <div
+            key={option.value}
+            className={`flex items-start justify-between p-3 rounded-md hover:bg-muted/50 transition-colors ${
+              index < options.length - 1 ? "border-b border-border/30" : ""
+            }`}
+          >
+            <div className='flex items-start space-x-3 flex-1 min-w-0'>
+              <Checkbox
+                id={`string-${option.value}`}
+                checked={selectedStrings.has(option.value)}
+                onCheckedChange={(checked) => {
+                  handleCheckboxChange(option.value, !!checked);
+                }}
+                className='mt-0.5 flex-shrink-0'
+              />
+              <div className='flex-1 min-w-0'>
+                <label
+                  htmlFor={`string-${option.value}`}
+                  className='text-sm cursor-pointer block'
+                >
+                  <span
+                    className='break-all'
+                    style={{
+                      color: getTypeStyle(columnType || "string").text,
+                    }}
+                  >
+                    {option.value || "(vacío)"}
+                  </span>
+                </label>
+              </div>
+            </div>
+            <span className='text-xs text-muted-foreground ml-2 flex-shrink-0'>
+              ({option.count})
+            </span>
+          </div>
+        ))}
+      </div>
+    </ScrollArea>
+  );
 
   return (
     <div className='w-full h-full min-h-[350px] flex flex-col'>
       <div className='flex items-center justify-between mb-4'>
         <h3 className='font-medium'>
-          Filtro para:{" "}
+          Filtro para{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
-              getTypeStyle(columnType).bg
+              getTypeStyle(columnType || "string").bg
             }`}
           ></span>{" "}
           {columnName}
         </h3>
       </div>
 
-      <div className='space-y-4 flex-1'>
-        <Select
-          value={selectedSeparator}
-          onValueChange={(value: SeparatorType) => setSelectedSeparator(value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder='Selecciona un separador' />
-          </SelectTrigger>
-          <SelectContent>
-            <DialogTitle className='sr-only'>
-              Seleccionar separador de texto
-            </DialogTitle>
-            {SEPARATORS.map((separator) => (
-              <SelectItem key={separator.value} value={separator.value}>
-                {separator.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className='space-y-4 flex-grow flex flex-col'>
+        <div className='space-y-3'>
+          <div>
+            <Label htmlFor='operator-select' className='text-sm font-medium'>
+              Operador
+            </Label>
+            <Select
+              value={selectedOperator}
+              onValueChange={(value: FilterOperator) =>
+                setSelectedOperator(value)
+              }
+            >
+              <SelectTrigger id='operator-select'>
+                <SelectValue placeholder='Seleccionar operador' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='in'>Incluye cualquiera</SelectItem>
+                <SelectItem value='contains'>Contiene texto</SelectItem>
+                <SelectItem value='exactMatch'>Coincidencia exacta</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className='flex items-center justify-between space-x-2'>
-          <Label htmlFor='filter-mode' className='text-sm'>
-            {isInverted ? "Incluir seleccionados" : "Excluir seleccionados"}
-          </Label>
-          <Switch
-            id='filter-mode'
-            checked={isInverted}
-            onCheckedChange={setIsInverted}
-          />
+          {selectedOperator === "in" && (
+            <div>
+              <Label htmlFor='separator-select' className='text-sm font-medium'>
+                Separador para dividir valores
+              </Label>
+              <Select
+                value={selectedSeparator}
+                onValueChange={(value: SeparatorType) =>
+                  setSelectedSeparator(value)
+                }
+              >
+                <SelectTrigger id='separator-select'>
+                  <SelectValue placeholder='Seleccionar separador' />
+                </SelectTrigger>
+                <SelectContent>
+                  {SEPARATORS.map((sep) => (
+                    <SelectItem key={sep.value} value={sep.value}>
+                      {sep.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
-        {selectedSeparator !== "none" && (
+        {selectedOperator === "contains" && (
           <div className='flex items-center justify-between space-x-2'>
             <Label htmlFor='exact-match' className='text-sm'>
               Coincidencia exacta de palabra
@@ -279,42 +342,16 @@ export function StringFilter({
               />
             </div>
 
-            <ScrollArea className='flex-1 w-full rounded-md border'>
-              <div className='p-4 space-y-2 h-[200px]'>
-                {filteredOptions.map((option) => (
-                  <div
-                    key={option.value}
-                    className='flex items-center justify-between'
-                  >
-                    <div className='flex items-center space-x-2'>
-                      <Checkbox
-                        id={option.value}
-                        checked={selectedStrings.has(option.value)}
-                        onCheckedChange={(checked) =>
-                          handleCheckboxChange(option.value, checked as boolean)
-                        }
-                      />
-                      <Label
-                        htmlFor={option.value}
-                        className='overflow-hidden text-ellipsis whitespace-nowrap max-w-[300px]'
-                      >
-                        {option.value}
-                      </Label>
-                    </div>
-                    <span className='text-sm text-muted-foreground ml-2'>
-                      {option.count}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
+            <div className='flex-1'>
+              <FilterTabs counts={counts} defaultTab='todos'>
+                {{
+                  todos: renderOptionsList(searchFilteredOptions.todos),
+                  activos: renderOptionsList(searchFilteredOptions.activos),
+                  inactivos: renderOptionsList(searchFilteredOptions.inactivos),
+                }}
+              </FilterTabs>
+            </div>
           </>
-        )}
-
-        {stringOptions.length === 0 && (
-          <div className='flex-1 flex items-center justify-center text-muted-foreground text-sm'>
-            No hay valores disponibles
-          </div>
         )}
       </div>
 
