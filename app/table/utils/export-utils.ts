@@ -1,12 +1,50 @@
+import type { ProcessedItem } from "../data-processor";
+
+/**
+ * Limpia los datos procesados eliminando metadatos internos
+ * Mantiene solo los valores reales de los datos usando los labels de las columnas como keys
+ */
+export function cleanProcessedData(data: Record<string, ProcessedItem>[]): Record<string, unknown>[] {
+  if (!data || data.length === 0) return [];
+
+  return data.map(row => {
+    const cleanRow: Record<string, unknown> = {};
+    
+    Object.entries(row).forEach(([key, processedItem]) => {
+      // Omitir columnas internas del sistema
+      if (key === "selection" || key === "index" || key === "actions") {
+        return;
+      }
+      
+      // Extraer el valor y usar el label como key
+      if (processedItem && typeof processedItem === 'object' && 'value' in processedItem) {
+        const columnLabel = processedItem.label || key; // Usar label si existe, sino usar el key original
+        cleanRow[columnLabel] = processedItem.value;
+      } else {
+        // Si por alguna razón no es un ProcessedItem, incluir el valor tal cual
+        cleanRow[key] = processedItem;
+      }
+    });
+    
+    return cleanRow;
+  });
+}
+
 /**
  * Convierte un array de objetos a formato CSV
  */
 export function convertToCSV(data: Record<string, unknown>[]): string {
   if (!data || data.length === 0) return "";
 
+  // Si los datos vienen de processedData, limpiarlos primero
+  const cleanData = data[0] && typeof data[0] === 'object' && 
+    Object.values(data[0]).some(v => v && typeof v === 'object' && 'value' in v)
+    ? cleanProcessedData(data as Record<string, ProcessedItem>[])
+    : data;
+
   // Obtener todas las claves únicas de todos los objetos
   const allKeys = new Set<string>();
-  data.forEach((item) => {
+  cleanData.forEach((item) => {
     Object.keys(item).forEach((key) => allKeys.add(key));
   });
 
@@ -16,7 +54,7 @@ export function convertToCSV(data: Record<string, unknown>[]): string {
   let csv = headers.join(",") + "\n";
 
   // Crear las filas de datos
-  data.forEach((item) => {
+  cleanData.forEach((item) => {
     const row = headers.map((header) => {
       const value = item[header];
 

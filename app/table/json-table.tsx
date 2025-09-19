@@ -1481,28 +1481,64 @@ export function JsonTable({
           }}
           onLoadView={handleLoadView}
           onExportJSON={() => {
-            const jsonData = JSON.stringify(processedData, null, 2);
-            downloadFile(jsonData, "datos.json", "application/json");
+            // Obtener solo las filas filtradas de la tabla
+            const filteredRows = table.getFilteredRowModel().rows;
+            
+            console.log("📊 Exportando JSON filtrado:", {
+              totalRows: processedData.length,
+              filteredRows: filteredRows.length,
+              hasFilters: Object.keys(table.getState().columnFilters).length > 0
+            });
+            
+            // Limpiar los datos filtrados antes de exportar
+            const cleanData = filteredRows.map(row => {
+              const cleanRow: Record<string, unknown> = {};
+              const originalData = row.original;
+              
+              Object.entries(originalData).forEach(([key, processedItem]) => {
+                // Omitir columnas internas del sistema
+                if (key === "selection" || key === "index" || key === "actions") {
+                  return;
+                }
+                
+                // Extraer el valor y usar el label como key
+                if (processedItem && typeof processedItem === 'object' && 'value' in processedItem) {
+                  const item = processedItem as ProcessedItem;
+                  const columnLabel = item.label || key; // Usar label si existe, sino usar el key original
+                  cleanRow[columnLabel] = item.value;
+                }
+              });
+              
+              return cleanRow;
+            });
+            
+            const jsonData = JSON.stringify(cleanData, null, 2);
+            const hasActiveFilters = Object.keys(table.getState().columnFilters).length > 0 || table.getState().globalFilter;
+            const fileName = hasActiveFilters 
+              ? `datos_filtrados_${filteredRows.length}_registros.json`
+              : `datos_${filteredRows.length}_registros.json`;
+            downloadFile(jsonData, fileName, "application/json");
           }}
           onExportCSV={() => {
-            // Convertir los datos procesados a un formato compatible con la función convertToCSV
-            const exportData = processedData.map((item) => {
-              // Convertir cada item a un objeto plano
-              return Object.fromEntries(
-                Object.entries(item).map(([key, value]) => {
-                  // Manejar arrays y objetos convirtiéndolos a JSON string
-                  if (typeof value === "object" && value !== null) {
-                    return [key, JSON.stringify(value)];
-                  }
-                  return [key, value];
-                })
-              );
+            // Obtener solo las filas filtradas de la tabla
+            const filteredRows = table.getFilteredRowModel().rows;
+            
+            console.log("📊 Exportando CSV filtrado:", {
+              totalRows: processedData.length,
+              filteredRows: filteredRows.length,
+              hasFilters: Object.keys(table.getState().columnFilters).length > 0
             });
-
-            const csvData = convertToCSV(
-              exportData as Record<string, unknown>[]
-            );
-            downloadFile(csvData, "datos.csv", "text/csv");
+            
+            // Convertir las filas filtradas a formato para export
+            const filteredData = filteredRows.map(row => row.original);
+            
+            // convertToCSV limpia automáticamente los processedData
+            const csvData = convertToCSV(filteredData as Record<string, unknown>[]);
+            const hasActiveFilters = Object.keys(table.getState().columnFilters).length > 0 || table.getState().globalFilter;
+            const fileName = hasActiveFilters 
+              ? `datos_filtrados_${filteredRows.length}_registros.csv`
+              : `datos_${filteredRows.length}_registros.csv`;
+            downloadFile(csvData, fileName, "text/csv");
           }}
         />
       </CardContent>
