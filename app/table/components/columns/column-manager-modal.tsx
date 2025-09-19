@@ -58,6 +58,19 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
   const [searchTerm, setSearchTerm] = useState("");
   const [columns, setColumns] = useState<ColumnInfo[]>([]);
 
+  // Función para obtener columna de la tabla
+  const getColumn = (columnId: string) =>
+    table.getAllLeafColumns().find((col) => col.id === columnId);
+
+  // Debug: Log state changes
+  console.log("🔍 ColumnManager State:", {
+    useFixedColumn,
+    fixedColumnId,
+    selectValue: useFixedColumn ? fixedColumnId || "index" : "none",
+    indexVisible: getColumn("index")?.getIsVisible(),
+    indexDisabled: useFixedColumn && !fixedColumnId,
+  });
+
   useEffect(() => {
     const allColumns = table.getAllLeafColumns();
     const firstRow = table.getRowModel().rows[0]?.original;
@@ -94,18 +107,12 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
 
     setColumns(orderedColumns);
 
-    // Ensure index column is visible when there's no fixed column
-    if (indexColumn && !useFixedColumn) {
-      indexColumn.toggleVisibility(true);
-    }
+    // Ya no forzamos la visibilidad del index - el usuario tiene control total
   }, [table, fixedColumnId, useFixedColumn]);
 
   const filteredColumns = columns.filter((column) =>
     column.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const getColumn = (columnId: string) =>
-    table.getAllLeafColumns().find((col) => col.id === columnId);
 
   return (
     <Dialog>
@@ -122,42 +129,67 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
         <div className='py-4'>
           <div className='space-y-4'>
             <div className='rounded-lg border p-4 space-y-4'>
-              <div className='flex items-center justify-between'>
-                <span className='font-medium'>Usar columna fija</span>
-                <Switch
-                  checked={useFixedColumn}
-                  onCheckedChange={onFixedColumnChange}
-                />
-              </div>
-              {useFixedColumn && (
-                <div className='space-y-2'>
-                  <span className='text-sm text-muted-foreground'>
-                    Seleccionar columna fija
-                  </span>
-                  <Select
-                    value={fixedColumnId || ""}
-                    onValueChange={onFixedColumnIdChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='Selecciona una columna' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {columns
-                        .filter((column) => column.id !== "index")
-                        .map((column) => (
-                          <SelectItem
-                            key={column.id}
-                            value={column.id}
-                            className='flex items-center gap-2'
-                          >
+              <div className='space-y-2'>
+                <span className='font-medium'>Columna fija</span>
+                <span className='text-sm text-muted-foreground'>
+                  Selecciona qué columna mantener fija a la izquierda
+                </span>
+                <Select
+                  value={useFixedColumn ? fixedColumnId || "index" : "none"}
+                  onValueChange={(value) => {
+                    if (value === "none") {
+                      onFixedColumnIdChange(null);
+                      onFixedColumnChange(false);
+                    } else if (value === "index") {
+                      onFixedColumnIdChange(null);
+                      onFixedColumnChange(true);
+                    } else {
+                      onFixedColumnIdChange(value);
+                      onFixedColumnChange(true);
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder='Selecciona una columna' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='none'>
+                      <div className='flex items-center gap-2'>
+                        <span className='text-muted-foreground'>—</span>
+                        Ninguna
+                      </div>
+                    </SelectItem>
+                    {/* Solo mostrar index si está visible */}
+                    {(() => {
+                      const indexColumn = getColumn("index");
+                      return indexColumn && indexColumn.getIsVisible() ? (
+                        <SelectItem value='index'>
+                          <div className='flex items-center gap-2'>
+                            <TypeDot type='número entero' />
+                            index (por defecto)
+                          </div>
+                        </SelectItem>
+                      ) : null;
+                    })()}
+                    {/* Solo mostrar columnas que están visibles */}
+                    {columns
+                      .filter((column) => {
+                        if (column.id === "index" || column.id === "actions")
+                          return false;
+                        const tableColumn = getColumn(column.id);
+                        return tableColumn && tableColumn.getIsVisible();
+                      })
+                      .map((column) => (
+                        <SelectItem key={column.id} value={column.id}>
+                          <div className='flex items-center gap-2'>
                             <TypeDot type={column.type} />
                             {column.id}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <Input
@@ -181,7 +213,10 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
                     <div
                       key={column.id}
                       className={`grid grid-cols-[minmax(200px,1fr),auto] items-center gap-4 p-4 border-b last:border-0 hover:bg-muted/50 ${
-                        column.id === fixedColumnId || column.id === "index"
+                        (column.id === fixedColumnId && useFixedColumn) ||
+                        (column.id === "index" &&
+                          useFixedColumn &&
+                          !fixedColumnId)
                           ? "bg-muted"
                           : ""
                       }`}
@@ -189,7 +224,10 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
                       <div className='flex items-center gap-2 min-w-0'>
                         <TypeDot type={column.type} />
                         <span className='truncate'>{column.id}</span>
-                        {column.id === fixedColumnId && (
+                        {((column.id === fixedColumnId && useFixedColumn) ||
+                          (column.id === "index" &&
+                            useFixedColumn &&
+                            !fixedColumnId)) && (
                           <span className='text-xs text-muted-foreground'>
                             (Columna Fija)
                           </span>
@@ -201,14 +239,71 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
                       <div className='flex items-center justify-end gap-2'>
                         <Switch
                           checked={tableColumn.getIsVisible()}
-                          onCheckedChange={(value) =>
-                            tableColumn.toggleVisibility(!!value)
-                          }
+                          onCheckedChange={(value) => {
+                            console.log("🔄 Toggle clicked:", {
+                              column: column.id,
+                              newValue: value,
+                              useFixedColumn,
+                              fixedColumnId,
+                              isIndexFixed:
+                                column.id === "index" &&
+                                useFixedColumn &&
+                                !fixedColumnId,
+                              isCustomFixed:
+                                column.id === fixedColumnId && useFixedColumn,
+                              canHide: tableColumn.getCanHide(),
+                            });
+
+                            // Verificar si la columna puede ser ocultada
+                            if (!tableColumn.getCanHide()) {
+                              console.log(
+                                "⚠️ Column cannot be hidden:",
+                                column.id
+                              );
+                              return;
+                            }
+
+                            tableColumn.toggleVisibility(!!value);
+
+                            // Si se desactiva una columna que está actualmente fija
+                            if (!value) {
+                              if (
+                                column.id === "index" &&
+                                useFixedColumn &&
+                                !fixedColumnId
+                              ) {
+                                // Si se desactiva index siendo la columna fija por defecto
+                                console.log(
+                                  "📌 Index fixed -> changing to none"
+                                );
+                                onFixedColumnIdChange(null);
+                                onFixedColumnChange(false);
+                              } else if (
+                                column.id === fixedColumnId &&
+                                useFixedColumn
+                              ) {
+                                // Si se desactiva una columna personalizada que es fija
+                                console.log(
+                                  "📌 Custom fixed column -> fallback logic"
+                                );
+                                const indexColumn = getColumn("index");
+                                if (indexColumn && indexColumn.getIsVisible()) {
+                                  onFixedColumnIdChange(null); // index
+                                  onFixedColumnChange(true);
+                                } else {
+                                  onFixedColumnIdChange(null);
+                                  onFixedColumnChange(false); // ninguna
+                                }
+                              }
+                            }
+                          }}
                           disabled={
-                            column.id === "index" || column.id === fixedColumnId
+                            !tableColumn.getCanHide() ||
+                            (column.id === fixedColumnId && useFixedColumn)
                           }
                           className={
-                            column.id === "index" || column.id === fixedColumnId
+                            !tableColumn.getCanHide() ||
+                            (column.id === fixedColumnId && useFixedColumn)
                               ? "opacity-50"
                               : ""
                           }
@@ -222,8 +317,8 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
                                 className='h-8 w-8 p-0'
                                 disabled={
                                   index <= 1 ||
-                                  column.id === "index" ||
-                                  column.id === fixedColumnId
+                                  (column.id === fixedColumnId &&
+                                    useFixedColumn)
                                 }
                               >
                                 <ChevronsUp className='h-4 w-4' />
@@ -242,8 +337,8 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
                                 className='h-8 w-8 p-0'
                                 disabled={
                                   index <= 1 ||
-                                  column.id === "index" ||
-                                  column.id === fixedColumnId
+                                  (column.id === fixedColumnId &&
+                                    useFixedColumn)
                                 }
                               >
                                 <ChevronUp className='h-4 w-4' />
@@ -262,8 +357,8 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
                                 className='h-8 w-8 p-0'
                                 disabled={
                                   index >= filteredColumns.length - 1 ||
-                                  column.id === "index" ||
-                                  column.id === fixedColumnId
+                                  (column.id === fixedColumnId &&
+                                    useFixedColumn)
                                 }
                               >
                                 <ChevronDown className='h-4 w-4' />
@@ -282,8 +377,8 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
                                 className='h-8 w-8 p-0'
                                 disabled={
                                   index >= filteredColumns.length - 1 ||
-                                  column.id === "index" ||
-                                  column.id === fixedColumnId
+                                  (column.id === fixedColumnId &&
+                                    useFixedColumn)
                                 }
                               >
                                 <ChevronsDown className='h-4 w-4' />

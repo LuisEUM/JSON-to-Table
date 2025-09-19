@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     // Obtener datos de la solicitud
     const { name, description, isPublic, configuration } = await request.json();
 
-    // Validar datos
+    // Validar datos básicos
     if (!name || !configuration) {
       return NextResponse.json(
         { error: "Nombre y configuración son requeridos" },
@@ -57,13 +57,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Crear vista
+    // Validar que haya filtros aplicados (columnFilters o globalFilter)
+    const hasFilters = 
+      (configuration.columnFilters && configuration.columnFilters.length > 0) ||
+      (configuration.globalFilter && configuration.globalFilter.trim() !== "");
+    
+    if (!hasFilters) {
+      return NextResponse.json(
+        { error: "Debes aplicar al menos un filtro antes de guardar la vista" },
+        { status: 400 }
+      );
+    }
+
+    // Extraer metadata de columnas para validación futura
+    const columnMetadata = {
+      availableColumns: Object.keys(configuration.columnVisibility || {}),
+      filteredColumns: configuration.columnFilters?.map((f: { id: string }) => f.id) || [],
+      sortedColumns: configuration.sorting?.map((s: { id: string }) => s.id) || [],
+    };
+
+    // Crear vista con metadata de columnas
     const view = await prisma.view.create({
       data: {
         name,
         description,
         isPublic: !!isPublic,
-        config: configuration,
+        config: {
+          ...configuration,
+          columnMetadata, // Guardar metadata para validación de compatibilidad
+        },
         user: {
           connect: {
             id: session.user.id,

@@ -276,6 +276,34 @@ export const processValue = withErrorHandling(
         items,
       };
     }
+    
+    // Verificación adicional: Si no es array pero viene marcado como tal,
+    // re-procesar con el tipo correcto (backwards compatibility)
+    if (!Array.isArray(value) && typeof value === "string") {
+      // Verificar si es una fecha disfrazada
+      if (isDate(value)) {
+        const dateObj = normalizeDate(value);
+        return {
+          ...baseProcessedValue,
+          value:
+            dateObj instanceof Date
+              ? `${String(dateObj.getDate()).padStart(2, "0")}-${String(
+                  dateObj.getMonth() + 1
+                ).padStart(2, "0")}-${dateObj.getFullYear()}`
+              : dateObj,
+          type: "fecha",
+          rawValue: value,
+          dateValue: dateObj instanceof Date ? dateObj : undefined,
+        };
+      }
+      
+      // Si no es fecha, es string simple
+      return {
+        ...baseProcessedValue,
+        value: cleanStringValue(value),
+        type: "string",
+      };
+    }
 
     if (typeof value === "object" && value !== null) {
       return {

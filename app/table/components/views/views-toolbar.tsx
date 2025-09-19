@@ -64,6 +64,12 @@ export default function ViewsToolbar({
 
   // Estado para el diálogo de administrar vistas
   const [showManageDialog, setShowManageDialog] = useState(false);
+  
+  // Verificar si hay filtros aplicados
+  const hasFilters = Boolean(
+    (currentConfig.columnFilters && Array.isArray(currentConfig.columnFilters) && currentConfig.columnFilters.length > 0) ||
+    (currentConfig.globalFilter && String(currentConfig.globalFilter).trim() !== "")
+  );
 
   // Cargar la lista de vistas del usuario
   const loadViews = useCallback(async () => {
@@ -103,6 +109,16 @@ export default function ViewsToolbar({
 
     if (!viewName.trim()) {
       toast.error("Debes proporcionar un nombre para la vista");
+      return;
+    }
+
+    // Validar que haya filtros aplicados
+    const hasFilters = 
+      (currentConfig.columnFilters && Array.isArray(currentConfig.columnFilters) && currentConfig.columnFilters.length > 0) ||
+      (currentConfig.globalFilter && String(currentConfig.globalFilter).trim() !== "");
+    
+    if (!hasFilters) {
+      toast.error("Debes aplicar al menos un filtro antes de guardar la vista");
       return;
     }
 
@@ -149,7 +165,15 @@ export default function ViewsToolbar({
       const data = await response.json();
 
       if (response.ok) {
-        onLoadView(data.view.configuration);
+        // El campo en la DB es 'config', no 'configuration'
+        const viewConfig = data.view.config || data.view.configuration;
+        
+        // Validar que la configuración existe
+        if (!viewConfig) {
+          throw new Error("La vista no tiene configuración válida");
+        }
+        
+        onLoadView(viewConfig);
         toast.success(`"${data.view.name}" se ha cargado correctamente.`);
       } else {
         throw new Error(data.error || "Error al cargar la vista");
@@ -241,7 +265,12 @@ export default function ViewsToolbar({
 
           <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
             <DialogTrigger asChild>
-              <Button className='gap-2'>
+              <Button 
+                className='gap-2' 
+                disabled={!hasFilters}
+                variant={hasFilters ? "default" : "outline"}
+                title={!hasFilters ? "Aplica al menos un filtro antes de guardar una vista" : "Guardar la configuración actual como una vista"}
+              >
                 <Save className='h-4 w-4' />
                 <span>Guardar vista</span>
               </Button>
@@ -251,6 +280,11 @@ export default function ViewsToolbar({
                 <DialogTitle>Guardar vista actual</DialogTitle>
                 <DialogDescription>
                   Guarda la configuración actual para acceder a ella más tarde.
+                  {!hasFilters && (
+                    <span className="text-destructive block mt-2">
+                      Nota: Debes aplicar al menos un filtro antes de guardar la vista.
+                    </span>
+                  )}
                 </DialogDescription>
               </DialogHeader>
 
@@ -294,8 +328,9 @@ export default function ViewsToolbar({
                 </Button>
                 <Button
                   onClick={saveView}
-                  disabled={isLoading}
+                  disabled={isLoading || !hasFilters || !viewName.trim()}
                   className='gap-2'
+                  title={!hasFilters ? "Aplica filtros primero" : !viewName.trim() ? "Ingresa un nombre" : "Guardar vista"}
                 >
                   {isLoading && <RefreshCw className='h-4 w-4 animate-spin' />}
                   Guardar

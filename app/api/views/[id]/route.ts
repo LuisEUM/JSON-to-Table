@@ -4,15 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Obtener una vista específica por su ID
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     // Obtener la vista
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // Actualizar una vista existente
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     // Verificar autenticación
@@ -81,7 +81,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     // Obtener datos actualizados
     const { name, description, isPublic, configuration } = await request.json();
 
-    // Validar datos
+    // Validar datos básicos
     if (!name || !configuration) {
       return NextResponse.json(
         { error: "Nombre y configuración son requeridos" },
@@ -89,14 +89,36 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Actualizar vista
+    // Validar que haya filtros aplicados
+    const hasFilters = 
+      (configuration.columnFilters && configuration.columnFilters.length > 0) ||
+      (configuration.globalFilter && configuration.globalFilter.trim() !== "");
+    
+    if (!hasFilters) {
+      return NextResponse.json(
+        { error: "Debes aplicar al menos un filtro antes de actualizar la vista" },
+        { status: 400 }
+      );
+    }
+
+    // Extraer metadata de columnas
+    const columnMetadata = {
+      availableColumns: Object.keys(configuration.columnVisibility || {}),
+      filteredColumns: configuration.columnFilters?.map((f: { id: string }) => f.id) || [],
+      sortedColumns: configuration.sorting?.map((s: { id: string }) => s.id) || [],
+    };
+
+    // Actualizar vista con metadata
     const updatedView = await prisma.view.update({
       where: { id },
       data: {
         name,
         description,
         isPublic: !!isPublic,
-        config: configuration,
+        config: {
+          ...configuration,
+          columnMetadata,
+        },
       },
     });
 
@@ -113,7 +135,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // Eliminar una vista
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     // Verificar autenticación

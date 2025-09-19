@@ -114,7 +114,7 @@ const indexColumn: ColumnDef<ProcessedRow> = {
   ),
   size: 50,
   enableSorting: false,
-  enableHiding: false,
+  enableHiding: true, // Allow hiding the index column
   cell: ({ row }) => (
     <div className='text-center text-muted-foreground w-full'>
       {row.index + 1}
@@ -232,7 +232,7 @@ export function JsonTable({
   const [globalFilter, setGlobalFilter] = useState("");
   const [isSecondaryTablesLoading, setIsSecondaryTablesLoading] =
     useState(false);
-  const [useFixedColumn, setUseFixedColumn] = useState(false);
+  const [useFixedColumn, setUseFixedColumn] = useState(true);
   const [fixedColumnId, setFixedColumnId] = useState<string | null>(null);
   const [originalColumnOrder, setOriginalColumnOrder] = useState<string[]>([]);
   const [isProcessingData, setIsProcessingData] = useState(true);
@@ -758,17 +758,22 @@ export function JsonTable({
   }, [table, originalColumnOrder]);
 
   useEffect(() => {
-    const indexColumn = table.getColumn("index");
-    if (indexColumn) {
-      indexColumn.toggleVisibility(!useFixedColumn);
-    }
-
+    // Lógica de pinning basada en la configuración del usuario
     const leftPins = ["selection"];
-    if (useFixedColumn && fixedColumnId) {
-      leftPins.push(fixedColumnId);
-    } else {
-      leftPins.push("index");
+
+    if (useFixedColumn) {
+      if (fixedColumnId) {
+        // Columna específica seleccionada como fija
+        leftPins.push(fixedColumnId);
+      } else {
+        // Index seleccionado como columna fija
+        const indexColumn = table.getColumn("index");
+        if (indexColumn && indexColumn.getIsVisible()) {
+          leftPins.push("index");
+        }
+      }
     }
+    // Si useFixedColumn es false, no fijamos ninguna columna adicional
 
     table.setColumnPinning({
       left: leftPins,
@@ -914,9 +919,40 @@ export function JsonTable({
   const handleLoadView = useCallback(
     (config: Record<string, unknown>) => {
       try {
-        // Aplicar ordenación
+        // Validar compatibilidad de columnas si existe metadata
+        const columnMetadata = config.columnMetadata as
+          | {
+              availableColumns?: string[];
+              filteredColumns?: string[];
+              sortedColumns?: string[];
+            }
+          | undefined;
+
+        if (columnMetadata?.availableColumns) {
+          const currentColumns = table.getAllColumns().map((col) => col.id);
+          const missingColumns =
+            columnMetadata.filteredColumns?.filter(
+              (col) => !currentColumns.includes(col)
+            ) || [];
+
+          if (missingColumns.length > 0) {
+            toast.warning(
+              `Algunas columnas de la vista no están disponibles: ${missingColumns.join(
+                ", "
+              )}`,
+              { duration: 5000 }
+            );
+          }
+        }
+
+        // Aplicar ordenación solo si las columnas existen
         if (config.sorting) {
-          setSorting(config.sorting as SortingState);
+          const sortingState = config.sorting as SortingState;
+          const currentColumns = table.getAllColumns().map((col) => col.id);
+          const validSorting = sortingState.filter((sort) =>
+            currentColumns.includes(sort.id)
+          );
+          setSorting(validSorting);
         }
 
         // Aplicar visibilidad de columnas
@@ -924,14 +960,39 @@ export function JsonTable({
           setColumnVisibility(config.columnVisibility as VisibilityState);
         }
 
-        // Aplicar filtros de columnas
+        // Aplicar filtros de columnas solo si las columnas existen
         if (config.columnFilters) {
-          setColumnFilters(config.columnFilters as ColumnFiltersState);
+          const filtersState = config.columnFilters as ColumnFiltersState;
+          const currentColumns = table.getAllColumns().map((col) => col.id);
+          const validFilters = filtersState.filter((filter) =>
+            currentColumns.includes(filter.id)
+          );
+
+          if (validFilters.length !== filtersState.length) {
+            toast.warning(
+              "Algunos filtros no se pudieron aplicar porque las columnas no existen",
+              { duration: 4000 }
+            );
+          }
+
+          setColumnFilters(validFilters);
         }
 
-        // Aplicar pinning de columnas
+        // Aplicar pinning de columnas solo si existen
         if (config.columnPinning) {
-          table.setColumnPinning(config.columnPinning as ColumnPinningState);
+          const pinningState = config.columnPinning as ColumnPinningState;
+          const currentColumns = table.getAllColumns().map((col) => col.id);
+
+          const validPinning: ColumnPinningState = {
+            left: pinningState.left?.filter((col) =>
+              currentColumns.includes(col)
+            ),
+            right: pinningState.right?.filter((col) =>
+              currentColumns.includes(col)
+            ),
+          };
+
+          table.setColumnPinning(validPinning);
         }
 
         // Aplicar búsqueda global
