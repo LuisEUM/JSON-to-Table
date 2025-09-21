@@ -1,7 +1,7 @@
 /**
  * Pruebas unitarias para el sistema de detección de tipos
  */
-import { typeDetector } from "@/lib/table-system/core/utils/type-detector";
+import { typeDetector } from "../type-detector";
 
 describe("Sistema de detección de tipos", () => {
   describe("Detección de tipos básicos", () => {
