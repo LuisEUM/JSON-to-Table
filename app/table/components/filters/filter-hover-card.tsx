@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   Calendar,
-  Users,
   Filter,
   Hash,
   Clock,
@@ -63,11 +62,11 @@ export function FilterHoverCard({
 
     // Analizar filtros de columna
     if (config.columnFilters && Array.isArray(config.columnFilters)) {
-      config.columnFilters.forEach((filter: any) => {
+      config.columnFilters.forEach((filter: {id?: string; value?: unknown}) => {
         if (filter.id && filter.value !== undefined) {
           if (typeof filter.value === "object" && filter.value !== null) {
             // Filtro complejo con operador
-            const complexFilter = filter.value as any;
+            const complexFilter = filter.value as {operator?: string; value?: unknown; from?: unknown};
             if (complexFilter.operator) {
               let operatorText = "";
               switch (complexFilter.operator) {

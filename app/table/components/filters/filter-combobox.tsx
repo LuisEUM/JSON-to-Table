@@ -37,14 +37,10 @@ import {
   User,
   Trash,
   RefreshCw,
-  Search,
   Filter,
-  Plus,
   Settings,
-  Check,
   ChevronDown
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { FilterHoverCard } from "./filter-hover-card";
 
 // Tipo para un filtro guardado
