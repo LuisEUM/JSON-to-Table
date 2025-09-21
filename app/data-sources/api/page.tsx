@@ -112,29 +112,30 @@ export default function ApiDataSourcePage() {
     });
 
     // Redireccionar a la página de tabla con los parámetros
-    router.push(`/table?${queryParams.toString()}`);
+    router.push(`/data-sources/table?${queryParams.toString()}`);
   };
 
   return (
-    <div className='container py-8 space-y-6'>
-      <Button
-        variant='ghost'
-        className='mb-4'
-        onClick={() => router.push("/data-sources")}
-      >
-        <ArrowLeft className='mr-2 h-4 w-4' />
-        Volver a fuentes de datos
-      </Button>
+    <main className='flex min-h-screen flex-col items-center justify-between p-6'>
+      <div className='w-full max-w-7xl mx-auto'>
+        <div className='container mx-auto py-8'>
+          <Button
+            variant='ghost'
+            className='mb-6'
+            onClick={() => router.push("/data-sources")}
+          >
+            <ArrowLeft className='mr-2 h-4 w-4' />
+            Volver a fuentes de datos
+          </Button>
 
-      <div className='flex flex-col space-y-4'>
-        <h1 className='text-3xl font-bold'>APIs Externas</h1>
-        <p className='text-gray-500'>
-          Selecciona una API externa para importar datos y visualizarlos en una
-          tabla.
-        </p>
-      </div>
+          <div className='text-center mb-8'>
+            <h1 className='text-3xl font-bold mb-2'>APIs Externas</h1>
+            <p className='text-gray-500'>
+              Selecciona una API externa para importar datos y visualizarlos en una tabla.
+            </p>
+          </div>
 
-      <Card className='w-full max-w-2xl mx-auto'>
+          <Card className='w-full max-w-2xl mx-auto'>
         <CardHeader>
           <div className='flex items-center space-x-4'>
             <div className='p-2 bg-primary/10 rounded-full'>
@@ -228,7 +229,9 @@ export default function ApiDataSourcePage() {
             {loading ? "Cargando..." : "Continuar"}
           </Button>
         </CardFooter>
-      </Card>
-    </div>
+          </Card>
+        </div>
+      </div>
+    </main>
   );
 }

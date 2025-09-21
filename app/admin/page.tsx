@@ -44,21 +44,22 @@ export default function AdminPage() {
   }
 
   return (
-    <div className='container py-10'>
-      <h1 className='text-3xl font-bold mb-6'>Panel de Administración</h1>
+    <main className='flex min-h-screen flex-col items-center justify-between p-6'>
+      <div className='w-full max-w-7xl mx-auto'>
+        <div className='container mx-auto py-10'>
+          <div className='text-center mb-8'>
+            <h1 className='text-3xl font-bold mb-2'>Panel de Administración</h1>
+            <p className='text-muted-foreground'>
+              Bienvenido, {session?.user.name} (
+              {session?.user.role === "ADMIN" ? "Administrador" : "Empleado"})
+            </p>
+          </div>
 
-      <div className='mb-6'>
-        <p className='text-muted-foreground'>
-          Bienvenido, {session?.user.name} (
-          {session?.user.role === "ADMIN" ? "Administrador" : "Empleado"})
-        </p>
-      </div>
-
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className='space-y-4'
-      >
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className='space-y-4'
+          >
         <TabsList>
           <TabsTrigger value='users'>Gestión de Usuarios</TabsTrigger>
           <TabsTrigger value='views'>Vistas Guardadas</TabsTrigger>
@@ -95,7 +96,9 @@ export default function AdminPage() {
         </TabsContent>
 
 
-      </Tabs>
-    </div>
+          </Tabs>
+        </div>
+      </div>
+    </main>
   );
 }
