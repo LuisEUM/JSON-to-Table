@@ -1489,7 +1489,7 @@ export function JsonTable({
           onFixedColumnChange={setUseFixedColumn}
           fixedColumnId={fixedColumnId}
           onFixedColumnIdChange={setFixedColumnId}
-          originalColumnOrder={originalColumnOrder}
+          originalColumnOrder={getEffectiveColumnOrder()}
           onColumnOrderChange={handleColumnOrderChange}
           onSaveAsDefault={saveAsDefaultConfiguration}
         />

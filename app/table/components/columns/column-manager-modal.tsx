@@ -18,6 +18,7 @@ import {
   Key,
   Check,
   X,
+  MoreHorizontal,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { Table } from "@tanstack/react-table";
@@ -27,6 +28,14 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useState, useEffect } from "react";
 import type { ProcessedRow } from "../../data-processor";
 import { TypeDot } from "../type-indicators";
@@ -57,159 +66,84 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
   onColumnOrderChange,
   onSaveAsDefault,
 }: ColumnManagerModalProps<TData>) {
-  const [searchTerm, setSearchTerm] = useState("");
   const [columns, setColumns] = useState<ColumnInfo[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [pendingPositions, setPendingPositions] = useState<
     Record<string, number>
   >({});
 
-  // Función para obtener columna de la tabla
-  const getColumn = (columnId: string) =>
-    table.getAllLeafColumns().find((col) => col.id === columnId);
-
-  // Funciones auxiliares para determinar restricciones
-  const isFixedColumn = (columnId: string) => {
-    if (!useFixedColumn) return false;
-    if (columnId === "index" && !fixedColumnId) return true; // Index es la fija
-    if (columnId === fixedColumnId) return true; // Columna personalizada es la fija
-    return false;
+  // Función auxiliar para obtener columna de la tabla
+  const getColumn = (columnId: string) => {
+    return table.getAllLeafColumns().find((col) => col.id === columnId);
   };
 
-  // Funciones de validación de movimiento (ahora más simples)
-  // Como el pin es independiente, las columnas se pueden mover libremente en el modal
-  const canMoveUp = (index: number) => {
-    // Solo no puede mover arriba si ya está en la primera posición
-    return index > 0;
+  // Verificar si una columna es la columna fija actual
+  const isFixedColumn = (columnId: string): boolean => {
+    return useFixedColumn && fixedColumnId === columnId;
   };
 
-  const canMoveDown = (index: number) => {
-    // Solo no puede mover abajo si ya está en la última posición
-    return index < columns.length - 1;
+  // Verificar si se puede establecer como columna fija
+  const canSetAsKey = (columnId: string): boolean => {
+    const column = getColumn(columnId);
+    return column ? column.getIsVisible() : false;
   };
 
-  const canMoveToStart = (index: number) => {
-    // Solo no puede mover al inicio si ya está en la primera posición
-    return index > 0;
-  };
-
-  const canMoveToEnd = (index: number) => {
-    // Solo no puede mover al final si ya está en la última posición
-    return index < columns.length - 1;
-  };
-
-  // Funciones para manejar visibilidad y key
+  // Toggle visibilidad de columna
   const handleToggleVisibility = (columnId: string) => {
-    const tableColumn = getColumn(columnId);
-    if (!tableColumn) return;
-
-    // Verificar si la columna puede ser ocultada
-    if (!tableColumn.getCanHide()) {
-      console.log("⚠️ Column cannot be hidden:", columnId);
-      return;
-    }
-
-    const newVisibility = !tableColumn.getIsVisible();
-    tableColumn.toggleVisibility(newVisibility);
-
-    // Si se desactiva una columna que está actualmente fija
-    if (!newVisibility && isFixedColumn(columnId)) {
-      if (columnId === "index" && !fixedColumnId) {
-        // Si se desactiva index siendo la columna fija por defecto
-        console.log("📌 Index fixed -> changing to none");
-        onFixedColumnIdChange(null);
-        onFixedColumnChange(false);
-      } else if (columnId === fixedColumnId) {
-        // Si se desactiva una columna personalizada que es fija
-        console.log("📌 Custom fixed column -> fallback logic");
-        const indexColumn = getColumn("index");
-        if (indexColumn && indexColumn.getIsVisible()) {
-          onFixedColumnIdChange(null); // index
-          onFixedColumnChange(true);
-        } else {
-          onFixedColumnIdChange(null);
-          onFixedColumnChange(false); // ninguna
-        }
-      }
+    const column = getColumn(columnId);
+    if (column) {
+      column.toggleVisibility();
     }
   };
 
+  // Toggle columna fija
   const handleToggleKey = (columnId: string) => {
-    const isCurrentlyFixed = isFixedColumn(columnId);
-
-    if (isCurrentlyFixed) {
-      // Si ya es fija, la desactivamos
-      console.log("🔑 Removing key from:", columnId);
-
-      // Fallback: si hay index visible, usarlo como fijo por defecto
-      const indexColumn = getColumn("index");
-      if (indexColumn && indexColumn.getIsVisible() && columnId !== "index") {
-        onFixedColumnIdChange(null); // index
-        onFixedColumnChange(true);
-        console.log("🔑 Fallback to index as fixed column");
-      } else {
-        // Sin columna fija
-        onFixedColumnIdChange(null);
-        onFixedColumnChange(false);
-        console.log("🔑 No fixed column");
-      }
-    } else {
-      // Si no es fija, la establecemos como fija
-      console.log("🔑 Setting key to:", columnId);
-      if (columnId === "index") {
-        onFixedColumnIdChange(null); // index es null en fixedColumnId
-        onFixedColumnChange(true);
-      } else {
-        onFixedColumnIdChange(columnId);
-        onFixedColumnChange(true);
-      }
+    if (isFixedColumn(columnId)) {
+      onFixedColumnChange(false);
+      onFixedColumnIdChange(null);
+    } else if (canSetAsKey(columnId)) {
+      onFixedColumnChange(true);
+      onFixedColumnIdChange(columnId);
     }
-
-    // IMPORTANTE: No cambiamos el orden de las columnas
-    // El pin es completamente independiente del orden
   };
 
-  const canSetAsKey = (columnId: string) => {
-    const tableColumn = getColumn(columnId);
-    // Solo se puede establecer como key si está visible y no es la columna de acciones
-    // (actions ya está excluida del modal, pero mantenemos la validación por seguridad)
-    return tableColumn && tableColumn.getIsVisible() && columnId !== "actions";
-  };
-
-  // Funciones para reordenar columnas
+  // Funciones de movimiento
   const moveColumn = (fromIndex: number, toIndex: number) => {
-    if (fromIndex === toIndex) return;
-
     const newColumns = [...columns];
     const [movedColumn] = newColumns.splice(fromIndex, 1);
     newColumns.splice(toIndex, 0, movedColumn);
-
     setColumns(newColumns);
 
-    // Notificar cambio de orden
-    const newOrder = newColumns.map((col) => col.id);
-    onColumnOrderChange?.(newOrder);
+    if (onColumnOrderChange) {
+      onColumnOrderChange(newColumns.map((col) => col.id));
+    }
   };
 
+  const canMoveUp = (index: number) => index > 0;
+  const canMoveDown = (index: number) => index < columns.length - 1;
+  const canMoveToStart = (index: number) => index > 0;
+  const canMoveToEnd = (index: number) => index < columns.length - 1;
+
   const moveColumnUp = (index: number) => {
-    if (index > 0) {
+    if (canMoveUp(index)) {
       moveColumn(index, index - 1);
     }
   };
 
   const moveColumnDown = (index: number) => {
-    if (index < columns.length - 1) {
+    if (canMoveDown(index)) {
       moveColumn(index, index + 1);
     }
   };
 
   const moveColumnToStart = (index: number) => {
-    if (index > 0) {
+    if (canMoveToStart(index)) {
       moveColumn(index, 0);
     }
   };
 
   const moveColumnToEnd = (index: number) => {
-    if (index < columns.length - 1) {
+    if (canMoveToEnd(index)) {
       moveColumn(index, columns.length - 1);
     }
   };
@@ -252,16 +186,6 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
   // Verificar si hay filtro activo
   const hasActiveFilter = searchTerm.trim().length > 0;
 
-  // Debug: Log state changes
-  console.log("🔍 ColumnManager State:", {
-    useFixedColumn,
-    fixedColumnId,
-    selectValue: useFixedColumn ? fixedColumnId || "index" : "none",
-    indexVisible: getColumn("index")?.getIsVisible(),
-    indexDisabled: useFixedColumn && !fixedColumnId,
-    hasActiveFilter,
-  });
-
   useEffect(() => {
     const allColumns = table.getAllLeafColumns();
     const firstRow = table.getRowModel().rows[0]?.original;
@@ -279,49 +203,35 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
       };
     };
 
-    // Obtener todas las columnas disponibles (sin reordenar por pin)
-    // Excluir actions ya que es fija siempre y no se gestiona
+    // Obtener todas las columnas disponibles
     const availableColumns = allColumns
       .filter(
         (col) =>
           (typeof col.accessorFn !== "undefined" || col.id === "index") &&
-          col.id !== "actions" // Excluir actions
+          col.id !== "actions"
       )
       .map((col) => col.id);
 
-    // Si tenemos un orden personalizado (originalColumnOrder), usarlo
-    // Si no, usar el orden natural de las columnas
+    // Usar el orden personalizado si está disponible
     let displayOrder: string[];
     if (originalColumnOrder.length > 0) {
-      // Usar el orden desde el parent, pero filtrar solo las columnas disponibles
       displayOrder = originalColumnOrder.filter((id) =>
         availableColumns.includes(id)
       );
-      // Agregar cualquier columna nueva que no esté en el orden original
+      // Agregar columnas nuevas que no estén en el orden original
       const missingColumns = availableColumns.filter(
-        (id) => !displayOrder.includes(id)
+        (id) => !originalColumnOrder.includes(id)
       );
       displayOrder = [...displayOrder, ...missingColumns];
     } else {
-      // Orden natural: index primero, luego el resto (sin actions)
-      const indexColumn = availableColumns.find((id) => id === "index");
-      const otherColumns = availableColumns.filter((id) => id !== "index");
-
-      displayOrder = [...(indexColumn ? [indexColumn] : []), ...otherColumns];
+      displayOrder = availableColumns;
     }
 
-    // Convertir a ColumnInfo manteniendo el orden independiente del pin
-    const orderedColumns = displayOrder.map((id) => getColumnInfo(id));
-    setColumns(orderedColumns);
+    const columnInfos = displayOrder.map(getColumnInfo);
+    setColumns(columnInfos);
+  }, [table, originalColumnOrder]);
 
-    console.log("📊 Column order (independent of pin):", {
-      displayOrder,
-      fixedColumnId,
-      useFixedColumn,
-    });
-  }, [table, originalColumnOrder]); // eslint-disable-line react-hooks/exhaustive-deps
-  // fixedColumnId y useFixedColumn no afectan el orden - intencionalmente excluidos
-
+  // Filtrar columnas basado en búsqueda
   const filteredColumns = columns.filter((column) =>
     column.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -329,63 +239,75 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
   return (
     <ResponsiveModal>
       <ResponsiveModalTrigger asChild>
-        <Button variant='outline' size='sm' className='ml-auto'>
-          <Eye className='h-4 w-4 mr-2' />
-          Columnas
+        <Button variant='outline' size='sm' className='gap-2'>
+          <span>Columnas</span>
         </Button>
       </ResponsiveModalTrigger>
-      <ResponsiveModalContent
-        side='bottom'
-        className='sm:max-w-[600px] md:max-w-[700px] lg:max-w-[800px] xl:max-w-[900px] w-[90vw] max-h-[90dvh]'
-      >
+      <ResponsiveModalContent className='max-w-4xl'>
         <ResponsiveModalHeader>
-          <ResponsiveModalTitle>Columnas</ResponsiveModalTitle>
+          <ResponsiveModalTitle>Gestión de Columnas</ResponsiveModalTitle>
         </ResponsiveModalHeader>
-        <div className='py-4'>
-          <div className='space-y-4'>
-            <div className='mb-4'>
-              <Input
-                placeholder='Buscar columnas...'
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={
-                  hasActiveFilter ? "border-amber-200 bg-amber-50" : ""
-                }
-              />
-              {hasActiveFilter && (
-                <p className='text-xs text-amber-600 mt-1 flex items-center gap-1'>
-                  <span>🔍</span>
-                  Filtro activo: Los botones de orden están deshabilitados.
-                  Limpia la búsqueda para reordenar.
-                </p>
-              )}
-            </div>
 
-            <div className='border rounded-md'>
-              <div className='max-h-[60vh] overflow-auto'>
-                {filteredColumns.map((column, index) => {
-                  const tableColumn = getColumn(column.id);
-                  if (!tableColumn) return null;
+        <div className='space-y-4'>
+          {/* Búsqueda */}
+          <div className='space-y-2'>
+            <Input
+              placeholder='Buscar columnas...'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={hasActiveFilter ? "border-amber-200 bg-amber-50" : ""}
+            />
+            {hasActiveFilter && (
+              <p className='text-xs text-amber-600 flex items-center gap-1'>
+                <span>🔍</span>
+                Filtro activo: Los botones de orden están deshabilitados. Limpia
+                la búsqueda para reordenar.
+              </p>
+            )}
+          </div>
 
-                  return (
-                    <div
-                      key={column.id}
-                      className={`grid grid-cols-1 sm:grid-cols-[120px,1fr,auto] items-start sm:items-center gap-4 p-4 border-b last:border-0 hover:bg-muted/50 ${
-                        isFixedColumn(column.id) ? "bg-muted" : ""
-                      }`}
-                    >
-                      {/* Columna de posición */}
-                      <div className='flex items-center justify-center sm:justify-start'>
-                        <div className='flex flex-col sm:flex-row items-center gap-2'>
-                          <span className='text-xs text-muted-foreground sm:hidden'>
-                            Pos:
-                          </span>
+          {/* Tabla de columnas */}
+          <div className='border rounded-md overflow-hidden '>
+            <div className='h-full overflow-y-auto overflow-x-hidden'>
+              <table className='w-full'>
+                <thead className='bg-muted sticky top-0 z-10'>
+                  <tr className='border-b'>
+                    <th className='text-left px-3 py-2 text-sm font-medium text-muted-foreground w-16'>
+                      #
+                    </th>
+                    <th className='text-left px-3 py-2 text-sm font-medium text-muted-foreground'>
+                      Columna
+                    </th>
+                    <th className='text-center px-3 py-2 text-sm font-medium text-muted-foreground w-16'>
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredColumns.map((column) => {
+                    const tableColumn = getColumn(column.id);
+                    if (!tableColumn) return null;
+
+                    // Encontrar la posición real de la columna en el array completo
+                    const realIndex = columns.findIndex(
+                      (col) => col.id === column.id
+                    );
+
+                    return (
+                      <tr
+                        key={column.id}
+                        className={`border-b hover:bg-muted/30 ${
+                          isFixedColumn(column.id) ? "bg-muted/50" : ""
+                        } ${!tableColumn.getIsVisible() ? "opacity-40" : ""}`}
+                      >
+                        {/* Posición */}
+                        <td className='px-3 py-2'>
                           <div className='flex items-center gap-1'>
                             <Input
                               type='number'
                               min='0'
-                              max={filteredColumns.length - 1}
-                              value={pendingPositions[column.id] ?? index}
+                              max={columns.length - 1}
+                              value={pendingPositions[column.id] ?? realIndex}
                               onChange={(e) => {
                                 const newPosition = parseInt(
                                   e.target.value,
@@ -395,9 +317,9 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
                                   setPendingPosition(column.id, newPosition);
                                 }
                               }}
-                              className='w-14 h-8 text-center text-sm'
-                              title={`Posición actual: ${index}. Rango: 0-${
-                                filteredColumns.length - 1
+                              className='w-16 h-8 text-center text-sm'
+                              title={`Posición actual: ${realIndex}. Rango: 0-${
+                                columns.length - 1
                               }`}
                             />
                             {pendingPositions[column.id] !== undefined && (
@@ -408,12 +330,12 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
                                       <Button
                                         variant='ghost'
                                         size='sm'
-                                        className='h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50'
+                                        className='h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50'
                                         onClick={() =>
                                           applyPendingPosition(column.id)
                                         }
                                       >
-                                        <Check className='h-4 w-4' />
+                                        <Check className='h-3 w-3' />
                                       </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
@@ -427,12 +349,12 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
                                       <Button
                                         variant='ghost'
                                         size='sm'
-                                        className='h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50'
+                                        className='h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50'
                                         onClick={() =>
                                           cancelPendingPosition(column.id)
                                         }
                                       >
-                                        <X className='h-4 w-4' />
+                                        <X className='h-3 w-3' />
                                       </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
@@ -443,347 +365,137 @@ export function ColumnManagerModal<TData extends ProcessedRow>({
                               </div>
                             )}
                           </div>
-                        </div>
-                      </div>
+                        </td>
 
-                      {/* Información de la columna y controles en móvil */}
-                      <div className='flex flex-col sm:flex-row sm:items-center gap-3 min-w-0'>
-                        {/* Información de la columna */}
-                        <div className='flex items-center gap-2 min-w-0'>
-                          <TypeDot type={column.type} />
-                          <span className='truncate'>{column.id}</span>
-                          {isFixedColumn(column.id) && (
-                            <span className='text-xs text-muted-foreground bg-muted px-2 py-1 rounded'>
-                              Columna Fija
+                        {/* Nombre columna */}
+                        <td className='px-3 py-2'>
+                          <div className='flex items-center gap-2 min-w-0'>
+                            <TypeDot type={column.type} />
+                            <span className='truncate font-medium text-sm'>
+                              {column.id}
                             </span>
-                          )}
-                          <span className='text-sm text-muted-foreground whitespace-nowrap sm:hidden'>
-                            {index} de {filteredColumns.length - 1}
-                          </span>
-                        </div>
-
-                        {/* Controles en móvil */}
-                        <div className='flex sm:hidden flex-wrap items-center gap-2'>
-                          {/* Control de visibilidad móvil */}
-                          <div className='flex items-center gap-2'>
-                            <span className='text-xs text-muted-foreground'>
-                              Visible:
-                            </span>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant={
-                                      tableColumn.getIsVisible()
-                                        ? "default"
-                                        : "outline"
-                                    }
-                                    size='sm'
-                                    className='h-8 w-8 p-0'
-                                    disabled={!tableColumn.getCanHide()}
-                                    onClick={() =>
-                                      handleToggleVisibility(column.id)
-                                    }
-                                  >
-                                    {tableColumn.getIsVisible() ? (
-                                      <Eye className='h-3 w-3' />
-                                    ) : (
-                                      <EyeOff className='h-3 w-3' />
-                                    )}
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  {!tableColumn.getCanHide()
-                                    ? `"${column.id}" no se puede ocultar`
-                                    : tableColumn.getIsVisible()
-                                    ? `Ocultar "${column.id}"`
-                                    : `Mostrar "${column.id}"`}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            {isFixedColumn(column.id) && (
+                              <Key className='h-4 w-4' />
+                            )}
                           </div>
+                        </td>
 
-                          {/* Control de key móvil */}
-                          <div className='flex items-center gap-2'>
-                            <span className='text-xs text-muted-foreground'>
-                              Key:
-                            </span>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant={
-                                      isFixedColumn(column.id)
-                                        ? "default"
-                                        : "outline"
-                                    }
-                                    size='sm'
-                                    className='h-8 w-8 p-0'
-                                    disabled={!canSetAsKey(column.id)}
-                                    onClick={() => handleToggleKey(column.id)}
-                                  >
-                                    <Key className='h-3 w-3' />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  {!canSetAsKey(column.id)
-                                    ? `"${column.id}" debe estar visible para ser columna fija`
-                                    : isFixedColumn(column.id)
-                                    ? `Quitar "${column.id}" como columna fija`
-                                    : `Establecer "${column.id}" como columna fija`}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
+                        {/* Menú de Acciones */}
+                        <td className='px-3 py-2 text-center'>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                className='h-8 w-8 p-0 hover:bg-muted'
+                              >
+                                <MoreHorizontal className='h-4 w-4' />
+                                <span className='sr-only'>
+                                  Abrir menú de acciones
+                                </span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align='end' className='w-48'>
+                              <DropdownMenuLabel>Orden</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                disabled={
+                                  !canMoveToStart(realIndex) || hasActiveFilter
+                                }
+                                onClick={() => moveColumnToStart(realIndex)}
+                                className='gap-2'
+                              >
+                                <ChevronsUp className='h-4 w-4' />
+                                Mover al inicio
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                disabled={
+                                  !canMoveUp(realIndex) || hasActiveFilter
+                                }
+                                onClick={() => moveColumnUp(realIndex)}
+                                className='gap-2'
+                              >
+                                <ChevronUp className='h-4 w-4' />
+                                Mover arriba
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                disabled={
+                                  !canMoveDown(realIndex) || hasActiveFilter
+                                }
+                                onClick={() => moveColumnDown(realIndex)}
+                                className='gap-2'
+                              >
+                                <ChevronDown className='h-4 w-4' />
+                                Mover abajo
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                disabled={
+                                  !canMoveToEnd(realIndex) || hasActiveFilter
+                                }
+                                onClick={() => moveColumnToEnd(realIndex)}
+                                className='gap-2'
+                              >
+                                <ChevronsDown className='h-4 w-4' />
+                                Mover al final
+                              </DropdownMenuItem>
 
-                          {/* Controles de ordenamiento móvil */}
-                          <div className='flex items-center gap-1'>
-                            <span className='text-xs text-muted-foreground'>
-                              Orden:
-                            </span>
-                            <TooltipProvider>
-                              <div className='flex items-center gap-0.5'>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant='ghost'
-                                      size='sm'
-                                      className='h-7 w-7 p-0'
-                                      disabled={!canMoveUp(index)}
-                                      onClick={() => moveColumnUp(index)}
-                                    >
-                                      <ChevronUp className='h-3 w-3' />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Mover arriba</TooltipContent>
-                                </Tooltip>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant='ghost'
-                                      size='sm'
-                                      className='h-7 w-7 p-0'
-                                      disabled={!canMoveDown(index)}
-                                      onClick={() => moveColumnDown(index)}
-                                    >
-                                      <ChevronDown className='h-3 w-3' />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Mover abajo</TooltipContent>
-                                </Tooltip>
-                              </div>
-                            </TooltipProvider>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Controles solo para desktop */}
-                      <div className='hidden sm:flex flex-row items-center justify-end gap-2'>
-                        {/* Control de visibilidad */}
-                        <div className='flex items-center gap-2'>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant={
-                                    tableColumn.getIsVisible()
-                                      ? "default"
-                                      : "outline"
-                                  }
-                                  size='sm'
-                                  className='h-9 w-9 sm:h-8 sm:w-8 p-0'
-                                  disabled={!tableColumn.getCanHide()}
-                                  onClick={() =>
-                                    handleToggleVisibility(column.id)
-                                  }
-                                >
-                                  {tableColumn.getIsVisible() ? (
-                                    <Eye className='h-4 w-4' />
-                                  ) : (
+                              <DropdownMenuSeparator />
+
+                              <DropdownMenuItem
+                                disabled={!tableColumn.getCanHide()}
+                                onClick={() =>
+                                  handleToggleVisibility(column.id)
+                                }
+                                className='gap-2'
+                              >
+                                {tableColumn.getIsVisible() ? (
+                                  <>
                                     <EyeOff className='h-4 w-4' />
-                                  )}
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {!tableColumn.getCanHide()
-                                  ? `"${column.id}" no se puede ocultar`
-                                  : tableColumn.getIsVisible()
-                                  ? `Ocultar "${column.id}"`
-                                  : `Mostrar "${column.id}"`}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
+                                    Ocultar columna
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye className='h-4 w-4' />
+                                    Mostrar columna
+                                  </>
+                                )}
+                              </DropdownMenuItem>
 
-                        {/* Control de key (columna fija) */}
-                        <div className='flex items-center gap-2'>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant={
-                                    isFixedColumn(column.id)
-                                      ? "default"
-                                      : "outline"
-                                  }
-                                  size='sm'
-                                  className='h-9 w-9 sm:h-8 sm:w-8 p-0'
-                                  disabled={!canSetAsKey(column.id)}
-                                  onClick={() => handleToggleKey(column.id)}
-                                >
-                                  <Key className='h-4 w-4' />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {!canSetAsKey(column.id)
-                                  ? `"${column.id}" debe estar visible para ser columna fija`
-                                  : isFixedColumn(column.id)
-                                  ? `Quitar "${column.id}" como columna fija`
-                                  : `Establecer "${column.id}" como columna fija`}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
+                              <DropdownMenuSeparator />
 
-                        {/* Controles de ordenamiento */}
-                        <div className='flex items-center gap-1'>
-                          <TooltipProvider>
-                            <div className='flex items-center gap-1 sm:gap-0.5'>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-9 w-9 sm:h-8 sm:w-8 p-0'
-                                    disabled={
-                                      !canMoveToStart(index) || hasActiveFilter
-                                    }
-                                    onClick={() => {
-                                      console.log(
-                                        "🔝 Mover al inicio:",
-                                        column.id
-                                      );
-                                      moveColumnToStart(index);
-                                    }}
-                                  >
-                                    <ChevronsUp className='h-4 w-4' />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  {hasActiveFilter
-                                    ? "Limpiar búsqueda para reordenar columnas"
-                                    : canMoveToStart(index)
-                                    ? `Mover "${column.id}" al inicio`
-                                    : `"${column.id}" ya está en la primera posición`}
-                                </TooltipContent>
-                              </Tooltip>
-
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-9 w-9 sm:h-8 sm:w-8 p-0'
-                                    disabled={
-                                      !canMoveUp(index) || hasActiveFilter
-                                    }
-                                    onClick={() => {
-                                      console.log(
-                                        "⬆️ Mover arriba:",
-                                        column.id
-                                      );
-                                      moveColumnUp(index);
-                                    }}
-                                  >
-                                    <ChevronUp className='h-4 w-4' />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  {hasActiveFilter
-                                    ? "Limpiar búsqueda para reordenar columnas"
-                                    : canMoveUp(index)
-                                    ? `Mover "${column.id}" arriba`
-                                    : `"${column.id}" ya está en la primera posición`}
-                                </TooltipContent>
-                              </Tooltip>
-
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-9 w-9 sm:h-8 sm:w-8 p-0'
-                                    disabled={
-                                      !canMoveDown(index) || hasActiveFilter
-                                    }
-                                    onClick={() => {
-                                      console.log("⬇️ Mover abajo:", column.id);
-                                      moveColumnDown(index);
-                                    }}
-                                  >
-                                    <ChevronDown className='h-4 w-4' />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  {hasActiveFilter
-                                    ? "Limpiar búsqueda para reordenar columnas"
-                                    : canMoveDown(index)
-                                    ? `Mover "${column.id}" abajo`
-                                    : `"${column.id}" ya está en la última posición`}
-                                </TooltipContent>
-                              </Tooltip>
-
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-9 w-9 sm:h-8 sm:w-8 p-0'
-                                    disabled={
-                                      !canMoveToEnd(index) || hasActiveFilter
-                                    }
-                                    onClick={() => {
-                                      console.log(
-                                        "🔽 Mover al final:",
-                                        column.id
-                                      );
-                                      moveColumnToEnd(index);
-                                    }}
-                                  >
-                                    <ChevronsDown className='h-4 w-4' />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  {hasActiveFilter
-                                    ? "Limpiar búsqueda para reordenar columnas"
-                                    : canMoveToEnd(index)
-                                    ? `Mover "${column.id}" al final`
-                                    : `"${column.id}" ya está en la última posición`}
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
-                          </TooltipProvider>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                              <DropdownMenuItem
+                                disabled={!canSetAsKey(column.id)}
+                                onClick={() => handleToggleKey(column.id)}
+                                className='gap-2'
+                              >
+                                <Key className='h-4 w-4' />
+                                {isFixedColumn(column.id)
+                                  ? "Quitar como fija"
+                                  : "Establecer como fija"}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
-
-          {/* Botón para guardar como configuración por defecto */}
-          {onSaveAsDefault && (
-            <div className='flex justify-end pt-4 border-t'>
-              <Button
-                onClick={onSaveAsDefault}
-                variant='outline'
-                className='gap-2'
-              >
-                Guardar como configuración por defecto
-              </Button>
-            </div>
-          )}
         </div>
+
+        {/* Botón para guardar como configuración por defecto */}
+        {onSaveAsDefault && (
+          <div className='flex justify-end pt-4 border-t'>
+            <Button
+              onClick={onSaveAsDefault}
+              variant='outline'
+              className='gap-2'
+            >
+              Guardar como configuración por defecto
+            </Button>
+          </div>
+        )}
       </ResponsiveModalContent>
     </ResponsiveModal>
   );
