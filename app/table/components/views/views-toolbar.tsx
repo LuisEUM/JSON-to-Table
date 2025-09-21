@@ -28,7 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Save, User, Trash, RefreshCw } from "lucide-react";
 
-// Tipo para una vista
+// Tipo para un filtro guardado
 interface View {
   id: string;
   name: string;
@@ -40,7 +40,7 @@ interface View {
 }
 
 interface ViewsToolbarProps {
-  // La configuración actual de la vista (filtros, etc.) para guardar
+  // La configuración actual del filtro para guardar
   currentConfig: Record<string, unknown>;
   // Callback para cargar una configuración guardada
   onLoadView: (config: Record<string, unknown>) => void;
@@ -62,7 +62,7 @@ export default function ViewsToolbar({
   const [viewDescription, setViewDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
 
-  // Estado para el diálogo de administrar vistas
+  // Estado para el diálogo de administrar filtros
   const [showManageDialog, setShowManageDialog] = useState(false);
 
   // Verificar si hay filtros aplicados
@@ -74,7 +74,7 @@ export default function ViewsToolbar({
         String(currentConfig.globalFilter).trim() !== "")
   );
 
-  // Cargar la lista de vistas del usuario (solo las compatibles con la tabla actual)
+  // Cargar la lista de filtros del usuario (solo los compatibles con la tabla actual)
   const loadViews = useCallback(async () => {
     if (!session?.user) return;
 
@@ -97,15 +97,15 @@ export default function ViewsToolbar({
         // Mostrar información de filtrado si es relevante
         if (data.filtered && data.totalViews > data.compatibleViews) {
           console.log(
-            `📊 Vistas filtradas: ${data.compatibleViews}/${data.totalViews} compatibles con esta tabla`
+            `📊 Filtros filtrados: ${data.compatibleViews}/${data.totalViews} compatibles con esta tabla`
           );
         }
       } else {
         throw new Error(data.error || "Error al cargar las vistas");
       }
     } catch (error) {
-      console.error("Error al cargar vistas:", error);
-      toast.error("No se pudieron cargar las vistas");
+      console.error("Error al cargar filtros:", error);
+      toast.error("No se pudieron cargar los filtros");
     } finally {
       setIsLoading(false);
     }
@@ -169,15 +169,15 @@ export default function ViewsToolbar({
     }
   }, [session, loadViews]);
 
-  // Guardar una nueva vista
+  // Guardar un nuevo filtro
   const saveView = async () => {
     if (!session?.user?.email) {
-      toast.error("Debes iniciar sesión para guardar vistas");
+      toast.error("Debes iniciar sesión para guardar filtros");
       return;
     }
 
     if (!viewName.trim()) {
-      toast.error("Debes proporcionar un nombre para la vista");
+      toast.error("Debes proporcionar un nombre para el filtro");
       return;
     }
 
@@ -190,7 +190,7 @@ export default function ViewsToolbar({
         String(currentConfig.globalFilter).trim() !== "");
 
     if (!hasFilters) {
-      toast.error("Debes aplicar al menos un filtro antes de guardar la vista");
+      toast.error("Debes aplicar al menos un filtro antes de guardarlo");
       return;
     }
 
@@ -221,19 +221,19 @@ export default function ViewsToolbar({
         setViewName("");
         setViewDescription("");
         setIsPublic(false);
-        loadViews(); // Recargar la lista de vistas
+        loadViews(); // Recargar la lista de filtros
       } else {
-        throw new Error(data.error || "Error al guardar la vista");
+        throw new Error(data.error || "Error al guardar el filtro");
       }
     } catch (error) {
-      console.error("Error al guardar vista:", error);
-      toast.error("No se pudo guardar la vista");
+      console.error("Error al guardar filtro:", error);
+      toast.error("No se pudo guardar el filtro");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Cargar una vista específica
+  // Cargar un filtro específico
   const loadView = async (viewId: string) => {
     setIsLoading(true);
     try {
@@ -246,26 +246,26 @@ export default function ViewsToolbar({
 
         // Validar que la configuración existe
         if (!viewConfig) {
-          throw new Error("La vista no tiene configuración válida");
+          throw new Error("El filtro no tiene configuración válida");
         }
 
         onLoadView(viewConfig);
         toast.success(`"${data.view.name}" se ha cargado correctamente.`);
       } else {
-        throw new Error(data.error || "Error al cargar la vista");
+        throw new Error(data.error || "Error al cargar el filtro");
       }
     } catch (error) {
-      console.error("Error al cargar vista:", error);
-      toast.error("No se pudo cargar la vista");
+      console.error("Error al cargar filtro:", error);
+      toast.error("No se pudo cargar el filtro");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Eliminar una vista
+  // Eliminar un filtro
   const deleteView = async (viewId: string, viewName: string) => {
     if (
-      !confirm(`¿Estás seguro de que deseas eliminar la vista "${viewName}"?`)
+      !confirm(`¿Estás seguro de que deseas eliminar el filtro "${viewName}"?`)
     ) {
       return;
     }
@@ -277,16 +277,16 @@ export default function ViewsToolbar({
       });
 
       if (response.ok) {
-        // Actualizar la lista de vistas después de eliminar
+        // Actualizar la lista de filtros después de eliminar
         setViews(views.filter((view) => view.id !== viewId));
         toast.success(`"${viewName}" se ha eliminado correctamente.`);
       } else {
         const data = await response.json();
-        throw new Error(data.error || "Error al eliminar la vista");
+        throw new Error(data.error || "Error al eliminar el filtro");
       }
     } catch (error) {
-      console.error("Error al eliminar vista:", error);
-      toast.error("No se pudo eliminar la vista");
+      console.error("Error al eliminar filtro:", error);
+      toast.error("No se pudo eliminar el filtro");
     } finally {
       setIsLoading(false);
     }
@@ -299,17 +299,17 @@ export default function ViewsToolbar({
           <DropdownMenu onOpenChange={(open) => open && loadViews()}>
             <DropdownMenuTrigger asChild>
               <Button variant='outline' className='gap-2'>
-                <span>Mis vistas</span>
+                <span>Mis filtros</span>
                 {isLoading && <RefreshCw className='h-4 w-4 animate-spin' />}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end' className='w-56'>
-              <DropdownMenuLabel>Vistas guardadas</DropdownMenuLabel>
+              <DropdownMenuLabel>Filtros guardados</DropdownMenuLabel>
               <DropdownMenuSeparator />
 
               {views.length === 0 ? (
                 <DropdownMenuItem disabled>
-                  No tienes vistas guardadas
+                  No tienes filtros guardados
                 </DropdownMenuItem>
               ) : (
                 views.map((view) => (
@@ -334,7 +334,7 @@ export default function ViewsToolbar({
 
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => setShowManageDialog(true)}>
-                Administrar vistas
+                Administrar filtros
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -347,23 +347,22 @@ export default function ViewsToolbar({
                 variant={hasFilters ? "default" : "outline"}
                 title={
                   !hasFilters
-                    ? "Aplica al menos un filtro antes de guardar una vista"
-                    : "Guardar la configuración actual como una vista"
+                    ? "Aplica al menos un filtro antes de guardarlo"
+                    : "Guardar la configuración actual como un filtro"
                 }
               >
                 <Save className='h-4 w-4' />
-                <span>Guardar vista</span>
+                <span>Guardar filtro</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Guardar vista actual</DialogTitle>
+                <DialogTitle>Guardar filtro actual</DialogTitle>
                 <DialogDescription>
                   Guarda la configuración actual para acceder a ella más tarde.
                   {!hasFilters && (
                     <span className='text-destructive block mt-2'>
-                      Nota: Debes aplicar al menos un filtro antes de guardar la
-                      vista.
+                      Nota: Debes aplicar al menos un filtro antes de guardarlo.
                     </span>
                   )}
                 </DialogDescription>
@@ -371,10 +370,10 @@ export default function ViewsToolbar({
 
               <div className='grid gap-4 py-4'>
                 <div className='grid gap-2'>
-                  <Label htmlFor='name'>Nombre de la vista</Label>
+                  <Label htmlFor='name'>Nombre del filtro</Label>
                   <Input
                     id='name'
-                    placeholder='Mi vista personalizada'
+                    placeholder='Mi filtro personalizado'
                     value={viewName}
                     onChange={(e) => setViewName(e.target.value)}
                   />
@@ -384,7 +383,7 @@ export default function ViewsToolbar({
                   <Label htmlFor='description'>Descripción (opcional)</Label>
                   <Textarea
                     id='description'
-                    placeholder='Esta vista muestra...'
+                    placeholder='Este filtro muestra...'
                     value={viewDescription}
                     onChange={(e) => setViewDescription(e.target.value)}
                   />
@@ -396,7 +395,7 @@ export default function ViewsToolbar({
                     checked={isPublic}
                     onCheckedChange={(checked) => setIsPublic(checked === true)}
                   />
-                  <Label htmlFor='public'>Hacer pública esta vista</Label>
+                  <Label htmlFor='public'>Hacer público este filtro</Label>
                 </div>
               </div>
 
@@ -416,7 +415,7 @@ export default function ViewsToolbar({
                       ? "Aplica filtros primero"
                       : !viewName.trim()
                       ? "Ingresa un nombre"
-                      : "Guardar vista"
+                      : "Guardar filtro"
                   }
                 >
                   {isLoading && <RefreshCw className='h-4 w-4 animate-spin' />}
@@ -426,20 +425,20 @@ export default function ViewsToolbar({
             </DialogContent>
           </Dialog>
 
-          {/* Diálogo para administrar vistas */}
+          {/* Diálogo para administrar filtros */}
           <Dialog open={showManageDialog} onOpenChange={setShowManageDialog}>
             <DialogContent className='max-w-lg'>
               <DialogHeader>
-                <DialogTitle>Administrar vistas guardadas</DialogTitle>
+                <DialogTitle>Administrar filtros guardados</DialogTitle>
                 <DialogDescription>
-                  Gestiona tus vistas personalizadas.
+                  Gestiona tus filtros personalizados.
                 </DialogDescription>
               </DialogHeader>
 
               <div className='max-h-[60vh] overflow-y-auto'>
                 {views.length === 0 ? (
                   <p className='text-center py-4 text-muted-foreground'>
-                    No tienes vistas guardadas
+                    No tienes filtros guardados
                   </p>
                 ) : (
                   <div className='space-y-4'>
@@ -498,7 +497,7 @@ export default function ViewsToolbar({
           className='gap-2'
         >
           <User className='h-4 w-4' />
-          Iniciar sesión para guardar vistas
+          Iniciar sesión para guardar filtros
         </Button>
       )}
     </div>

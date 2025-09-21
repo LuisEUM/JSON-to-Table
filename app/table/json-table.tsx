@@ -14,6 +14,7 @@ import {
   type SortingState,
   type VisibilityState,
   type ColumnFiltersState,
+  type ColumnOrderState,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
@@ -46,18 +47,15 @@ import {
 } from "./data-processor";
 import { TypeLegend } from "./components/type-indicators";
 import { TablePagination } from "./components/tables/table-pagination";
-import { TableSearch } from "./components/tables/table-search";
-import { ColumnManagerModal } from "./components/columns/column-manager-modal";
 import type { FilterCondition } from "./components/filters/filter-types";
 import { ActionButtons } from "./components/actions/action-buttons";
-import { ExportDropdown } from "./components/actions/export-dropdown";
 import { SecondaryTables } from "./components/tables/secondary-tables";
 import { TableSkeleton } from "./components/tables/table-skeleton";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { dateBetweenFilterFn } from "./components/filters/filter-types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableToolbar } from "./components/tables/table-toolbar";
-import { convertToCSV, downloadFile } from "./utils/export-utils";
+import { downloadFile } from "./utils/export-utils";
 
 declare module "@tanstack/table-core" {
   interface FilterFns {
@@ -235,12 +233,132 @@ export function JsonTable({
   const [useFixedColumn, setUseFixedColumn] = useState(true);
   const [fixedColumnId, setFixedColumnId] = useState<string | null>(null);
   const [originalColumnOrder, setOriginalColumnOrder] = useState<string[]>([]);
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
   const [isProcessingData, setIsProcessingData] = useState(true);
   const [hasInitialData, setHasInitialData] = useState(false);
 
   // Debounce para los filtros
   const debouncedColumnFilters = useDebounce(columnFilters, 300);
   const debouncedGlobalFilter = useDebounce(globalFilter, 300);
+
+  // Funciones de persistencia
+  const getStorageKey = (suffix: string) => {
+    const baseKey = isSecondaryTable
+      ? `table-config-${parentTableInfo?.label || "secondary"}-${suffix}`
+      : `table-config-main-${suffix}`;
+    return baseKey;
+  };
+
+  const saveColumnConfiguration = () => {
+    const config = {
+      columnOrder,
+      columnVisibility,
+      useFixedColumn,
+      fixedColumnId,
+      sorting,
+      columnFilters,
+      globalFilter,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(getStorageKey("current"), JSON.stringify(config));
+  };
+
+  const loadColumnConfiguration = () => {
+    try {
+      const saved = localStorage.getItem(getStorageKey("current"));
+      if (saved) {
+        const config = JSON.parse(saved);
+        return config;
+      }
+    } catch (error) {
+      console.error("Error loading column configuration:", error);
+    }
+    return null;
+  };
+
+  const saveAsDefaultConfiguration = () => {
+    const config = {
+      columnOrder,
+      columnVisibility,
+      useFixedColumn,
+      fixedColumnId,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(getStorageKey("default"), JSON.stringify(config));
+    toast.success("Configuración guardada como predeterminada");
+  };
+
+  const loadDefaultConfiguration = () => {
+    try {
+      const saved = localStorage.getItem(getStorageKey("default"));
+      if (saved) {
+        const config = JSON.parse(saved);
+        return config;
+      }
+    } catch (error) {
+      console.error("Error loading default configuration:", error);
+    }
+    return null;
+  };
+
+  // Handler para cambios en el orden de columnas
+  const handleColumnOrderChange = (newOrder: string[]) => {
+    setColumnOrder(newOrder);
+  };
+
+  // Función para calcular el orden efectivo de la tabla (orden lógico + pinning)
+  const getEffectiveColumnOrder = useCallback(() => {
+    const baseOrder =
+      columnOrder.length > 0 ? columnOrder : originalColumnOrder;
+
+    // Separar actions del resto (actions siempre va al final)
+    const actionsIndex = baseOrder.indexOf("actions");
+    const baseOrderWithoutActions = baseOrder.filter((id) => id !== "actions");
+    const hasActions = actionsIndex !== -1;
+
+    // Si no hay columna fija, usar el orden base (sin actions) + actions al final
+    if (!useFixedColumn) {
+      const result = hasActions
+        ? [...baseOrderWithoutActions, "actions"]
+        : baseOrderWithoutActions;
+      console.log("📋 No fixed column, using base order:", result);
+      return result;
+    }
+
+    // Determinar qué columna está pintada
+    const pinnedColumnId = fixedColumnId || "index";
+
+    // Si la columna pintada no está en el orden base, agregarla al inicio
+    if (!baseOrderWithoutActions.includes(pinnedColumnId)) {
+      const result = hasActions
+        ? [pinnedColumnId, ...baseOrderWithoutActions, "actions"]
+        : [pinnedColumnId, ...baseOrderWithoutActions];
+      console.log("📋 Pinned column not in base order, adding:", {
+        pinnedColumnId,
+        baseOrder: baseOrderWithoutActions,
+        result,
+      });
+      return result;
+    }
+
+    // Aplicar pinning: columna pintada al inicio, resto en su orden lógico, actions al final
+    const otherColumns = baseOrderWithoutActions.filter(
+      (id) => id !== pinnedColumnId
+    );
+    const result = hasActions
+      ? [pinnedColumnId, ...otherColumns, "actions"]
+      : [pinnedColumnId, ...otherColumns];
+
+    console.log("📋 Effective column order:", {
+      baseOrder: baseOrderWithoutActions,
+      pinnedColumnId,
+      otherColumns,
+      hasActions,
+      result,
+    });
+
+    return result;
+  }, [columnOrder, originalColumnOrder, useFixedColumn, fixedColumnId]);
 
   // Map para almacenar las columnas de arrays únicos
   const [uniqueArrayColumns] = useState(
@@ -422,12 +540,14 @@ export function JsonTable({
       columnFilters,
       rowSelection,
       globalFilter,
+      columnOrder: getEffectiveColumnOrder(),
     },
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
+    // onColumnOrderChange removido - manejamos el orden manualmente
     enableRowSelection: true,
     filterFns: {
       processedValueFilter: (row, columnId, filterValue) => {
@@ -935,7 +1055,52 @@ export function JsonTable({
 
   useEffect(() => {
     if (!originalColumnOrder.length) {
-      setOriginalColumnOrder(table.getAllLeafColumns().map((col) => col.id));
+      const allColumnIds = table.getAllLeafColumns().map((col) => col.id);
+      setOriginalColumnOrder(allColumnIds);
+
+      // Intentar cargar configuración guardada o usar configuración por defecto
+      const savedConfig = loadColumnConfiguration();
+      const defaultConfig = loadDefaultConfiguration();
+
+      if (savedConfig) {
+        // Aplicar configuración guardada
+        if (savedConfig.columnOrder && savedConfig.columnOrder.length > 0) {
+          const validOrder = savedConfig.columnOrder.filter((id: string) =>
+            allColumnIds.includes(id)
+          );
+          if (validOrder.length > 0) {
+            setColumnOrder(validOrder);
+          }
+        }
+        if (savedConfig.columnVisibility) {
+          setColumnVisibility(savedConfig.columnVisibility);
+        }
+        if (typeof savedConfig.useFixedColumn === "boolean") {
+          setUseFixedColumn(savedConfig.useFixedColumn);
+        }
+        if (savedConfig.fixedColumnId !== undefined) {
+          setFixedColumnId(savedConfig.fixedColumnId);
+        }
+      } else if (defaultConfig) {
+        // Aplicar configuración por defecto si no hay configuración actual
+        if (defaultConfig.columnOrder && defaultConfig.columnOrder.length > 0) {
+          const validOrder = defaultConfig.columnOrder.filter((id: string) =>
+            allColumnIds.includes(id)
+          );
+          if (validOrder.length > 0) {
+            setColumnOrder(validOrder);
+          }
+        }
+        if (defaultConfig.columnVisibility) {
+          setColumnVisibility(defaultConfig.columnVisibility);
+        }
+        if (typeof defaultConfig.useFixedColumn === "boolean") {
+          setUseFixedColumn(defaultConfig.useFixedColumn);
+        }
+        if (defaultConfig.fixedColumnId !== undefined) {
+          setFixedColumnId(defaultConfig.fixedColumnId);
+        }
+      }
     }
   }, [table, originalColumnOrder]);
 
@@ -962,6 +1127,21 @@ export function JsonTable({
       right: ["actions"],
     });
   }, [useFixedColumn, fixedColumnId, table]);
+
+  // Auto-guardar configuración cuando cambia
+  useEffect(() => {
+    if (originalColumnOrder.length > 0) {
+      saveColumnConfiguration();
+    }
+  }, [
+    columnOrder,
+    columnVisibility,
+    useFixedColumn,
+    fixedColumnId,
+    sorting,
+    columnFilters,
+    globalFilter,
+  ]);
 
   // Función para procesar las tablas secundarias
   const processSecondaryTables = useCallback(
@@ -1291,26 +1471,28 @@ export function JsonTable({
           </div>
         )}
 
-        {/* Encabezado: barra de búsqueda y modal de columnas */}
-        <div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-          <div className='w-full sm:w-72'>
-            <TableSearch table={table} />
-          </div>
-          <div className='flex justify-end'>
-            <ColumnManagerModal
-              table={table}
-              useFixedColumn={useFixedColumn}
-              onFixedColumnChange={setUseFixedColumn}
-              fixedColumnId={fixedColumnId}
-              onFixedColumnIdChange={setFixedColumnId}
-              originalColumnOrder={originalColumnOrder}
-            />
-            <ExportDropdown
-              selectedRows={table.getSelectedRowModel().rows}
-              allRows={table.getCoreRowModel().rows}
-            />
-          </div>
-        </div>
+        {/* Toolbar con búsqueda y administración de filtros */}
+        <TableToolbar
+          table={table}
+          searchPlaceholder={`Buscar en ${processedData.length} ${
+            isSecondaryTable ? "registros relacionados" : "registros"
+          }...`}
+          currentConfig={{
+            ...currentViewConfig,
+            // Agregar información de tipos de columnas para mejor compatibilidad
+            columnTypes: getColumnTypesFromTable(table, processedData),
+          }}
+          onLoadView={handleLoadView}
+          processedData={processedData}
+          downloadFile={downloadFile}
+          useFixedColumn={useFixedColumn}
+          onFixedColumnChange={setUseFixedColumn}
+          fixedColumnId={fixedColumnId}
+          onFixedColumnIdChange={setFixedColumnId}
+          originalColumnOrder={originalColumnOrder}
+          onColumnOrderChange={handleColumnOrderChange}
+          onSaveAsDefault={saveAsDefaultConfiguration}
+        />
 
         {/* Contenedor principal de la tabla */}
         <div className='rounded-md border'>
@@ -1467,80 +1649,6 @@ export function JsonTable({
             isLoading={isSecondaryTablesLoading}
           />
         )}
-
-        {/* Toolbar con búsqueda y administración de vistas */}
-        <TableToolbar
-          table={table}
-          searchPlaceholder={`Buscar en ${processedData.length} ${
-            isSecondaryTable ? "registros relacionados" : "registros"
-          }...`}
-          currentConfig={{
-            ...currentViewConfig,
-            // Agregar información de tipos de columnas para mejor compatibilidad
-            columnTypes: getColumnTypesFromTable(table, processedData),
-          }}
-          onLoadView={handleLoadView}
-          onExportJSON={() => {
-            // Obtener solo las filas filtradas de la tabla
-            const filteredRows = table.getFilteredRowModel().rows;
-            
-            console.log("📊 Exportando JSON filtrado:", {
-              totalRows: processedData.length,
-              filteredRows: filteredRows.length,
-              hasFilters: Object.keys(table.getState().columnFilters).length > 0
-            });
-            
-            // Limpiar los datos filtrados antes de exportar
-            const cleanData = filteredRows.map(row => {
-              const cleanRow: Record<string, unknown> = {};
-              const originalData = row.original;
-              
-              Object.entries(originalData).forEach(([key, processedItem]) => {
-                // Omitir columnas internas del sistema
-                if (key === "selection" || key === "index" || key === "actions") {
-                  return;
-                }
-                
-                // Extraer el valor y usar el label como key
-                if (processedItem && typeof processedItem === 'object' && 'value' in processedItem) {
-                  const item = processedItem as ProcessedItem;
-                  const columnLabel = item.label || key; // Usar label si existe, sino usar el key original
-                  cleanRow[columnLabel] = item.value;
-                }
-              });
-              
-              return cleanRow;
-            });
-            
-            const jsonData = JSON.stringify(cleanData, null, 2);
-            const hasActiveFilters = Object.keys(table.getState().columnFilters).length > 0 || table.getState().globalFilter;
-            const fileName = hasActiveFilters 
-              ? `datos_filtrados_${filteredRows.length}_registros.json`
-              : `datos_${filteredRows.length}_registros.json`;
-            downloadFile(jsonData, fileName, "application/json");
-          }}
-          onExportCSV={() => {
-            // Obtener solo las filas filtradas de la tabla
-            const filteredRows = table.getFilteredRowModel().rows;
-            
-            console.log("📊 Exportando CSV filtrado:", {
-              totalRows: processedData.length,
-              filteredRows: filteredRows.length,
-              hasFilters: Object.keys(table.getState().columnFilters).length > 0
-            });
-            
-            // Convertir las filas filtradas a formato para export
-            const filteredData = filteredRows.map(row => row.original);
-            
-            // convertToCSV limpia automáticamente los processedData
-            const csvData = convertToCSV(filteredData as Record<string, unknown>[]);
-            const hasActiveFilters = Object.keys(table.getState().columnFilters).length > 0 || table.getState().globalFilter;
-            const fileName = hasActiveFilters 
-              ? `datos_filtrados_${filteredRows.length}_registros.csv`
-              : `datos_${filteredRows.length}_registros.csv`;
-            downloadFile(csvData, fileName, "text/csv");
-          }}
-        />
       </CardContent>
     </FilterContext.Provider>
   );
