@@ -8,7 +8,7 @@ import {
   isStrongDateColumn,
   cleanStringValue,
   DateProcessingError,
-} from "../table/utils/date-utils";
+} from "@/lib/table-system/core/utils/date-utils";
 
 describe("Utilidades de fecha", () => {
   describe("isDate", () => {

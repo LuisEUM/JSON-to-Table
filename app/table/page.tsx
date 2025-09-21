@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { JsonTable } from "./json-table";
+import { JsonTable } from "@/lib/table-system";
 import {
   Card,
   CardHeader,

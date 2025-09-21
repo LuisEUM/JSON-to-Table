@@ -7,7 +7,7 @@ import {
   ServiceInfo,
 } from "@/app/lib/holded/interfaces/contact-types";
 import { isDateBetween } from "../../../lib/holded/utils/analytics-date-utils";
-import { normalizeDate } from "@/app/table/utils/date-utils";
+import { normalizeDate } from "@/lib/table-system/core/utils/date-utils";
 
 // Definir interfaces para los tipos de datos
 interface CustomField {

@@ -11,7 +11,7 @@ import {
   logError,
   isError,
   toError,
-} from "../table/utils/error-handling";
+} from "@/lib/table-system/core/utils/error-handling";
 
 describe("Sistema de manejo de errores", () => {
   describe("Clases de error", () => {

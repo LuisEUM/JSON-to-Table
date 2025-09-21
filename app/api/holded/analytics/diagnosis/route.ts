@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getContacts } from "@/app/lib/holded/services/holded-contacts-service";
-import { normalizeDate } from "@/app/table/utils/date-utils";
+import { normalizeDate } from "@/lib/table-system/core/utils/date-utils";
 import {
   getStartOfCurrentYear,
   getEndOfCurrentYear,

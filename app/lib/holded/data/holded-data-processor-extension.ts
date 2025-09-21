@@ -1,9 +1,14 @@
+// TODO: Migrar sistema de extensiones al atomic system
+// import {
+//   DataProcessorExtension,
+//   ProcessedItem,
+//   ProcessedRow,
+//   registerDataProcessorExtension,
+// } from "@/lib/table-system/core/utils/data-processor";
 import {
-  DataProcessorExtension,
   ProcessedItem,
   ProcessedRow,
-  registerDataProcessorExtension,
-} from "@/app/table/data-processor";
+} from "@/lib/table-system/core/utils/data-processor";
 import { Customer, CustomField } from "../interfaces/customer";
 import { getCustomerStatus } from "../utils/holded-customer-status-utils";
 import { withHoldedStatusColumns } from "../components/holded-status-columns";
@@ -117,76 +122,83 @@ function adaptProcessedRowToCustomer(row: ProcessedRow): Customer {
   return customer;
 }
 
-/**
- * Extensión del procesador de datos para Holded que añade columnas de estado
- * a las tablas de contactos
- */
-const holdedDataProcessorExtension: DataProcessorExtension = {
-  name: "holded-status-columns",
-  shouldApply: (meta) => {
-    const result = meta.source === "holded" && meta.dataType === "contacts";
-    console.log(
-      `📊 Evaluando si aplicar extensión Holded: ${
-        result ? "Sí" : "No"
-      } (source=${meta.source}, dataType=${meta.dataType})`
-    );
-    return result;
-  },
-  process: (rows: ProcessedRow[]): ProcessedRow[] => {
-    console.log("📊 Procesando extensión Holded para", rows.length, "filas");
+// TODO: Migrar sistema de extensiones al atomic system
+// Para ahora, comentamos la extensión hasta que se migre el sistema
+// /**
+//  * Extensión del procesador de datos para Holded que añade columnas de estado
+//  * a las tablas de contactos
+//  */
+// const holdedDataProcessorExtension: DataProcessorExtension = {
+//   name: "holded-status-columns",
+//   shouldApply: (meta: any) => {
+//     const result = meta.source === "holded" && meta.dataType === "contacts";
+//     console.log(
+//       `📊 Evaluando si aplicar extensión Holded: ${
+//         result ? "Sí" : "No"
+//       } (source=${meta.source}, dataType=${meta.dataType})`
+//     );
+//     return result;
+//   },
+//   process: (rows: ProcessedRow[]): ProcessedRow[] => {
+//     console.log("📊 Procesando extensión Holded para", rows.length, "filas");
 
-    try {
-      // Aplicar middleware para normalizar customFields en cada fila
-      const preprocessedRows = rows.map((row) => {
-        // Extraer el valor real de cada campo ProcessedItem
-        const rawData: Record<string, any> = {};
-        Object.entries(row).forEach(([key, item]) => {
-          if (item && typeof item === "object" && "value" in item) {
-            rawData[key] = item.value;
-          }
-        });
+//     try {
+//       // Aplicar middleware para normalizar customFields en cada fila
+//       const preprocessedRows = rows.map((row) => {
+//         // Extraer el valor real de cada campo ProcessedItem
+//         const rawData: Record<string, any> = {};
+//         Object.entries(row).forEach(([key, item]) => {
+//           if (item && typeof item === "object" && "value" in item) {
+//             rawData[key] = item.value;
+//           }
+//         });
 
-        // Normalizar customFields en los datos crudos
-        const processedData = ensureCustomFieldsMiddleware(rawData);
+//         // Normalizar customFields en los datos crudos
+//         const processedData = ensureCustomFieldsMiddleware(rawData);
 
-        // Actualizar la fila con los customFields normalizados
-        if (processedData.customFields) {
-          row.customFields = {
-            id: "customFields",
-            path: ["customFields"],
-            value: processedData.customFields,
-            type: "array",
-            label: "customFields",
-          };
-        }
+//         // Actualizar la fila con los customFields normalizados
+//         if (processedData.customFields) {
+//           row.customFields = {
+//             id: "customFields",
+//             path: ["customFields"],
+//             value: processedData.customFields,
+//             type: "array",
+//             label: "customFields",
+//           };
+//         }
 
-        return row;
-      });
+//         return row;
+//       });
 
-      console.log("✅ Filas preprocesadas:", preprocessedRows.length);
+//       console.log("✅ Filas preprocesadas:", preprocessedRows.length);
 
-      // Devolver las filas procesadas
-      return preprocessedRows;
-    } catch (error) {
-      console.error("❌ Error al procesar la extensión Holded:", error);
-      return rows; // En caso de error, devolvemos los datos sin modificar
-    }
-  },
-};
+//       // Devolver las filas procesadas
+//       return preprocessedRows;
+//     } catch (error) {
+//       console.error("❌ Error al procesar la extensión Holded:", error);
+//       return rows; // En caso de error, devolvemos los datos sin modificar
+//     }
+//   },
+// };
 
-// Registro automático de la extensión
-(() => {
-  if (typeof window !== "undefined") {
-    // Solo ejecutar en el cliente
-    console.log("📊 Registrando extensión del procesador de datos para Holded");
+// TODO: Migrar sistema de extensiones al atomic system
+// Comentamos el registro hasta que se migre
+// // Registro automático de la extensión
+// (() => {
+//   if (typeof window !== "undefined") {
+//     // Solo ejecutar en el cliente
+//     console.log("📊 Registrando extensión del procesador de datos para Holded");
 
-    // Importación dinámica para evitar problemas de SSR
-    import("@/app/table/data-processor").then(
-      ({ registerDataProcessorExtension }) => {
-        registerDataProcessorExtension(holdedDataProcessorExtension);
-      }
-    );
-  }
-})();
+//     // Importación dinámica para evitar problemas de SSR
+//     import("@/lib/table-system/core/utils/data-processor").then(
+//       ({ registerDataProcessorExtension }) => {
+//         registerDataProcessorExtension(holdedDataProcessorExtension);
+//       }
+//     );
+//   }
+// })();
 
-export default holdedDataProcessorExtension;
+// export default holdedDataProcessorExtension;
+
+// Exportar las funciones que sí funcionan por ahora
+export { adaptProcessedRowToCustomer };
