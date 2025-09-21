@@ -411,6 +411,15 @@ export function FilterCombobox({
               <CommandSeparator />
 
               <CommandGroup>
+                <CommandItem onSelect={() => setShowSaveDialog(true)} disabled={!hasFilters}>
+                  <Save className="mr-2 h-4 w-4" />
+                  <span>Guardar filtro actual</span>
+                  {!hasFilters && (
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      Sin filtros
+                    </span>
+                  )}
+                </CommandItem>
                 <CommandItem onSelect={() => setShowManageDialog(true)}>
                   <Settings className="mr-2 h-4 w-4" />
                   Administrar filtros
@@ -421,24 +430,8 @@ export function FilterCombobox({
         </PopoverContent>
       </Popover>
 
-      {/* Botón de guardar filtro actual */}
+      {/* Diálogo de guardar filtro (ahora accesible desde dentro del combobox) */}
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-        <DialogTrigger asChild>
-          <Button
-            size="sm"
-            disabled={!hasFilters}
-            variant={hasFilters ? "default" : "outline"}
-            className="gap-2"
-            title={
-              !hasFilters
-                ? "Aplica al menos un filtro antes de guardarlo"
-                : "Guardar la configuración actual como un filtro"
-            }
-          >
-            <Save className='h-4 w-4' />
-            <span className="hidden sm:inline">Guardar</span>
-          </Button>
-        </DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Guardar filtro actual</DialogTitle>
