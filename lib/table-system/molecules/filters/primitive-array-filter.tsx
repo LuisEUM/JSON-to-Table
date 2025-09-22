@@ -15,13 +15,13 @@ import { getTypeStyle } from "../../core/constants/type-styles";
 import { processValue, type ProcessedItem } from "../../core";
 // import { TypeDot } from "../../atoms/indicators/TypeDot"; // Removido para evitar botón anidado
 
-// Importar componentes de filtro embebidos
+// Importar componentes de filtro embebidos mejorados
 import {
-  EmbeddedStringFilter,
-  EmbeddedNumberFilter,
-  EmbeddedDateFilter,
-  EmbeddedBooleanFilter,
-} from "./embedded-filters";
+  EnhancedEmbeddedStringFilter,
+  EnhancedEmbeddedNumberFilter,
+  EnhancedEmbeddedDateFilter,
+  EnhancedEmbeddedBooleanFilter,
+} from "./enhanced-embedded-filters";
 
 interface PrimitiveGroup {
   type: string;
@@ -398,13 +398,13 @@ export function PrimitiveArrayFilter({
 
     switch (group.type) {
       case "string":
-        return <EmbeddedStringFilter {...embeddedProps} />;
+        return <EnhancedEmbeddedStringFilter {...embeddedProps} />;
       case "número":
-        return <EmbeddedNumberFilter {...embeddedProps} />;
+        return <EnhancedEmbeddedNumberFilter {...embeddedProps} />;
       case "fecha":
-        return <EmbeddedDateFilter {...embeddedProps} />;
+        return <EnhancedEmbeddedDateFilter {...embeddedProps} />;
       case "boolean":
-        return <EmbeddedBooleanFilter {...embeddedProps} />;
+        return <EnhancedEmbeddedBooleanFilter {...embeddedProps} />;
       default:
         // Para tipos no soportados, mostrar lista simple
         return (

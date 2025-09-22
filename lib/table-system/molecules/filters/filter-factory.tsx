@@ -6,7 +6,7 @@ import { DateFilter } from "./date-filter";
 import { NumberFilter } from "./number-filter";
 import { StringFilter } from "./string-filter";
 import { ArrayFilter } from "./array-filter";
-import { PrimitiveArrayFilter } from "./primitive-array-filter";
+import { AtomicPrimitiveArrayFilter } from "./atomic-primitive-array-filter";
 import {
   FilterFactory as AdaptiveFilterFactory,
   shouldUseAdaptiveFilter,
@@ -180,7 +180,9 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
     case "array":
       return <ArrayFilter {...filterProps} arrayType={columnType} />;
     case "array[primitivo]":
-      return <PrimitiveArrayFilter {...filterProps} arrayType={columnType} />;
+      return (
+        <AtomicPrimitiveArrayFilter {...filterProps} arrayType={columnType} />
+      );
     case "array[objeto]":
       return <ArrayFilter {...filterProps} arrayType={columnType} />;
     case "boolean":
