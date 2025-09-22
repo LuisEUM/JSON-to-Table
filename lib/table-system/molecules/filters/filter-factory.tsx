@@ -6,6 +6,7 @@ import { DateFilter } from "./date-filter";
 import { NumberFilter } from "./number-filter";
 import { StringFilter } from "./string-filter";
 import { ArrayFilter } from "./array-filter";
+import { PrimitiveArrayFilter } from "./primitive-array-filter";
 import {
   FilterFactory as AdaptiveFilterFactory,
   shouldUseAdaptiveFilter,
@@ -164,6 +165,13 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
   });
 
   // Seleccionar el componente de filtro basado en el tipo y contenido
+  console.log("🏭 FILTER FACTORY - Seleccionando filtro:", {
+    columnId: column.id,
+    columnType,
+    uniqueValuesCount: uniqueValues.length,
+    sampleValues: uniqueValues.slice(0, 3),
+  });
+
   switch (columnType) {
     case "número":
       return <NumberFilter {...filterProps} />;
@@ -172,7 +180,7 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
     case "array":
       return <ArrayFilter {...filterProps} arrayType={columnType} />;
     case "array[primitivo]":
-      return <ArrayFilter {...filterProps} arrayType={columnType} />;
+      return <PrimitiveArrayFilter {...filterProps} arrayType={columnType} />;
     case "array[objeto]":
       return <ArrayFilter {...filterProps} arrayType={columnType} />;
     case "boolean":

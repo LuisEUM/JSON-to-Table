@@ -72,12 +72,13 @@ export function ArrayFilter({
     );
 
     const detectedType = hasObjects ? "array[objeto]" : "array[primitivo]";
-    console.log("🎯 ArrayFilter detected type:", {
+    console.log("🎯 ARRAY FILTER DETECTÓ TIPO:", {
       columnId,
       detectedType,
       sampleCount: sampleArrays.length,
       hasObjects,
       sampleItems: sampleArrays.slice(0, 2).map((arr) => arr.slice(0, 3)),
+      shouldUsePrimitiveFilter: detectedType === "array[primitivo]",
     });
 
     return detectedType;
