@@ -66,14 +66,8 @@ export function StringFilter({
   columnType,
   uniqueValues,
 }: FilterComponentProps) {
-  const [selectedOperator, setSelectedOperator] = useState<FilterOperator>(
-    () => {
-      return (
-        (initialValue?.operator as FilterOperator) ||
-        (uniqueValues.length <= 50 ? "in" : "contains")
-      );
-    }
-  );
+  // Siempre usar operador 'in' para manejo con checkboxes
+  const selectedOperator: FilterOperator = "in";
 
   const [selectedSeparator, setSelectedSeparator] = useState<SeparatorType>(
     () => {
@@ -82,10 +76,7 @@ export function StringFilter({
   );
 
   const [exactMatch, setExactMatch] = useState<boolean>(() => {
-    return (
-      initialValue?.operator === "exactMatch" ||
-      initialValue?.operator === "exactMatchAny"
-    );
+    return initialValue?.exactMatch === true;
   });
 
   const [stringOptions, setStringOptions] = useState<StringOption[]>([]);
@@ -118,6 +109,7 @@ export function StringFilter({
       operator: selectedOperator,
       value: values,
       additionalValue: selectedSeparator,
+      exactMatch: exactMatch, // Incluir el estado de coincidencia exacta
     });
     onClose();
   };
@@ -265,65 +257,50 @@ export function StringFilter({
 
       <div className='space-y-4 flex-grow flex flex-col'>
         <div className='space-y-3'>
+          {/* Selector de separador */}
           <div>
-            <Label htmlFor='operator-select' className='text-sm font-medium'>
-              Operador
+            <Label htmlFor='separator-select' className='text-sm font-medium'>
+              Separador para dividir valores
             </Label>
             <Select
-              value={selectedOperator}
-              onValueChange={(value: FilterOperator) =>
-                setSelectedOperator(value)
+              value={selectedSeparator}
+              onValueChange={(value: SeparatorType) =>
+                setSelectedSeparator(value)
               }
             >
-              <SelectTrigger id='operator-select'>
-                <SelectValue placeholder='Seleccionar operador' />
+              <SelectTrigger id='separator-select'>
+                <SelectValue placeholder='Seleccionar separador' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='in'>Incluye cualquiera</SelectItem>
-                <SelectItem value='contains'>Contiene texto</SelectItem>
-                <SelectItem value='exactMatch'>Coincidencia exacta</SelectItem>
+                {SEPARATORS.map((sep) => (
+                  <SelectItem key={sep.value} value={sep.value}>
+                    {sep.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
-          {selectedOperator === "in" && (
-            <div>
-              <Label htmlFor='separator-select' className='text-sm font-medium'>
-                Separador para dividir valores
-              </Label>
-              <Select
-                value={selectedSeparator}
-                onValueChange={(value: SeparatorType) =>
-                  setSelectedSeparator(value)
-                }
-              >
-                <SelectTrigger id='separator-select'>
-                  <SelectValue placeholder='Seleccionar separador' />
-                </SelectTrigger>
-                <SelectContent>
-                  {SEPARATORS.map((sep) => (
-                    <SelectItem key={sep.value} value={sep.value}>
-                      {sep.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Toggle de coincidencia exacta - solo visible cuando hay separador */}
+          {selectedSeparator !== "none" && (
+            <div className='flex items-center justify-between space-x-2'>
+              <div className='flex flex-col'>
+                <Label htmlFor='exact-match' className='text-sm font-medium'>
+                  Coincidencia exacta
+                </Label>
+                <span className='text-xs text-muted-foreground'>
+                  Activar para buscar solo valores que coincidan exactamente con
+                  todos los términos seleccionados
+                </span>
+              </div>
+              <Switch
+                id='exact-match'
+                checked={exactMatch}
+                onCheckedChange={setExactMatch}
+              />
             </div>
           )}
         </div>
-
-        {selectedOperator === "contains" && (
-          <div className='flex items-center justify-between space-x-2'>
-            <Label htmlFor='exact-match' className='text-sm'>
-              Coincidencia exacta de palabra
-            </Label>
-            <Switch
-              id='exact-match'
-              checked={exactMatch}
-              onCheckedChange={setExactMatch}
-            />
-          </div>
-        )}
 
         {stringOptions.length > 0 && (
           <>

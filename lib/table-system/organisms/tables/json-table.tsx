@@ -48,6 +48,12 @@ import {
 import { TypeLegend } from "../../molecules/table-parts/type-legend";
 import { TablePagination } from "../../molecules/navigation/table-pagination";
 import type { FilterCondition } from "../../molecules/filters/filter-types";
+import {
+  matchesFilterWithSeparator,
+  matchesTextSearch,
+  normalizeFilterValues,
+  type SeparatorType,
+} from "../../core/filters/filter-utils";
 import { ActionButtons } from "../../molecules/table-parts/action-buttons";
 import { SecondaryTables } from "./secondary-tables";
 import { TableSkeleton } from "./table-skeleton";
@@ -716,21 +722,52 @@ export function JsonTable({
               );
               return false;
             } else {
+              // Para valores no-fecha y no-array, verificar el tipo de columna
               const filterValues = Array.isArray(filterValue.value)
                 ? filterValue.value
                 : [filterValue.value];
 
+              // Si es una columna numérica, hacer comparación exacta de números
+              if (columnType === "número") {
+                const numericRawValue = Number(rawValue);
+                if (isNaN(numericRawValue)) return false;
+
+                return filterValues.some((val: unknown) => {
+                  const numericFilterValue = Number(val);
+                  return (
+                    !isNaN(numericFilterValue) &&
+                    numericRawValue === numericFilterValue
+                  );
+                });
+              }
+
+              // Para otros tipos (texto), usar la lógica original de includes
               return filterValues.some((val: unknown) => {
                 const stringVal = String(val).toLowerCase();
                 const stringRawVal = String(rawValue).toLowerCase();
                 return stringRawVal.includes(stringVal);
               });
             }
-          case "in":
-            return (
-              Array.isArray(filterValue.value) &&
-              filterValue.value.includes(String(rawValue))
-            );
+          case "in": {
+            // Manejo mejorado para filtros con separadores
+            const filterValues = normalizeFilterValues(filterValue.value);
+            const fieldValue = String(rawValue);
+            const separator = filterValue.additionalValue as SeparatorType;
+            const exactMatch = filterValue.exactMatch === true;
+
+            // Si hay separador, usar la lógica de separación
+            if (separator && separator !== "none") {
+              return matchesFilterWithSeparator(
+                fieldValue,
+                filterValues,
+                separator,
+                exactMatch
+              );
+            }
+
+            // Sin separador: comparación directa
+            return filterValues.includes(fieldValue);
+          }
           case "notIn":
             return (
               Array.isArray(filterValue.value) &&
@@ -740,10 +777,13 @@ export function JsonTable({
             return rawValue === filterValue.value;
           case "notEquals":
             return rawValue !== filterValue.value;
-          case "contains":
-            return String(rawValue)
-              .toLowerCase()
-              .includes(String(filterValue.value).toLowerCase());
+          case "contains": {
+            const searchTerms = normalizeFilterValues(filterValue.value);
+            const textValue = String(rawValue);
+            const exactWordMatch = filterValue.exactMatch === true;
+
+            return matchesTextSearch(textValue, searchTerms, exactWordMatch);
+          }
           case "notContains":
             return !String(rawValue)
               .toLowerCase()

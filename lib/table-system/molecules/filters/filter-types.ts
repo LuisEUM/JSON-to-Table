@@ -42,6 +42,7 @@ export interface FilterCondition {
   operator: FilterOperator;
   value: FilterValue;
   additionalValue?: FilterValue;
+  exactMatch?: boolean; // Para controlar coincidencia exacta en filtros de texto
 }
 
 export type DateRangePreset =

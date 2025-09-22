@@ -687,7 +687,7 @@ export function DateFilter({
 
         {dateOptions.length > 0 && (
           <>
-            <Accordion type='single' collapsible defaultValue='item-1'>
+            <Accordion type='single' collapsible>
               <AccordionItem value='item-1'>
                 <AccordionTrigger>
                   Fechas disponibles{" "}

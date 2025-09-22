@@ -26,7 +26,7 @@ import { FilterTabs, useFilterTabs } from "./filter-tabs";
 import { DialogTitle } from "@/components/ui/dialog";
 import { Search } from "lucide-react";
 
-const PRESETS = [
+const BASE_PRESETS = [
   { label: "Personalizado", value: "custom" },
   { label: "Valores positivos", value: "positive" },
   { label: "Valores negativos", value: "negative" },
@@ -74,6 +74,27 @@ export function NumberFilter({
   const sorted = [...numbers].sort((a, b) => a - b);
   const q1 = sorted[Math.floor(sorted.length * 0.25)];
   const q3 = sorted[Math.floor(sorted.length * 0.75)];
+
+  // Detectar si hay valores negativos y positivos
+  const hasNegativeValues = numbers.some((n) => n < 0);
+  const hasPositiveValues = numbers.some((n) => n > 0);
+  const hasZero = numbers.some((n) => n === 0);
+
+  // Generar presets dinámicos basados en los datos
+  const PRESETS = BASE_PRESETS.filter((preset) => {
+    switch (preset.value) {
+      case "negative":
+        // Solo mostrar si realmente hay valores negativos
+        return hasNegativeValues;
+      case "positive":
+        // Solo mostrar si hay valores positivos o solo hay cero
+        // Si hay tanto positivos como negativos, mostrar ambos
+        // Si solo hay cero, considerarlo como "positivo"
+        return hasPositiveValues || (hasZero && !hasNegativeValues);
+      default:
+        return true;
+    }
+  });
 
   const [numberRange, setNumberRange] = useState<NumberRange>(() => {
     if (!initialValue?.value || !Array.isArray(initialValue.value)) {
@@ -138,8 +159,10 @@ export function NumberFilter({
   const getPresetRange = (preset: string): NumberRange => {
     switch (preset) {
       case "positive":
+        // Rango para UI, pero la lógica real está en handlePresetChange
         return { start: 0, end: calculatedMax };
       case "negative":
+        // Rango para UI, pero la lógica real está en handlePresetChange
         return { start: calculatedMin, end: 0 };
       case "aboveAverage":
         return { start: avg, end: calculatedMax };
@@ -166,6 +189,16 @@ export function NumberFilter({
       numberOptions.forEach((option) => {
         const isInRange = (() => {
           if (!newRange.start && !newRange.end) return true;
+
+          // Lógica especial para presets de positivos y negativos
+          if (preset === "positive") {
+            return option.value > 0; // Estrictamente mayor que 0
+          }
+          if (preset === "negative") {
+            return option.value < 0; // Estrictamente menor que 0
+          }
+
+          // Lógica normal para otros presets
           if (newRange.start && !newRange.end)
             return option.value >= newRange.start;
           if (!newRange.start && newRange.end)
