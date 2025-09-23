@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm test` - Run all tests
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Run tests with coverage report
+- Run a single test file: `npm test -- path/to/test.test.ts`
 
 ### Code Quality
 - `npm run lint` - Run ESLint
@@ -21,69 +22,83 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## High-Level Architecture
 
-This is a Next.js 15 application for visualizing and analyzing JSON data in tabular format with advanced processing capabilities.
+This is a Next.js 15 application for visualizing and analyzing JSON data in tabular format with advanced processing capabilities. The codebase has recently been refactored to use a modular atomic design pattern in `lib/table-system/`.
 
 ### Core Architecture Components
 
-1. **Data Processing System**
-   - Located in `app/table/data-processor.ts`
+1. **Table System** (`lib/table-system/`)
+   - Implements atomic design pattern with atoms, molecules, and organisms
+   - **Atoms**: Basic UI components (`primitives/`, `controls/`, `indicators/`)
+   - **Molecules**: Composite components (`filters/`, `navigation/`, `table-parts/`)
+   - **Organisms**: Complete features (`tables/`, `panels/`, `columns/`)
+   - **Core**: Business logic, utilities, and services
+   - **Adapters**: Bridge components for legacy code compatibility
+
+2. **Data Processing System**
+   - Located in `lib/table-system/core/utils/data-processor.ts`
    - Handles JSON normalization, nested structure flattening, and batch processing
-   - Implements type detection system in `app/table/utils/type-detection/`
-   - Date utilities in `app/table/utils/date-utils.ts` for multiple format detection and normalization
+   - Type detection system in `lib/table-system/core/utils/type-detector.ts`
+   - Date utilities in `lib/table-system/core/utils/date-utils.ts` for multiple format detection
 
-2. **State Management**
-   - Uses Zustand for UI state management (filters, column visibility, pagination)
-   - Implements hybrid architecture pattern separating heavy data processing from UI state
-   - Planned Web Worker integration for processing large datasets (5MB+) without blocking UI
+3. **Filtering System**
+   - Advanced filter components in `lib/table-system/molecules/filters/`
+   - Adaptive filters that adjust UI based on data patterns
+   - Specialized filters for strings, numbers, dates, arrays, and objects
+   - Filter logic tests in `lib/table-system/core/filters/__tests__/`
 
-3. **Table Component System**
-   - Main component: `app/table/json-table.tsx`
-   - Uses @tanstack/react-table for advanced table features
-   - Supports nested tables for hierarchical data
-   - Column configuration in `app/table/columns/`
-   - Custom actions (export, filtering) in `app/table/components/actions/`
+4. **State Management**
+   - Custom hooks in `lib/table-system/core/hooks/`
+   - `use-table-state.ts` - Main table state management
+   - `use-column-management.ts` - Column visibility and configuration
+   - `use-data-processing.ts` - Data transformation pipeline
+   - `use-filter-tabs.ts` - Filter UI state management
 
-4. **Services Layer**
-   - Centralized logging: `app/services/logging-service.ts` with configurable levels (DEBUG, INFO, WARN, ERROR)
-   - Log streaming: `app/services/log-stream.ts` for SSE real-time log streaming
-   - Error handling: `app/utils/error-handling.ts` with custom error classes
+5. **Services Layer**
+   - Centralized logging: `lib/table-system/core/services/logging-service.ts`
+   - Error handling: `lib/table-system/core/utils/error-handling.ts`
+   - Export utilities: `lib/table-system/core/utils/export-utils.ts` (CSV/XLSX)
 
-5. **Persistence Layer**
+6. **Persistence Layer**
    - Prisma ORM with MongoDB for storing user views and configurations
-   - Schema defined for User, Account, Session, and View models
    - API routes in `app/api/` for data operations
+   - Authentication ready with NextAuth.js
 
-6. **Testing Strategy**
+7. **Testing Strategy**
    - Jest configuration with separate environments for Node and JSDOM
-   - Test files in `app/tests/`
+   - Test files located alongside implementation in `__tests__` directories
+   - Module path mapping: `@/` resolves to root directory
    - Coverage requirements: 90% for utilities/services, 85% for UI components
-   - Module path mapping: `@/` resolves to `app/` directory
 
 ### Key Design Patterns
 
-- **Strategy Pattern**: Type detection system with pluggable detectors
-- **Dependency Injection**: Services with singleton instances
-- **Factory Method**: Object creation for complex data structures
+- **Atomic Design**: Systematic component hierarchy (atoms → molecules → organisms)
+- **Factory Pattern**: Component factories for dynamic cell and filter creation
+- **Strategy Pattern**: Type detection and filter selection
+- **Adapter Pattern**: Legacy code compatibility through adapters
 - **Observer Pattern**: Event propagation and state changes
 
 ### Data Flow
 
-1. JSON input → Data Processor → Type Detection → Normalization → Table Structure → React Table → UI
-2. For large datasets: JSON → Web Worker → Processing → Cached References → Filtered Data → UI
+1. JSON input → Data Processor → Type Detection → Normalization
+2. Normalized Data → Table State Hook → Column Configuration
+3. Configured Data → React Table → Cell Factory → Type-specific Renderers
+4. User Interaction → Filter Factory → Adaptive Filters → Filtered Data → UI
 
 ### Important Technical Details
 
 - Uses Next.js 15 with Turbopack for development
-- React 18 with TypeScript
+- React 18 with TypeScript strict mode
 - Radix UI components with Tailwind CSS
+- @tanstack/react-table for table functionality
 - Authentication ready with NextAuth.js
 - Supports CSV and XLSX export via xlsx library
-- Implements SSR/SSE for real-time features
+- Path alias: `@/` maps to project root (configured in tsconfig.json)
 
 ### Development Workflow
 
 1. Always run `npm run type-check` before committing
 2. Use `npm run predeploy` for complete verification before deployment
 3. Test coverage should meet minimum requirements (90% utils, 85% UI)
-4. Follow existing code conventions and patterns in the codebase
-5. When modifying data processing, ensure tests in `app/tests/` are updated
+4. Follow atomic design pattern when adding new components
+5. Place tests in `__tests__` directories next to the code being tested
+6. Use the established filter and cell factories for new data types
