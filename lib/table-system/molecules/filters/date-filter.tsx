@@ -133,7 +133,8 @@ export function DateFilter({
   columnName,
   columnType,
   uniqueValues,
-}: FilterComponentProps) {
+  hideFooter = false,
+}: FilterComponentProps & { hideFooter?: boolean }) {
   // Convertir los valores únicos a opciones de fecha
   const dateOptions = useMemo(() => {
     const valueCounts = new Map<string, number>();
@@ -376,11 +377,29 @@ export function DateFilter({
 
   // Actualizar las fechas seleccionadas cuando cambia el rango
   useEffect(() => {
-    // Reiniciar las fechas seleccionadas explícitamente cuando el usuario cambia el rango
+    // Cuando el rango cambia, recalcular las fechas seleccionadas
     if (dateRange.start || dateRange.end) {
-      setSelectedDatesSet(new Set<string>());
+      const newSelected = new Set<string>();
+
+      dateOptions.forEach((option) => {
+        const date = option.date;
+        const isInRange = (() => {
+          if (!dateRange.start && !dateRange.end) return true;
+          if (dateRange.start && !dateRange.end) return date >= dateRange.start;
+          if (!dateRange.start && dateRange.end) return date <= dateRange.end;
+          return dateRange.start && dateRange.end
+            ? date >= dateRange.start && date <= dateRange.end
+            : true;
+        })();
+
+        if (isInverted ? isInRange : !isInRange) {
+          newSelected.add(option.label);
+        }
+      });
+
+      setSelectedDatesSet(newSelected);
     }
-  }, [dateRange.start, dateRange.end]);
+  }, [dateRange.start, dateRange.end, dateOptions, isInverted]);
 
   // Handlers simplificados que modifican una sola fuente de verdad
   const handleDateInputChange = useCallback(
@@ -432,6 +451,8 @@ export function DateFilter({
     const newRange = getPresetDateRange(preset);
     setDateRange(newRange);
     setSelectedPreset(preset);
+
+    // Don't clear selections - let useEffect handle the recalculation
   }, []);
 
   // Función auxiliar para parsear fechas en diferentes formatos
@@ -726,7 +747,13 @@ export function DateFilter({
         )}
       </div>
 
-      <FilterFooter onApply={handleApply} onClear={onClear} onClose={onClose} />
+      {!hideFooter && (
+        <FilterFooter
+          onApply={handleApply}
+          onClear={onClear}
+          onClose={onClose}
+        />
+      )}
     </div>
   );
 }

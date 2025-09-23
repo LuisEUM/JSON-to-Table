@@ -65,7 +65,8 @@ export function StringFilter({
   columnName,
   columnType,
   uniqueValues,
-}: FilterComponentProps) {
+  hideFooter = false,
+}: FilterComponentProps & { hideFooter?: boolean }) {
   // Siempre usar operador 'in' para manejo con checkboxes
   const selectedOperator: FilterOperator = "in";
 
@@ -332,7 +333,13 @@ export function StringFilter({
         )}
       </div>
 
-      <FilterFooter onClear={onClear} onClose={onClose} onApply={handleApply} />
+      {!hideFooter && (
+        <FilterFooter
+          onClear={onClear}
+          onClose={onClose}
+          onApply={handleApply}
+        />
+      )}
     </div>
   );
 }

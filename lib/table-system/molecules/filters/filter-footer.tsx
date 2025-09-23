@@ -5,37 +5,66 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-import { Check, Trash2, X } from "lucide-react";
+import { Check, Trash2, X, CheckSquare } from "lucide-react";
 
 interface FilterFooterProps {
   onClear: () => void;
   onClose: () => void;
   onApply: () => void;
+  onSelectAll?: () => void;
+  showClear?: boolean;
+  showSelectAll?: boolean;
 }
 
-export function FilterFooter({ onClear, onClose, onApply }: FilterFooterProps) {
+export function FilterFooter({
+  onClear,
+  onClose,
+  onApply,
+  onSelectAll,
+  showClear = true,
+  showSelectAll = false,
+}: FilterFooterProps) {
   return (
     <TooltipProvider>
       <div className='flex items-center justify-end border-t pt-4 mt-4'>
         <div className='flex gap-2'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant='outline'
-                size='icon'
-                onClick={() => {
-                  onClear();
-                  onClose();
-                }}
-                className='h-8 w-8'
-              >
-                <Trash2 className='h-4 w-4' />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Limpiar filtro</p>
-            </TooltipContent>
-          </Tooltip>
+          {onSelectAll && showSelectAll && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant='outline'
+                  size='icon'
+                  onClick={onSelectAll}
+                  className='h-8 w-8'
+                >
+                  <CheckSquare className='h-4 w-4' />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Seleccionar todo</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {showClear && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant='outline'
+                  size='icon'
+                  onClick={() => {
+                    onClear();
+                    onClose();
+                  }}
+                  className='h-8 w-8'
+                >
+                  <Trash2 className='h-4 w-4' />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Limpiar filtro</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           <Tooltip>
             <TooltipTrigger asChild>

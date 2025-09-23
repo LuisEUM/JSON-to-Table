@@ -28,7 +28,8 @@ export function ArrayFilter({
   columnName,
   uniqueValues,
   arrayType,
-}: FilterComponentProps & { arrayType?: string }) {
+  hideFooter = false,
+}: FilterComponentProps & { arrayType?: string; hideFooter?: boolean }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedValues, setSelectedValues] = useState<FilterValue[]>(() => {
     const initial = (initialValue?.value as FilterValue[]) || [];
@@ -372,7 +373,13 @@ export function ArrayFilter({
         </div>
       </div>
 
-      <FilterFooter onClear={onClear} onClose={onClose} onApply={handleApply} />
+      {!hideFooter && (
+        <FilterFooter
+          onClear={onClear}
+          onClose={onClose}
+          onApply={handleApply}
+        />
+      )}
     </div>
   );
 }

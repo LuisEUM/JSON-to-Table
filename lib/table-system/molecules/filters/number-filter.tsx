@@ -32,8 +32,6 @@ const BASE_PRESETS = [
   { label: "Valores negativos", value: "negative" },
   { label: "Valores mayores a la media", value: "aboveAverage" },
   { label: "Valores menores a la media", value: "belowAverage" },
-  { label: "Top 25%", value: "top25" },
-  { label: "Último 25%", value: "bottom25" },
 ];
 
 interface NumberOption {
@@ -59,26 +57,41 @@ export function NumberFilter({
   uniqueValues,
   minValue,
   maxValue,
-}: FilterComponentProps & { minValue?: number; maxValue?: number }) {
+  hideFooter = false,
+}: FilterComponentProps & {
+  minValue?: number;
+  maxValue?: number;
+  hideFooter?: boolean;
+}) {
   const [selectedPreset, setSelectedPreset] = useState("custom");
   const [isInverted, setIsInverted] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Calcular estadísticas básicas
+  // Calcular estadísticas básicas - Fixed to handle empty arrays and decimal commas
   const numbers = uniqueValues
-    .map((v) => Number(v.value))
+    .map((v) => {
+      // Normalizar decimales: convertir comas a puntos
+      const normalized = String(v.value).replace(",", ".");
+      return Number(normalized);
+    })
     .filter((n) => !isNaN(n));
-  const calculatedMin = minValue ?? Math.min(...numbers);
-  const calculatedMax = maxValue ?? Math.max(...numbers);
-  const avg = numbers.reduce((a, b) => a + b, 0) / numbers.length;
-  const sorted = [...numbers].sort((a, b) => a - b);
-  const q1 = sorted[Math.floor(sorted.length * 0.25)];
-  const q3 = sorted[Math.floor(sorted.length * 0.75)];
+
+  // Handle empty numbers array to prevent NaN/Infinity
+  const calculatedMin =
+    minValue ?? (numbers.length > 0 ? Math.min(...numbers) : 0);
+  const calculatedMax =
+    maxValue ?? (numbers.length > 0 ? Math.max(...numbers) : 0);
+  const avg =
+    numbers.length > 0
+      ? numbers.reduce((a, b) => a + b, 0) / numbers.length
+      : 0;
+
+  // Debug opcional
+  // console.log("📊 NumberFilter valores:", { min: calculatedMin, max: calculatedMax, avg: avg.toFixed(2) });
 
   // Detectar si hay valores negativos y positivos
   const hasNegativeValues = numbers.some((n) => n < 0);
   const hasPositiveValues = numbers.some((n) => n > 0);
-  const hasZero = numbers.some((n) => n === 0);
 
   // Generar presets dinámicos basados en los datos
   const PRESETS = BASE_PRESETS.filter((preset) => {
@@ -87,10 +100,9 @@ export function NumberFilter({
         // Solo mostrar si realmente hay valores negativos
         return hasNegativeValues;
       case "positive":
-        // Solo mostrar si hay valores positivos o solo hay cero
-        // Si hay tanto positivos como negativos, mostrar ambos
-        // Si solo hay cero, considerarlo como "positivo"
-        return hasPositiveValues || (hasZero && !hasNegativeValues);
+        // Solo mostrar "Valores positivos" si hay valores negativos también
+        // Si todos los valores son >= 0, no tiene sentido mostrar este preset
+        return hasNegativeValues && hasPositiveValues;
       default:
         return true;
     }
@@ -100,7 +112,15 @@ export function NumberFilter({
     if (!initialValue?.value || !Array.isArray(initialValue.value)) {
       return { start: calculatedMin, end: calculatedMax };
     }
-    const values = initialValue.value.map((v) => Number(v));
+    const values = initialValue.value
+      .map((v) => Number(v))
+      .filter((n) => !isNaN(n));
+
+    // Handle empty values array to prevent NaN
+    if (values.length === 0) {
+      return { start: calculatedMin, end: calculatedMax };
+    }
+
     return {
       start: Math.min(...values),
       end: Math.max(...values),
@@ -168,10 +188,6 @@ export function NumberFilter({
         return { start: avg, end: calculatedMax };
       case "belowAverage":
         return { start: calculatedMin, end: avg };
-      case "top25":
-        return { start: q3, end: calculatedMax };
-      case "bottom25":
-        return { start: calculatedMin, end: q1 };
       default:
         return { start: undefined, end: undefined };
     }
@@ -464,7 +480,13 @@ export function NumberFilter({
         )}
       </div>
 
-      <FilterFooter onClear={onClear} onClose={onClose} onApply={handleApply} />
+      {!hideFooter && (
+        <FilterFooter
+          onClear={onClear}
+          onClose={onClose}
+          onApply={handleApply}
+        />
+      )}
     </div>
   );
 }
