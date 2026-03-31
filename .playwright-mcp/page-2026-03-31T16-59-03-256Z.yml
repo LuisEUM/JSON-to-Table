@@ -1,0 +1,1127 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - heading "Alkitu Table — Demo" [level=1] [ref=e5]
+        - paragraph [ref=e6]: Sistema de tabla dinámica con detección de tipos, filtros adaptativos y datos anidados.
+      - generic [ref=e7]:
+        - button "Tabla Simple (25 registros)" [ref=e8]
+        - button "Tabla Compleja (15 registros)" [active] [ref=e9]
+      - generic [ref=e10]:
+        - toolbar "Herramientas de tabla" [ref=e11]:
+          - search [ref=e13]:
+            - img [ref=e14]
+            - textbox "Buscar en 15 registros..." [ref=e860]
+          - generic [ref=e18]:
+            - button "Iniciar sesión para filtros" [ref=e19] [cursor=pointer]:
+              - img [ref=e20]
+              - text: Iniciar sesión para filtros
+            - button "Columnas" [ref=e23] [cursor=pointer]:
+              - generic [ref=e24]: Columnas
+            - button "Exportar datos" [ref=e25] [cursor=pointer]:
+              - img [ref=e26]
+              - generic [ref=e29]: Exportar
+        - generic [ref=e30]: 15 registros
+        - table "Tabla de datos" [ref=e34]:
+          - rowgroup [ref=e35]:
+            - 'row "Select all rows # id nombre email ciudad activo propietario web logo direccion.calle direccion.codigoPostal direccion.provincia fechaApertura facturacionAnual empleados servicios membresias metricas.clientesActivos metricas.satisfaccionMedia metricas.ticketMedio etiquetas notas Acciones" [ref=e861]':
+              - columnheader "Select all rows" [ref=e37]:
+                - checkbox "Select all rows" [ref=e39]
+              - columnheader "#" [ref=e40]:
+                - generic [ref=e41]: "#"
+              - columnheader "id" [ref=e43]:
+                - generic [ref=e862]:
+                  - generic [ref=e863]:
+                    - button [ref=e864]
+                    - button "id" [ref=e866]:
+                      - generic [ref=e867]: id
+                  - generic [ref=e868]:
+                    - button [ref=e869] [cursor=pointer]:
+                      - img [ref=e870]
+                    - button [ref=e873] [cursor=pointer]:
+                      - img [ref=e874]
+                    - button [ref=e876] [cursor=pointer]:
+                      - img [ref=e877]
+              - columnheader "nombre" [ref=e63]:
+                - generic [ref=e880]:
+                  - generic [ref=e881]:
+                    - button [ref=e882]
+                    - button "nombre" [ref=e884]:
+                      - generic [ref=e885]: nombre
+                  - generic [ref=e886]:
+                    - button [ref=e887] [cursor=pointer]:
+                      - img [ref=e888]
+                    - button [ref=e891] [cursor=pointer]:
+                      - img [ref=e892]
+                    - button [ref=e894] [cursor=pointer]:
+                      - img [ref=e895]
+              - columnheader "email" [ref=e83]:
+                - generic [ref=e898]:
+                  - generic [ref=e899]:
+                    - button [ref=e900]
+                    - button "email" [ref=e902]:
+                      - generic [ref=e903]: email
+                  - generic [ref=e904]:
+                    - button [ref=e905] [cursor=pointer]:
+                      - img [ref=e906]
+                    - button [ref=e909] [cursor=pointer]:
+                      - img [ref=e910]
+                    - button [ref=e912] [cursor=pointer]:
+                      - img [ref=e913]
+              - columnheader "ciudad" [ref=e123]:
+                - generic [ref=e916]:
+                  - generic [ref=e917]:
+                    - button [ref=e918]
+                    - button "ciudad" [ref=e920]:
+                      - generic [ref=e921]: ciudad
+                  - generic [ref=e922]:
+                    - button [ref=e923] [cursor=pointer]:
+                      - img [ref=e924]
+                    - button [ref=e927] [cursor=pointer]:
+                      - img [ref=e928]
+                    - button [ref=e930] [cursor=pointer]:
+                      - img [ref=e931]
+              - columnheader "activo" [ref=e263]:
+                - generic [ref=e934]:
+                  - generic [ref=e935]:
+                    - button [ref=e936]
+                    - button "activo" [ref=e938]:
+                      - generic [ref=e939]: activo
+                  - generic [ref=e940]:
+                    - button [ref=e941] [cursor=pointer]:
+                      - img [ref=e942]
+                    - button [ref=e945] [cursor=pointer]:
+                      - img [ref=e946]
+                    - button [ref=e948] [cursor=pointer]:
+                      - img [ref=e949]
+              - columnheader "propietario" [ref=e952]:
+                - generic [ref=e953]:
+                  - generic [ref=e954]:
+                    - button [ref=e955]
+                    - button "propietario" [ref=e957]:
+                      - generic [ref=e958]: propietario
+                  - generic [ref=e959]:
+                    - button [ref=e960] [cursor=pointer]:
+                      - img [ref=e961]
+                    - button [ref=e964] [cursor=pointer]:
+                      - img [ref=e965]
+                    - button [ref=e967] [cursor=pointer]:
+                      - img [ref=e968]
+              - columnheader "web" [ref=e972]:
+                - generic [ref=e973]:
+                  - generic [ref=e974]:
+                    - button [ref=e975]
+                    - button "web" [ref=e977]:
+                      - generic [ref=e978]: web
+                  - generic [ref=e979]:
+                    - button [ref=e980] [cursor=pointer]:
+                      - img [ref=e981]
+                    - button [ref=e984] [cursor=pointer]:
+                      - img [ref=e985]
+                    - button [ref=e987] [cursor=pointer]:
+                      - img [ref=e988]
+              - columnheader "logo" [ref=e992]:
+                - generic [ref=e993]:
+                  - generic [ref=e994]:
+                    - button [ref=e995]
+                    - button "logo" [ref=e997]:
+                      - generic [ref=e998]: logo
+                  - generic [ref=e999]:
+                    - button [ref=e1000] [cursor=pointer]:
+                      - img [ref=e1001]
+                    - button [ref=e1004] [cursor=pointer]:
+                      - img [ref=e1005]
+                    - button [ref=e1007] [cursor=pointer]:
+                      - img [ref=e1008]
+              - columnheader "direccion.calle" [ref=e1012]:
+                - generic [ref=e1013]:
+                  - generic [ref=e1014]:
+                    - button [ref=e1015]
+                    - button "direccion.calle" [ref=e1017]:
+                      - generic [ref=e1018]: direccion.calle
+                  - generic [ref=e1019]:
+                    - button [ref=e1020] [cursor=pointer]:
+                      - img [ref=e1021]
+                    - button [ref=e1024] [cursor=pointer]:
+                      - img [ref=e1025]
+                    - button [ref=e1027] [cursor=pointer]:
+                      - img [ref=e1028]
+              - columnheader "direccion.codigoPostal" [ref=e1032]:
+                - generic [ref=e1033]:
+                  - generic [ref=e1034]:
+                    - button [ref=e1035]
+                    - button "direccion.codigoPostal" [ref=e1037]:
+                      - generic [ref=e1038]: direccion.codigoPostal
+                  - generic [ref=e1039]:
+                    - button [ref=e1040] [cursor=pointer]:
+                      - img [ref=e1041]
+                    - button [ref=e1044] [cursor=pointer]:
+                      - img [ref=e1045]
+                    - button [ref=e1047] [cursor=pointer]:
+                      - img [ref=e1048]
+              - columnheader "direccion.provincia" [ref=e1052]:
+                - generic [ref=e1053]:
+                  - generic [ref=e1054]:
+                    - button [ref=e1055]
+                    - button "direccion.provincia" [ref=e1057]:
+                      - generic [ref=e1058]: direccion.provincia
+                  - generic [ref=e1059]:
+                    - button [ref=e1060] [cursor=pointer]:
+                      - img [ref=e1061]
+                    - button [ref=e1064] [cursor=pointer]:
+                      - img [ref=e1065]
+                    - button [ref=e1067] [cursor=pointer]:
+                      - img [ref=e1068]
+              - columnheader "fechaApertura" [ref=e1072]:
+                - generic [ref=e1073]:
+                  - generic [ref=e1074]:
+                    - button [ref=e1075]
+                    - button "fechaApertura" [ref=e1077]:
+                      - generic [ref=e1078]: fechaApertura
+                  - generic [ref=e1079]:
+                    - button [ref=e1080] [cursor=pointer]:
+                      - img [ref=e1081]
+                    - button [ref=e1084] [cursor=pointer]:
+                      - img [ref=e1085]
+                    - button [ref=e1087] [cursor=pointer]:
+                      - img [ref=e1088]
+              - columnheader "facturacionAnual" [ref=e1092]:
+                - generic [ref=e1093]:
+                  - generic [ref=e1094]:
+                    - button [ref=e1095]
+                    - button "facturacionAnual" [ref=e1097]:
+                      - generic [ref=e1098]: facturacionAnual
+                  - generic [ref=e1099]:
+                    - button [ref=e1100] [cursor=pointer]:
+                      - img [ref=e1101]
+                    - button [ref=e1104] [cursor=pointer]:
+                      - img [ref=e1105]
+                    - button [ref=e1107] [cursor=pointer]:
+                      - img [ref=e1108]
+              - columnheader "empleados" [ref=e1112]:
+                - generic [ref=e1113]:
+                  - generic [ref=e1114]:
+                    - button [ref=e1115]
+                    - button "empleados" [ref=e1117]:
+                      - generic [ref=e1118]: empleados
+                  - generic [ref=e1119]:
+                    - button [disabled]:
+                      - img
+                    - button [ref=e1120] [cursor=pointer]:
+                      - img [ref=e1121]
+                    - button [ref=e1123] [cursor=pointer]:
+                      - img [ref=e1124]
+              - columnheader "servicios" [ref=e1128]:
+                - generic [ref=e1129]:
+                  - generic [ref=e1130]:
+                    - button [ref=e1131]
+                    - button "servicios" [ref=e1133]:
+                      - generic [ref=e1134]: servicios
+                  - generic [ref=e1135]:
+                    - button [disabled]:
+                      - img
+                    - button [ref=e1136] [cursor=pointer]:
+                      - img [ref=e1137]
+                    - button [ref=e1139] [cursor=pointer]:
+                      - img [ref=e1140]
+              - columnheader "membresias" [ref=e1144]:
+                - generic [ref=e1145]:
+                  - generic [ref=e1146]:
+                    - button [ref=e1147]
+                    - button "membresias" [ref=e1149]:
+                      - generic [ref=e1150]: membresias
+                  - generic [ref=e1151]:
+                    - button [disabled]:
+                      - img
+                    - button [ref=e1152] [cursor=pointer]:
+                      - img [ref=e1153]
+                    - button [ref=e1155] [cursor=pointer]:
+                      - img [ref=e1156]
+              - columnheader "metricas.clientesActivos" [ref=e1160]:
+                - generic [ref=e1161]:
+                  - generic [ref=e1162]:
+                    - button [ref=e1163]
+                    - button "metricas.clientesActivos" [ref=e1165]:
+                      - generic [ref=e1166]: metricas.clientesActivos
+                  - generic [ref=e1167]:
+                    - button [ref=e1168] [cursor=pointer]:
+                      - img [ref=e1169]
+                    - button [ref=e1172] [cursor=pointer]:
+                      - img [ref=e1173]
+                    - button [ref=e1175] [cursor=pointer]:
+                      - img [ref=e1176]
+              - columnheader "metricas.satisfaccionMedia" [ref=e1180]:
+                - generic [ref=e1181]:
+                  - generic [ref=e1182]:
+                    - button [ref=e1183]
+                    - button "metricas.satisfaccionMedia" [ref=e1185]:
+                      - generic [ref=e1186]: metricas.satisfaccionMedia
+                  - generic [ref=e1187]:
+                    - button [ref=e1188] [cursor=pointer]:
+                      - img [ref=e1189]
+                    - button [ref=e1192] [cursor=pointer]:
+                      - img [ref=e1193]
+                    - button [ref=e1195] [cursor=pointer]:
+                      - img [ref=e1196]
+              - columnheader "metricas.ticketMedio" [ref=e1200]:
+                - generic [ref=e1201]:
+                  - generic [ref=e1202]:
+                    - button [ref=e1203]
+                    - button "metricas.ticketMedio" [ref=e1205]:
+                      - generic [ref=e1206]: metricas.ticketMedio
+                  - generic [ref=e1207]:
+                    - button [ref=e1208] [cursor=pointer]:
+                      - img [ref=e1209]
+                    - button [ref=e1212] [cursor=pointer]:
+                      - img [ref=e1213]
+                    - button [ref=e1215] [cursor=pointer]:
+                      - img [ref=e1216]
+              - columnheader "etiquetas" [ref=e1220]:
+                - generic [ref=e1221]:
+                  - generic [ref=e1222]:
+                    - button [ref=e1223]
+                    - button "etiquetas" [ref=e1225]:
+                      - generic [ref=e1226]: etiquetas
+                  - generic [ref=e1227]:
+                    - button [disabled]:
+                      - img
+                    - button [ref=e1228] [cursor=pointer]:
+                      - img [ref=e1229]
+                    - button [ref=e1231] [cursor=pointer]:
+                      - img [ref=e1232]
+              - columnheader "notas" [ref=e1236]:
+                - generic [ref=e1237]:
+                  - generic [ref=e1238]:
+                    - button [ref=e1239]
+                    - button "notas" [ref=e1241]:
+                      - generic [ref=e1242]: notas
+                  - generic [ref=e1243]:
+                    - button [disabled]:
+                      - img
+                    - button [ref=e1244] [cursor=pointer]:
+                      - img [ref=e1245]
+                    - button [ref=e1247] [cursor=pointer]:
+                      - img [ref=e1248]
+              - columnheader "Acciones" [ref=e283]:
+                - generic [ref=e284]: Acciones
+          - rowgroup [ref=e286]:
+            - 'row "Select row 0 1 1 Estilo & Glamour info@estiloglamour.es Madrid true María García López https://estiloglamour.es https://placehold.co/64x64/e879f9/white?text=EG Calle Serrano 42 28001 Madrid 15-03-2018 142000 1. nombre: María García 2. nombre: Luis Pérez 3. nombre: Carmen Díaz 4. nombre: Sofía Ruiz Badge: \"Corte\" Badge: \"Color\" Badge: \"Mechas\" Badge: \"Peinado\" Badge: \"Tratamientos\" Badge: \"Extensiones\" 1. tipo: Insiders Premium 2. tipo: Formación Avanzada 312 4.8 68 Badge: \"Premium\" Badge: \"Colorimetría\" Badge: \"Céntrico\" Salón de referencia en Madrid centro. Especialistas en colorimetría avanzada y extensiones. Clientes de perfil alto. Han completado todos los módulos de formación." [ref=e1252]':
+              - cell "Select row 0" [ref=e288]:
+                - checkbox "Select row 0" [ref=e290]
+              - cell "1" [ref=e291]:
+                - generic [ref=e292]: "1"
+              - cell "1" [ref=e293]
+              - cell "Estilo & Glamour" [ref=e1253]
+              - cell "info@estiloglamour.es" [ref=e1254]
+              - cell "Madrid" [ref=e297]
+              - cell "true" [ref=e304]
+              - cell "María García López" [ref=e1255]
+              - cell "https://estiloglamour.es" [ref=e1256]
+              - cell "https://placehold.co/64x64/e879f9/white?text=EG" [ref=e1257]
+              - cell "Calle Serrano 42" [ref=e1258]
+              - cell "28001" [ref=e1259]
+              - cell "Madrid" [ref=e1260]
+              - cell "15-03-2018" [ref=e1261]
+              - cell "142000" [ref=e1262]
+              - 'cell "1. nombre: María García 2. nombre: Luis Pérez 3. nombre: Carmen Díaz 4. nombre: Sofía Ruiz" [ref=e1263]':
+                - generic [ref=e1268]:
+                  - 'heading "1. nombre: María García" [level=3] [ref=e1270]':
+                    - 'button "1. nombre: María García" [ref=e1271]':
+                      - generic [ref=e1272]:
+                        - generic [ref=e1273]: "1."
+                        - generic [ref=e1274]: "nombre: María García"
+                      - img
+                  - 'heading "2. nombre: Luis Pérez" [level=3] [ref=e1276]':
+                    - 'button "2. nombre: Luis Pérez" [ref=e1277]':
+                      - generic [ref=e1278]:
+                        - generic [ref=e1279]: "2."
+                        - generic [ref=e1280]: "nombre: Luis Pérez"
+                      - img
+                  - 'heading "3. nombre: Carmen Díaz" [level=3] [ref=e1282]':
+                    - 'button "3. nombre: Carmen Díaz" [ref=e1283]':
+                      - generic [ref=e1284]:
+                        - generic [ref=e1285]: "3."
+                        - generic [ref=e1286]: "nombre: Carmen Díaz"
+                      - img
+                  - 'heading "4. nombre: Sofía Ruiz" [level=3] [ref=e1288]':
+                    - 'button "4. nombre: Sofía Ruiz" [ref=e1289]':
+                      - generic [ref=e1290]:
+                        - generic [ref=e1291]: "4."
+                        - generic [ref=e1292]: "nombre: Sofía Ruiz"
+                      - img
+              - 'cell "Badge: \"Corte\" Badge: \"Color\" Badge: \"Mechas\" Badge: \"Peinado\" Badge: \"Tratamientos\" Badge: \"Extensiones\"" [ref=e1293]':
+                - generic [ref=e1294]:
+                  - 'status "Badge: \"Corte\"" [ref=e1295]': "\"Corte\""
+                  - 'status "Badge: \"Color\"" [ref=e1296]': "\"Color\""
+                  - 'status "Badge: \"Mechas\"" [ref=e1297]': "\"Mechas\""
+                  - 'status "Badge: \"Peinado\"" [ref=e1298]': "\"Peinado\""
+                  - 'status "Badge: \"Tratamientos\"" [ref=e1299]': "\"Tratamientos\""
+                  - 'status "Badge: \"Extensiones\"" [ref=e1300]': "\"Extensiones\""
+              - 'cell "1. tipo: Insiders Premium 2. tipo: Formación Avanzada" [ref=e1301]':
+                - generic [ref=e1306]:
+                  - 'heading "1. tipo: Insiders Premium" [level=3] [ref=e1308]':
+                    - 'button "1. tipo: Insiders Premium" [ref=e1309]':
+                      - generic [ref=e1310]:
+                        - generic [ref=e1311]: "1."
+                        - generic [ref=e1312]: "tipo: Insiders Premium"
+                      - img
+                  - 'heading "2. tipo: Formación Avanzada" [level=3] [ref=e1314]':
+                    - 'button "2. tipo: Formación Avanzada" [ref=e1315]':
+                      - generic [ref=e1316]:
+                        - generic [ref=e1317]: "2."
+                        - generic [ref=e1318]: "tipo: Formación Avanzada"
+                      - img
+              - cell "312" [ref=e1319]
+              - cell "4.8" [ref=e1320]
+              - cell "68" [ref=e1321]
+              - 'cell "Badge: \"Premium\" Badge: \"Colorimetría\" Badge: \"Céntrico\"" [ref=e1322]':
+                - generic [ref=e1323]:
+                  - 'status "Badge: \"Premium\"" [ref=e1324]': "\"Premium\""
+                  - 'status "Badge: \"Colorimetría\"" [ref=e1325]': "\"Colorimetría\""
+                  - 'status "Badge: \"Céntrico\"" [ref=e1326]': "\"Céntrico\""
+              - cell "Salón de referencia en Madrid centro. Especialistas en colorimetría avanzada y extensiones. Clientes de perfil alto. Han completado todos los módulos de formación." [ref=e1327]
+              - cell [ref=e305]:
+                - button [ref=e307] [cursor=pointer]:
+                  - img [ref=e308]
+            - 'row "Select row 1 2 2 Pelo & Style BCN hola@peloystyle.es Barcelona true Carlos Ruiz Pérez https://peloystyle.es https://placehold.co/64x64/38bdf8/white?text=PS Paseo de Gracia 88 08008 Barcelona 20-06-2015 218000 1. nombre: Carlos Ruiz 2. nombre: Ana Martínez 3. nombre: Pedro Sanz 4. nombre: Julia Font 5. nombre: Marc Vila 6. nombre: Laia Puig Badge: \"Corte\" Badge: \"Color\" Badge: \"Balayage\" Badge: \"Keratina\" Badge: \"Peinado de Novia\" Badge: \"Tratamientos Capilar\" 1. tipo: Insiders Premium 2. tipo: Consultoría Estratégica 485 4.9 92 Badge: \"Premium\" Badge: \"Novias\" Badge: \"Balayage\" Badge: \"Top10 BCN\" Uno de los salones más consolidados de Barcelona. Especialistas en bodas y eventos. Tienen lista de espera de 3 semanas." [ref=e1328]':
+              - cell "Select row 1" [ref=e313]:
+                - checkbox "Select row 1" [ref=e315]
+              - cell "2" [ref=e316]:
+                - generic [ref=e317]: "2"
+              - cell "2" [ref=e318]
+              - cell "Pelo & Style BCN" [ref=e1329]
+              - cell "hola@peloystyle.es" [ref=e1330]
+              - cell "Barcelona" [ref=e322]
+              - cell "true" [ref=e329]
+              - cell "Carlos Ruiz Pérez" [ref=e1331]
+              - cell "https://peloystyle.es" [ref=e1332]
+              - cell "https://placehold.co/64x64/38bdf8/white?text=PS" [ref=e1333]
+              - cell "Paseo de Gracia 88" [ref=e1334]
+              - cell "08008" [ref=e1335]
+              - cell "Barcelona" [ref=e1336]
+              - cell "20-06-2015" [ref=e1337]
+              - cell "218000" [ref=e1338]
+              - 'cell "1. nombre: Carlos Ruiz 2. nombre: Ana Martínez 3. nombre: Pedro Sanz 4. nombre: Julia Font 5. nombre: Marc Vila 6. nombre: Laia Puig" [ref=e1339]':
+                - generic [ref=e1344]:
+                  - 'heading "1. nombre: Carlos Ruiz" [level=3] [ref=e1346]':
+                    - 'button "1. nombre: Carlos Ruiz" [ref=e1347]':
+                      - generic [ref=e1348]:
+                        - generic [ref=e1349]: "1."
+                        - generic [ref=e1350]: "nombre: Carlos Ruiz"
+                      - img
+                  - 'heading "2. nombre: Ana Martínez" [level=3] [ref=e1352]':
+                    - 'button "2. nombre: Ana Martínez" [ref=e1353]':
+                      - generic [ref=e1354]:
+                        - generic [ref=e1355]: "2."
+                        - generic [ref=e1356]: "nombre: Ana Martínez"
+                      - img
+                  - 'heading "3. nombre: Pedro Sanz" [level=3] [ref=e1358]':
+                    - 'button "3. nombre: Pedro Sanz" [ref=e1359]':
+                      - generic [ref=e1360]:
+                        - generic [ref=e1361]: "3."
+                        - generic [ref=e1362]: "nombre: Pedro Sanz"
+                      - img
+                  - 'heading "4. nombre: Julia Font" [level=3] [ref=e1364]':
+                    - 'button "4. nombre: Julia Font" [ref=e1365]':
+                      - generic [ref=e1366]:
+                        - generic [ref=e1367]: "4."
+                        - generic [ref=e1368]: "nombre: Julia Font"
+                      - img
+                  - 'heading "5. nombre: Marc Vila" [level=3] [ref=e1370]':
+                    - 'button "5. nombre: Marc Vila" [ref=e1371]':
+                      - generic [ref=e1372]:
+                        - generic [ref=e1373]: "5."
+                        - generic [ref=e1374]: "nombre: Marc Vila"
+                      - img
+                  - 'heading "6. nombre: Laia Puig" [level=3] [ref=e1376]':
+                    - 'button "6. nombre: Laia Puig" [ref=e1377]':
+                      - generic [ref=e1378]:
+                        - generic [ref=e1379]: "6."
+                        - generic [ref=e1380]: "nombre: Laia Puig"
+                      - img
+              - 'cell "Badge: \"Corte\" Badge: \"Color\" Badge: \"Balayage\" Badge: \"Keratina\" Badge: \"Peinado de Novia\" Badge: \"Tratamientos Capilar\"" [ref=e1381]':
+                - generic [ref=e1382]:
+                  - 'status "Badge: \"Corte\"" [ref=e1383]': "\"Corte\""
+                  - 'status "Badge: \"Color\"" [ref=e1384]': "\"Color\""
+                  - 'status "Badge: \"Balayage\"" [ref=e1385]': "\"Balayage\""
+                  - 'status "Badge: \"Keratina\"" [ref=e1386]': "\"Keratina\""
+                  - 'status "Badge: \"Peinado de Novia\"" [ref=e1387]': "\"Peinado de Novia\""
+                  - 'status "Badge: \"Tratamientos Capilar\"" [ref=e1388]': "\"Tratamientos Capilar\""
+              - 'cell "1. tipo: Insiders Premium 2. tipo: Consultoría Estratégica" [ref=e1389]':
+                - generic [ref=e1394]:
+                  - 'heading "1. tipo: Insiders Premium" [level=3] [ref=e1396]':
+                    - 'button "1. tipo: Insiders Premium" [ref=e1397]':
+                      - generic [ref=e1398]:
+                        - generic [ref=e1399]: "1."
+                        - generic [ref=e1400]: "tipo: Insiders Premium"
+                      - img
+                  - 'heading "2. tipo: Consultoría Estratégica" [level=3] [ref=e1402]':
+                    - 'button "2. tipo: Consultoría Estratégica" [ref=e1403]':
+                      - generic [ref=e1404]:
+                        - generic [ref=e1405]: "2."
+                        - generic [ref=e1406]: "tipo: Consultoría Estratégica"
+                      - img
+              - cell "485" [ref=e1407]
+              - cell "4.9" [ref=e1408]
+              - cell "92" [ref=e1409]
+              - 'cell "Badge: \"Premium\" Badge: \"Novias\" Badge: \"Balayage\" Badge: \"Top10 BCN\"" [ref=e1410]':
+                - generic [ref=e1411]:
+                  - 'status "Badge: \"Premium\"" [ref=e1412]': "\"Premium\""
+                  - 'status "Badge: \"Novias\"" [ref=e1413]': "\"Novias\""
+                  - 'status "Badge: \"Balayage\"" [ref=e1414]': "\"Balayage\""
+                  - 'status "Badge: \"Top10 BCN\"" [ref=e1415]': "\"Top10 BCN\""
+              - cell "Uno de los salones más consolidados de Barcelona. Especialistas en bodas y eventos. Tienen lista de espera de 3 semanas." [ref=e1416]
+              - cell [ref=e330]:
+                - button [ref=e332] [cursor=pointer]:
+                  - img [ref=e333]
+            - 'row "Select row 2 3 3 Natural Cuts Sevilla contacto@naturalcuts.es Sevilla true Ana Martínez Torres https://naturalcuts.es https://placehold.co/64x64/4ade80/white?text=NC Avenida de la Constitución 15 41001 Sevilla 01-09-2020 86000 1. nombre: Ana Martínez 2. nombre: Rosa Flores 3. nombre: Manuela Gómez Badge: \"Corte Orgánico\" Badge: \"Color Natural\" Badge: \"Tratamientos Naturales\" Badge: \"Peinado\" 1. tipo: Insiders Base 2. tipo: Formación Colorimetría 178 4.7 52 Badge: \"Eco-friendly\" Badge: \"Natural\" Badge: \"Familiar\" Enfoque en productos naturales y orgánicos. Clientela muy fiel. Han pedido asesoría para expansión." [ref=e1417]':
+              - cell "Select row 2" [ref=e338]:
+                - checkbox "Select row 2" [ref=e340]
+              - cell "3" [ref=e341]:
+                - generic [ref=e342]: "3"
+              - cell "3" [ref=e343]
+              - cell "Natural Cuts Sevilla" [ref=e1418]
+              - cell "contacto@naturalcuts.es" [ref=e1419]
+              - cell "Sevilla" [ref=e347]
+              - cell "true" [ref=e1420]
+              - cell "Ana Martínez Torres" [ref=e1421]
+              - cell "https://naturalcuts.es" [ref=e1422]
+              - cell "https://placehold.co/64x64/4ade80/white?text=NC" [ref=e1423]
+              - cell "Avenida de la Constitución 15" [ref=e1424]
+              - cell "41001" [ref=e1425]
+              - cell "Sevilla" [ref=e1426]
+              - cell "01-09-2020" [ref=e1427]
+              - cell "86000" [ref=e1428]
+              - 'cell "1. nombre: Ana Martínez 2. nombre: Rosa Flores 3. nombre: Manuela Gómez" [ref=e1429]':
+                - generic [ref=e1434]:
+                  - 'heading "1. nombre: Ana Martínez" [level=3] [ref=e1436]':
+                    - 'button "1. nombre: Ana Martínez" [ref=e1437]':
+                      - generic [ref=e1438]:
+                        - generic [ref=e1439]: "1."
+                        - generic [ref=e1440]: "nombre: Ana Martínez"
+                      - img
+                  - 'heading "2. nombre: Rosa Flores" [level=3] [ref=e1442]':
+                    - 'button "2. nombre: Rosa Flores" [ref=e1443]':
+                      - generic [ref=e1444]:
+                        - generic [ref=e1445]: "2."
+                        - generic [ref=e1446]: "nombre: Rosa Flores"
+                      - img
+                  - 'heading "3. nombre: Manuela Gómez" [level=3] [ref=e1448]':
+                    - 'button "3. nombre: Manuela Gómez" [ref=e1449]':
+                      - generic [ref=e1450]:
+                        - generic [ref=e1451]: "3."
+                        - generic [ref=e1452]: "nombre: Manuela Gómez"
+                      - img
+              - 'cell "Badge: \"Corte Orgánico\" Badge: \"Color Natural\" Badge: \"Tratamientos Naturales\" Badge: \"Peinado\"" [ref=e1453]':
+                - generic [ref=e1454]:
+                  - 'status "Badge: \"Corte Orgánico\"" [ref=e1455]': "\"Corte Orgánico\""
+                  - 'status "Badge: \"Color Natural\"" [ref=e1456]': "\"Color Natural\""
+                  - 'status "Badge: \"Tratamientos Naturales\"" [ref=e1457]': "\"Tratamientos Naturales\""
+                  - 'status "Badge: \"Peinado\"" [ref=e1458]': "\"Peinado\""
+              - 'cell "1. tipo: Insiders Base 2. tipo: Formación Colorimetría" [ref=e1459]':
+                - generic [ref=e1464]:
+                  - 'heading "1. tipo: Insiders Base" [level=3] [ref=e1466]':
+                    - 'button "1. tipo: Insiders Base" [ref=e1467]':
+                      - generic [ref=e1468]:
+                        - generic [ref=e1469]: "1."
+                        - generic [ref=e1470]: "tipo: Insiders Base"
+                      - img
+                  - 'heading "2. tipo: Formación Colorimetría" [level=3] [ref=e1472]':
+                    - 'button "2. tipo: Formación Colorimetría" [ref=e1473]':
+                      - generic [ref=e1474]:
+                        - generic [ref=e1475]: "2."
+                        - generic [ref=e1476]: "tipo: Formación Colorimetría"
+                      - img
+              - cell "178" [ref=e1477]
+              - cell "4.7" [ref=e1478]
+              - cell "52" [ref=e1479]
+              - 'cell "Badge: \"Eco-friendly\" Badge: \"Natural\" Badge: \"Familiar\"" [ref=e1480]':
+                - generic [ref=e1481]:
+                  - 'status "Badge: \"Eco-friendly\"" [ref=e1482]': "\"Eco-friendly\""
+                  - 'status "Badge: \"Natural\"" [ref=e1483]': "\"Natural\""
+                  - 'status "Badge: \"Familiar\"" [ref=e1484]': "\"Familiar\""
+              - cell "Enfoque en productos naturales y orgánicos. Clientela muy fiel. Han pedido asesoría para expansión." [ref=e1485]
+              - cell [ref=e355]:
+                - button [ref=e357] [cursor=pointer]:
+                  - img [ref=e358]
+            - 'row "Select row 3 4 4 Look & Mode Valencia info@lookmode.es Valencia false Pedro Sánchez Muñoz https://lookmode.es https://placehold.co/64x64/f97316/white?text=LM Calle Colón 22 46004 Valencia 14-02-2012 54000 1. nombre: Pedro Sánchez 2. nombre: Inma Reig Badge: \"Corte\" Badge: \"Color\" Badge: \"Peinado\" 1. tipo: Insiders Base 98 3.2 38 Badge: \"Clásico\" Salón con trayectoria pero estancado. El propietario está valorando renovar imagen y formación del equipo." [ref=e1486]':
+              - cell "Select row 3" [ref=e363]:
+                - checkbox "Select row 3" [ref=e365]
+              - cell "4" [ref=e366]:
+                - generic [ref=e367]: "4"
+              - cell "4" [ref=e368]
+              - cell "Look & Mode Valencia" [ref=e1487]
+              - cell "info@lookmode.es" [ref=e1488]
+              - cell "Valencia" [ref=e372]
+              - cell "false" [ref=e379]
+              - cell "Pedro Sánchez Muñoz" [ref=e1489]
+              - cell "https://lookmode.es" [ref=e1490]
+              - cell "https://placehold.co/64x64/f97316/white?text=LM" [ref=e1491]
+              - cell "Calle Colón 22" [ref=e1492]
+              - cell "46004" [ref=e1493]
+              - cell "Valencia" [ref=e1494]
+              - cell "14-02-2012" [ref=e1495]
+              - cell "54000" [ref=e1496]
+              - 'cell "1. nombre: Pedro Sánchez 2. nombre: Inma Reig" [ref=e1497]':
+                - generic [ref=e1502]:
+                  - 'heading "1. nombre: Pedro Sánchez" [level=3] [ref=e1504]':
+                    - 'button "1. nombre: Pedro Sánchez" [ref=e1505]':
+                      - generic [ref=e1506]:
+                        - generic [ref=e1507]: "1."
+                        - generic [ref=e1508]: "nombre: Pedro Sánchez"
+                      - img
+                  - 'heading "2. nombre: Inma Reig" [level=3] [ref=e1510]':
+                    - 'button "2. nombre: Inma Reig" [ref=e1511]':
+                      - generic [ref=e1512]:
+                        - generic [ref=e1513]: "2."
+                        - generic [ref=e1514]: "nombre: Inma Reig"
+                      - img
+              - 'cell "Badge: \"Corte\" Badge: \"Color\" Badge: \"Peinado\"" [ref=e1515]':
+                - generic [ref=e1516]:
+                  - 'status "Badge: \"Corte\"" [ref=e1517]': "\"Corte\""
+                  - 'status "Badge: \"Color\"" [ref=e1518]': "\"Color\""
+                  - 'status "Badge: \"Peinado\"" [ref=e1519]': "\"Peinado\""
+              - 'cell "1. tipo: Insiders Base" [ref=e1520]':
+                - 'heading "1. tipo: Insiders Base" [level=3] [ref=e1527]':
+                  - 'button "1. tipo: Insiders Base" [ref=e1528]':
+                    - generic [ref=e1529]:
+                      - generic [ref=e1530]: "1."
+                      - generic [ref=e1531]: "tipo: Insiders Base"
+                    - img
+              - cell "98" [ref=e1532]
+              - cell "3.2" [ref=e1533]
+              - cell "38" [ref=e1534]
+              - 'cell "Badge: \"Clásico\"" [ref=e1535]':
+                - 'status "Badge: \"Clásico\"" [ref=e1537]': "\"Clásico\""
+              - cell "Salón con trayectoria pero estancado. El propietario está valorando renovar imagen y formación del equipo." [ref=e1538]
+              - cell [ref=e380]:
+                - button [ref=e382] [cursor=pointer]:
+                  - img [ref=e383]
+            - 'row "Select row 4 5 5 Hair Clinic Bilbao citas@hairclinic.es Bilbao true Andrés Ruiz Morales https://hairclinic.es https://placehold.co/64x64/8b5cf6/white?text=HC Gran Vía 55 48011 Vizcaya 10-05-2019 128000 1. nombre: Andrés Ruiz 2. nombre: Nora Ibáñez 3. nombre: Iñigo Landa 4. nombre: Amaia Urrutia Badge: \"Diagnóstico Capilar\" Badge: \"Tratamiento PRP\" Badge: \"Mesoterapia\" Badge: \"Corte Terapéutico\" Badge: \"Color sin Amoniaco\" 1. tipo: Insiders Premium 2. tipo: Formación Tricología 3. tipo: Consultoría Digital 267 4.9 125 Badge: \"Especializado\" Badge: \"Médico-Capilar\" Badge: \"Alto Ticket\" Propuesta de valor muy diferenciada. Servicios de alta especialización capilar. Modelo de negocio único en Bilbao." [ref=e1539]':
+              - cell "Select row 4" [ref=e388]:
+                - checkbox "Select row 4" [ref=e390]
+              - cell "5" [ref=e391]:
+                - generic [ref=e392]: "5"
+              - cell "5" [ref=e393]
+              - cell "Hair Clinic Bilbao" [ref=e1540]
+              - cell "citas@hairclinic.es" [ref=e1541]
+              - cell "Bilbao" [ref=e397]
+              - cell "true" [ref=e404]
+              - cell "Andrés Ruiz Morales" [ref=e1542]
+              - cell "https://hairclinic.es" [ref=e1543]
+              - cell "https://placehold.co/64x64/8b5cf6/white?text=HC" [ref=e1544]
+              - cell "Gran Vía 55" [ref=e1545]
+              - cell "48011" [ref=e1546]
+              - cell "Vizcaya" [ref=e1547]
+              - cell "10-05-2019" [ref=e1548]
+              - cell "128000" [ref=e1549]
+              - 'cell "1. nombre: Andrés Ruiz 2. nombre: Nora Ibáñez 3. nombre: Iñigo Landa 4. nombre: Amaia Urrutia" [ref=e1550]':
+                - generic [ref=e1555]:
+                  - 'heading "1. nombre: Andrés Ruiz" [level=3] [ref=e1557]':
+                    - 'button "1. nombre: Andrés Ruiz" [ref=e1558]':
+                      - generic [ref=e1559]:
+                        - generic [ref=e1560]: "1."
+                        - generic [ref=e1561]: "nombre: Andrés Ruiz"
+                      - img
+                  - 'heading "2. nombre: Nora Ibáñez" [level=3] [ref=e1563]':
+                    - 'button "2. nombre: Nora Ibáñez" [ref=e1564]':
+                      - generic [ref=e1565]:
+                        - generic [ref=e1566]: "2."
+                        - generic [ref=e1567]: "nombre: Nora Ibáñez"
+                      - img
+                  - 'heading "3. nombre: Iñigo Landa" [level=3] [ref=e1569]':
+                    - 'button "3. nombre: Iñigo Landa" [ref=e1570]':
+                      - generic [ref=e1571]:
+                        - generic [ref=e1572]: "3."
+                        - generic [ref=e1573]: "nombre: Iñigo Landa"
+                      - img
+                  - 'heading "4. nombre: Amaia Urrutia" [level=3] [ref=e1575]':
+                    - 'button "4. nombre: Amaia Urrutia" [ref=e1576]':
+                      - generic [ref=e1577]:
+                        - generic [ref=e1578]: "4."
+                        - generic [ref=e1579]: "nombre: Amaia Urrutia"
+                      - img
+              - 'cell "Badge: \"Diagnóstico Capilar\" Badge: \"Tratamiento PRP\" Badge: \"Mesoterapia\" Badge: \"Corte Terapéutico\" Badge: \"Color sin Amoniaco\"" [ref=e1580]':
+                - generic [ref=e1581]:
+                  - 'status "Badge: \"Diagnóstico Capilar\"" [ref=e1582]': "\"Diagnóstico Capilar\""
+                  - 'status "Badge: \"Tratamiento PRP\"" [ref=e1583]': "\"Tratamiento PRP\""
+                  - 'status "Badge: \"Mesoterapia\"" [ref=e1584]': "\"Mesoterapia\""
+                  - 'status "Badge: \"Corte Terapéutico\"" [ref=e1585]': "\"Corte Terapéutico\""
+                  - 'status "Badge: \"Color sin Amoniaco\"" [ref=e1586]': "\"Color sin Amoniaco\""
+              - 'cell "1. tipo: Insiders Premium 2. tipo: Formación Tricología 3. tipo: Consultoría Digital" [ref=e1587]':
+                - generic [ref=e1592]:
+                  - 'heading "1. tipo: Insiders Premium" [level=3] [ref=e1594]':
+                    - 'button "1. tipo: Insiders Premium" [ref=e1595]':
+                      - generic [ref=e1596]:
+                        - generic [ref=e1597]: "1."
+                        - generic [ref=e1598]: "tipo: Insiders Premium"
+                      - img
+                  - 'heading "2. tipo: Formación Tricología" [level=3] [ref=e1600]':
+                    - 'button "2. tipo: Formación Tricología" [ref=e1601]':
+                      - generic [ref=e1602]:
+                        - generic [ref=e1603]: "2."
+                        - generic [ref=e1604]: "tipo: Formación Tricología"
+                      - img
+                  - 'heading "3. tipo: Consultoría Digital" [level=3] [ref=e1606]':
+                    - 'button "3. tipo: Consultoría Digital" [ref=e1607]':
+                      - generic [ref=e1608]:
+                        - generic [ref=e1609]: "3."
+                        - generic [ref=e1610]: "tipo: Consultoría Digital"
+                      - img
+              - cell "267" [ref=e1611]
+              - cell "4.9" [ref=e1612]
+              - cell "125" [ref=e1613]
+              - 'cell "Badge: \"Especializado\" Badge: \"Médico-Capilar\" Badge: \"Alto Ticket\"" [ref=e1614]':
+                - generic [ref=e1615]:
+                  - 'status "Badge: \"Especializado\"" [ref=e1616]': "\"Especializado\""
+                  - 'status "Badge: \"Médico-Capilar\"" [ref=e1617]': "\"Médico-Capilar\""
+                  - 'status "Badge: \"Alto Ticket\"" [ref=e1618]': "\"Alto Ticket\""
+              - cell "Propuesta de valor muy diferenciada. Servicios de alta especialización capilar. Modelo de negocio único en Bilbao." [ref=e1619]
+              - cell [ref=e405]:
+                - button [ref=e407] [cursor=pointer]:
+                  - img [ref=e408]
+            - 'row "Select row 5 6 6 Salon Élite Murcia elite@salonelite.es Murcia true Carmen Díaz Herrero https://salonelite.es https://placehold.co/64x64/f43f5e/white?text=SE Gran Vía Alfonso X El Sabio 12 30008 Murcia 01-11-2017 96000 1. nombre: Carmen Díaz 2. nombre: Bea Torres 3. nombre: Raquel Moya 4. nombre: Paco Navarro Badge: \"Corte Mujer\" Badge: \"Corte Hombre\" Badge: \"Barba\" Badge: \"Color\" Badge: \"Novias\" Badge: \"Tratamientos\" 1. tipo: Insiders Premium 234 4.6 58 Badge: \"Mixto\" Badge: \"Barbería\" Badge: \"Novias\" Salón mixto con sección de barbería. Crecimiento sostenido los últimos 3 años. Membresía próxima a vencer." [ref=e1620]':
+              - cell "Select row 5" [ref=e413]:
+                - checkbox "Select row 5" [ref=e415]
+              - cell "6" [ref=e416]:
+                - generic [ref=e417]: "6"
+              - cell "6" [ref=e418]
+              - cell "Salon Élite Murcia" [ref=e1621]
+              - cell "elite@salonelite.es" [ref=e1622]
+              - cell "Murcia" [ref=e1623]
+              - cell "true" [ref=e429]
+              - cell "Carmen Díaz Herrero" [ref=e1624]
+              - cell "https://salonelite.es" [ref=e1625]
+              - cell "https://placehold.co/64x64/f43f5e/white?text=SE" [ref=e1626]
+              - cell "Gran Vía Alfonso X El Sabio 12" [ref=e1627]
+              - cell "30008" [ref=e1628]
+              - cell "Murcia" [ref=e1629]
+              - cell "01-11-2017" [ref=e1630]
+              - cell "96000" [ref=e1631]
+              - 'cell "1. nombre: Carmen Díaz 2. nombre: Bea Torres 3. nombre: Raquel Moya 4. nombre: Paco Navarro" [ref=e1632]':
+                - generic [ref=e1637]:
+                  - 'heading "1. nombre: Carmen Díaz" [level=3] [ref=e1639]':
+                    - 'button "1. nombre: Carmen Díaz" [ref=e1640]':
+                      - generic [ref=e1641]:
+                        - generic [ref=e1642]: "1."
+                        - generic [ref=e1643]: "nombre: Carmen Díaz"
+                      - img
+                  - 'heading "2. nombre: Bea Torres" [level=3] [ref=e1645]':
+                    - 'button "2. nombre: Bea Torres" [ref=e1646]':
+                      - generic [ref=e1647]:
+                        - generic [ref=e1648]: "2."
+                        - generic [ref=e1649]: "nombre: Bea Torres"
+                      - img
+                  - 'heading "3. nombre: Raquel Moya" [level=3] [ref=e1651]':
+                    - 'button "3. nombre: Raquel Moya" [ref=e1652]':
+                      - generic [ref=e1653]:
+                        - generic [ref=e1654]: "3."
+                        - generic [ref=e1655]: "nombre: Raquel Moya"
+                      - img
+                  - 'heading "4. nombre: Paco Navarro" [level=3] [ref=e1657]':
+                    - 'button "4. nombre: Paco Navarro" [ref=e1658]':
+                      - generic [ref=e1659]:
+                        - generic [ref=e1660]: "4."
+                        - generic [ref=e1661]: "nombre: Paco Navarro"
+                      - img
+              - 'cell "Badge: \"Corte Mujer\" Badge: \"Corte Hombre\" Badge: \"Barba\" Badge: \"Color\" Badge: \"Novias\" Badge: \"Tratamientos\"" [ref=e1662]':
+                - generic [ref=e1663]:
+                  - 'status "Badge: \"Corte Mujer\"" [ref=e1664]': "\"Corte Mujer\""
+                  - 'status "Badge: \"Corte Hombre\"" [ref=e1665]': "\"Corte Hombre\""
+                  - 'status "Badge: \"Barba\"" [ref=e1666]': "\"Barba\""
+                  - 'status "Badge: \"Color\"" [ref=e1667]': "\"Color\""
+                  - 'status "Badge: \"Novias\"" [ref=e1668]': "\"Novias\""
+                  - 'status "Badge: \"Tratamientos\"" [ref=e1669]': "\"Tratamientos\""
+              - 'cell "1. tipo: Insiders Premium" [ref=e1670]':
+                - 'heading "1. tipo: Insiders Premium" [level=3] [ref=e1677]':
+                  - 'button "1. tipo: Insiders Premium" [ref=e1678]':
+                    - generic [ref=e1679]:
+                      - generic [ref=e1680]: "1."
+                      - generic [ref=e1681]: "tipo: Insiders Premium"
+                    - img
+              - cell "234" [ref=e1682]
+              - cell "4.6" [ref=e1683]
+              - cell "58" [ref=e1684]
+              - 'cell "Badge: \"Mixto\" Badge: \"Barbería\" Badge: \"Novias\"" [ref=e1685]':
+                - generic [ref=e1686]:
+                  - 'status "Badge: \"Mixto\"" [ref=e1687]': "\"Mixto\""
+                  - 'status "Badge: \"Barbería\"" [ref=e1688]': "\"Barbería\""
+                  - 'status "Badge: \"Novias\"" [ref=e1689]': "\"Novias\""
+              - cell "Salón mixto con sección de barbería. Crecimiento sostenido los últimos 3 años. Membresía próxima a vencer." [ref=e1690]
+              - cell [ref=e430]:
+                - button [ref=e432] [cursor=pointer]:
+                  - img [ref=e433]
+            - 'row "Select row 6 7 7 Trendz Studio Granada hola@trendzstudio.es Granada true Francisco Herrera Vega https://trendzstudio.es https://placehold.co/64x64/06b6d4/white?text=TS Calle Recogidas 28 18005 Granada 22-04-2016 167000 1. nombre: Francisco Herrera 2. nombre: Mia Fernández 3. nombre: Álvaro Medina 4. nombre: Sara Jiménez 5. nombre: Paco Roldán 6. nombre: Luisa Mora Badge: \"Corte Creativo\" Badge: \"Color Fantasía\" Badge: \"Balayage\" Badge: \"Extensiones de Calidad\" Badge: \"Foto y Vídeo Capilar\" 1. tipo: Insiders Premium 2. tipo: Formación Marketing 3. tipo: Consultoría RRSS 389 4.8 79 Badge: \"Vanguardia\" Badge: \"RRSS\" Badge: \"Color Fantasía\" Badge: \"Influencer\" Referente en Granada en tendencias. Muy activos en Instagram (58k seguidores). Modelo a seguir para marketing digital." [ref=e1691]':
+              - cell "Select row 6" [ref=e438]:
+                - checkbox "Select row 6" [ref=e440]
+              - cell "7" [ref=e441]:
+                - generic [ref=e442]: "7"
+              - cell "7" [ref=e443]
+              - cell "Trendz Studio Granada" [ref=e1692]
+              - cell "hola@trendzstudio.es" [ref=e1693]
+              - cell "Granada" [ref=e1694]
+              - cell "true" [ref=e1695]
+              - cell "Francisco Herrera Vega" [ref=e1696]
+              - cell "https://trendzstudio.es" [ref=e1697]
+              - cell "https://placehold.co/64x64/06b6d4/white?text=TS" [ref=e1698]
+              - cell "Calle Recogidas 28" [ref=e1699]
+              - cell "18005" [ref=e1700]
+              - cell "Granada" [ref=e1701]
+              - cell "22-04-2016" [ref=e1702]
+              - cell "167000" [ref=e1703]
+              - 'cell "1. nombre: Francisco Herrera 2. nombre: Mia Fernández 3. nombre: Álvaro Medina 4. nombre: Sara Jiménez 5. nombre: Paco Roldán 6. nombre: Luisa Mora" [ref=e1704]':
+                - generic [ref=e1709]:
+                  - 'heading "1. nombre: Francisco Herrera" [level=3] [ref=e1711]':
+                    - 'button "1. nombre: Francisco Herrera" [ref=e1712]':
+                      - generic [ref=e1713]:
+                        - generic [ref=e1714]: "1."
+                        - generic [ref=e1715]: "nombre: Francisco Herrera"
+                      - img
+                  - 'heading "2. nombre: Mia Fernández" [level=3] [ref=e1717]':
+                    - 'button "2. nombre: Mia Fernández" [ref=e1718]':
+                      - generic [ref=e1719]:
+                        - generic [ref=e1720]: "2."
+                        - generic [ref=e1721]: "nombre: Mia Fernández"
+                      - img
+                  - 'heading "3. nombre: Álvaro Medina" [level=3] [ref=e1723]':
+                    - 'button "3. nombre: Álvaro Medina" [ref=e1724]':
+                      - generic [ref=e1725]:
+                        - generic [ref=e1726]: "3."
+                        - generic [ref=e1727]: "nombre: Álvaro Medina"
+                      - img
+                  - 'heading "4. nombre: Sara Jiménez" [level=3] [ref=e1729]':
+                    - 'button "4. nombre: Sara Jiménez" [ref=e1730]':
+                      - generic [ref=e1731]:
+                        - generic [ref=e1732]: "4."
+                        - generic [ref=e1733]: "nombre: Sara Jiménez"
+                      - img
+                  - 'heading "5. nombre: Paco Roldán" [level=3] [ref=e1735]':
+                    - 'button "5. nombre: Paco Roldán" [ref=e1736]':
+                      - generic [ref=e1737]:
+                        - generic [ref=e1738]: "5."
+                        - generic [ref=e1739]: "nombre: Paco Roldán"
+                      - img
+                  - 'heading "6. nombre: Luisa Mora" [level=3] [ref=e1741]':
+                    - 'button "6. nombre: Luisa Mora" [ref=e1742]':
+                      - generic [ref=e1743]:
+                        - generic [ref=e1744]: "6."
+                        - generic [ref=e1745]: "nombre: Luisa Mora"
+                      - img
+              - 'cell "Badge: \"Corte Creativo\" Badge: \"Color Fantasía\" Badge: \"Balayage\" Badge: \"Extensiones de Calidad\" Badge: \"Foto y Vídeo Capilar\"" [ref=e1746]':
+                - generic [ref=e1747]:
+                  - 'status "Badge: \"Corte Creativo\"" [ref=e1748]': "\"Corte Creativo\""
+                  - 'status "Badge: \"Color Fantasía\"" [ref=e1749]': "\"Color Fantasía\""
+                  - 'status "Badge: \"Balayage\"" [ref=e1750]': "\"Balayage\""
+                  - 'status "Badge: \"Extensiones de Calidad\"" [ref=e1751]': "\"Extensiones de Calidad\""
+                  - 'status "Badge: \"Foto y Vídeo Capilar\"" [ref=e1752]': "\"Foto y Vídeo Capilar\""
+              - 'cell "1. tipo: Insiders Premium 2. tipo: Formación Marketing 3. tipo: Consultoría RRSS" [ref=e1753]':
+                - generic [ref=e1758]:
+                  - 'heading "1. tipo: Insiders Premium" [level=3] [ref=e1760]':
+                    - 'button "1. tipo: Insiders Premium" [ref=e1761]':
+                      - generic [ref=e1762]:
+                        - generic [ref=e1763]: "1."
+                        - generic [ref=e1764]: "tipo: Insiders Premium"
+                      - img
+                  - 'heading "2. tipo: Formación Marketing" [level=3] [ref=e1766]':
+                    - 'button "2. tipo: Formación Marketing" [ref=e1767]':
+                      - generic [ref=e1768]:
+                        - generic [ref=e1769]: "2."
+                        - generic [ref=e1770]: "tipo: Formación Marketing"
+                      - img
+                  - 'heading "3. tipo: Consultoría RRSS" [level=3] [ref=e1772]':
+                    - 'button "3. tipo: Consultoría RRSS" [ref=e1773]':
+                      - generic [ref=e1774]:
+                        - generic [ref=e1775]: "3."
+                        - generic [ref=e1776]: "tipo: Consultoría RRSS"
+                      - img
+              - cell "389" [ref=e1777]
+              - cell "4.8" [ref=e1778]
+              - cell "79" [ref=e1779]
+              - 'cell "Badge: \"Vanguardia\" Badge: \"RRSS\" Badge: \"Color Fantasía\" Badge: \"Influencer\"" [ref=e1780]':
+                - generic [ref=e1781]:
+                  - 'status "Badge: \"Vanguardia\"" [ref=e1782]': "\"Vanguardia\""
+                  - 'status "Badge: \"RRSS\"" [ref=e1783]': "\"RRSS\""
+                  - 'status "Badge: \"Color Fantasía\"" [ref=e1784]': "\"Color Fantasía\""
+                  - 'status "Badge: \"Influencer\"" [ref=e1785]': "\"Influencer\""
+              - cell "Referente en Granada en tendencias. Muy activos en Instagram (58k seguidores). Modelo a seguir para marketing digital." [ref=e1786]
+              - cell [ref=e455]:
+                - button [ref=e457] [cursor=pointer]:
+                  - img [ref=e458]
+            - 'row "Select row 7 8 8 Classic Hair Zaragoza clasico@classichair.es Zaragoza true Marta Serrano López https://classichair.es https://placehold.co/64x64/84cc16/white?text=CH Paseo de la Independencia 14 50004 Zaragoza 15-09-2008 78000 1. nombre: Marta Serrano 2. nombre: Pilar Lázaro 3. nombre: Javier Gil Badge: \"Corte Clásico\" Badge: \"Permanente\" Badge: \"Color\" Badge: \"Peinado\" 1. tipo: Insiders Base 156 4.3 42 Badge: \"Clásico\" Badge: \"Veterano\" Badge: \"Permanente\" Salón con mucha historia. Clientela fiel y envejecida. Necesita renovación de imagen y captación de público joven." [ref=e1787]':
+              - cell "Select row 7" [ref=e463]:
+                - checkbox "Select row 7" [ref=e465]
+              - cell "8" [ref=e466]:
+                - generic [ref=e467]: "8"
+              - cell "8" [ref=e468]
+              - cell "Classic Hair Zaragoza" [ref=e1788]
+              - cell "clasico@classichair.es" [ref=e1789]
+              - cell "Zaragoza" [ref=e1790]
+              - cell "true" [ref=e479]
+              - cell "Marta Serrano López" [ref=e1791]
+              - cell "https://classichair.es" [ref=e1792]
+              - cell "https://placehold.co/64x64/84cc16/white?text=CH" [ref=e1793]
+              - cell "Paseo de la Independencia 14" [ref=e1794]
+              - cell "50004" [ref=e1795]
+              - cell "Zaragoza" [ref=e1796]
+              - cell "15-09-2008" [ref=e1797]
+              - cell "78000" [ref=e1798]
+              - 'cell "1. nombre: Marta Serrano 2. nombre: Pilar Lázaro 3. nombre: Javier Gil" [ref=e1799]':
+                - generic [ref=e1804]:
+                  - 'heading "1. nombre: Marta Serrano" [level=3] [ref=e1806]':
+                    - 'button "1. nombre: Marta Serrano" [ref=e1807]':
+                      - generic [ref=e1808]:
+                        - generic [ref=e1809]: "1."
+                        - generic [ref=e1810]: "nombre: Marta Serrano"
+                      - img
+                  - 'heading "2. nombre: Pilar Lázaro" [level=3] [ref=e1812]':
+                    - 'button "2. nombre: Pilar Lázaro" [ref=e1813]':
+                      - generic [ref=e1814]:
+                        - generic [ref=e1815]: "2."
+                        - generic [ref=e1816]: "nombre: Pilar Lázaro"
+                      - img
+                  - 'heading "3. nombre: Javier Gil" [level=3] [ref=e1818]':
+                    - 'button "3. nombre: Javier Gil" [ref=e1819]':
+                      - generic [ref=e1820]:
+                        - generic [ref=e1821]: "3."
+                        - generic [ref=e1822]: "nombre: Javier Gil"
+                      - img
+              - 'cell "Badge: \"Corte Clásico\" Badge: \"Permanente\" Badge: \"Color\" Badge: \"Peinado\"" [ref=e1823]':
+                - generic [ref=e1824]:
+                  - 'status "Badge: \"Corte Clásico\"" [ref=e1825]': "\"Corte Clásico\""
+                  - 'status "Badge: \"Permanente\"" [ref=e1826]': "\"Permanente\""
+                  - 'status "Badge: \"Color\"" [ref=e1827]': "\"Color\""
+                  - 'status "Badge: \"Peinado\"" [ref=e1828]': "\"Peinado\""
+              - 'cell "1. tipo: Insiders Base" [ref=e1829]':
+                - 'heading "1. tipo: Insiders Base" [level=3] [ref=e1836]':
+                  - 'button "1. tipo: Insiders Base" [ref=e1837]':
+                    - generic [ref=e1838]:
+                      - generic [ref=e1839]: "1."
+                      - generic [ref=e1840]: "tipo: Insiders Base"
+                    - img
+              - cell "156" [ref=e1841]
+              - cell "4.3" [ref=e1842]
+              - cell "42" [ref=e1843]
+              - 'cell "Badge: \"Clásico\" Badge: \"Veterano\" Badge: \"Permanente\"" [ref=e1844]':
+                - generic [ref=e1845]:
+                  - 'status "Badge: \"Clásico\"" [ref=e1846]': "\"Clásico\""
+                  - 'status "Badge: \"Veterano\"" [ref=e1847]': "\"Veterano\""
+                  - 'status "Badge: \"Permanente\"" [ref=e1848]': "\"Permanente\""
+              - cell "Salón con mucha historia. Clientela fiel y envejecida. Necesita renovación de imagen y captación de público joven." [ref=e1849]
+              - cell [ref=e480]:
+                - button [ref=e482] [cursor=pointer]:
+                  - img [ref=e483]
+            - 'row "Select row 8 9 9 The Barber Co. Palma book@thebarberco.es Palma de Mallorca true Tomás Pérez Núñez https://thebarberco.es https://placehold.co/64x64/0ea5e9/white?text=BC Paseo del Born 20 07012 Islas Baleares 01-07-2021 112000 1. nombre: Tomás Pérez 2. nombre: Mikel Ros 3. nombre: Joan Alcover Badge: \"Corte Hombre\" Badge: \"Barba Clásica\" Badge: \"Barba Degradé\" Badge: \"Afeitado Navaja\" Badge: \"Tratamientos Hombre\" 1. tipo: Insiders Premium 2. tipo: Formación Barbería Avanzada 298 4.9 62 Badge: \"Barbería\" Badge: \"Masculino\" Badge: \"Premium\" Badge: \"Turistas\" Barbería premium enfocada en hombre. Muchos clientes turistas en verano. Upselling muy alto en productos." [ref=e1850]':
+              - cell "Select row 8" [ref=e488]:
+                - checkbox "Select row 8" [ref=e490]
+              - cell "9" [ref=e491]:
+                - generic [ref=e492]: "9"
+              - cell "9" [ref=e493]
+              - cell "The Barber Co. Palma" [ref=e1851]
+              - cell "book@thebarberco.es" [ref=e1852]
+              - cell "Palma de Mallorca" [ref=e1853]
+              - cell "true" [ref=e1854]
+              - cell "Tomás Pérez Núñez" [ref=e1855]
+              - cell "https://thebarberco.es" [ref=e1856]
+              - cell "https://placehold.co/64x64/0ea5e9/white?text=BC" [ref=e1857]
+              - cell "Paseo del Born 20" [ref=e1858]
+              - cell "07012" [ref=e1859]
+              - cell "Islas Baleares" [ref=e1860]
+              - cell "01-07-2021" [ref=e1861]
+              - cell "112000" [ref=e1862]
+              - 'cell "1. nombre: Tomás Pérez 2. nombre: Mikel Ros 3. nombre: Joan Alcover" [ref=e1863]':
+                - generic [ref=e1868]:
+                  - 'heading "1. nombre: Tomás Pérez" [level=3] [ref=e1870]':
+                    - 'button "1. nombre: Tomás Pérez" [ref=e1871]':
+                      - generic [ref=e1872]:
+                        - generic [ref=e1873]: "1."
+                        - generic [ref=e1874]: "nombre: Tomás Pérez"
+                      - img
+                  - 'heading "2. nombre: Mikel Ros" [level=3] [ref=e1876]':
+                    - 'button "2. nombre: Mikel Ros" [ref=e1877]':
+                      - generic [ref=e1878]:
+                        - generic [ref=e1879]: "2."
+                        - generic [ref=e1880]: "nombre: Mikel Ros"
+                      - img
+                  - 'heading "3. nombre: Joan Alcover" [level=3] [ref=e1882]':
+                    - 'button "3. nombre: Joan Alcover" [ref=e1883]':
+                      - generic [ref=e1884]:
+                        - generic [ref=e1885]: "3."
+                        - generic [ref=e1886]: "nombre: Joan Alcover"
+                      - img
+              - 'cell "Badge: \"Corte Hombre\" Badge: \"Barba Clásica\" Badge: \"Barba Degradé\" Badge: \"Afeitado Navaja\" Badge: \"Tratamientos Hombre\"" [ref=e1887]':
+                - generic [ref=e1888]:
+                  - 'status "Badge: \"Corte Hombre\"" [ref=e1889]': "\"Corte Hombre\""
+                  - 'status "Badge: \"Barba Clásica\"" [ref=e1890]': "\"Barba Clásica\""
+                  - 'status "Badge: \"Barba Degradé\"" [ref=e1891]': "\"Barba Degradé\""
+                  - 'status "Badge: \"Afeitado Navaja\"" [ref=e1892]': "\"Afeitado Navaja\""
+                  - 'status "Badge: \"Tratamientos Hombre\"" [ref=e1893]': "\"Tratamientos Hombre\""
+              - 'cell "1. tipo: Insiders Premium 2. tipo: Formación Barbería Avanzada" [ref=e1894]':
+                - generic [ref=e1899]:
+                  - 'heading "1. tipo: Insiders Premium" [level=3] [ref=e1901]':
+                    - 'button "1. tipo: Insiders Premium" [ref=e1902]':
+                      - generic [ref=e1903]:
+                        - generic [ref=e1904]: "1."
+                        - generic [ref=e1905]: "tipo: Insiders Premium"
+                      - img
+                  - 'heading "2. tipo: Formación Barbería Avanzada" [level=3] [ref=e1907]':
+                    - 'button "2. tipo: Formación Barbería Avanzada" [ref=e1908]':
+                      - generic [ref=e1909]:
+                        - generic [ref=e1910]: "2."
+                        - generic [ref=e1911]: "tipo: Formación Barbería Avanzada"
+                      - img
+              - cell "298" [ref=e1912]
+              - cell "4.9" [ref=e1913]
+              - cell "62" [ref=e1914]
+              - 'cell "Badge: \"Barbería\" Badge: \"Masculino\" Badge: \"Premium\" Badge: \"Turistas\"" [ref=e1915]':
+                - generic [ref=e1916]:
+                  - 'status "Badge: \"Barbería\"" [ref=e1917]': "\"Barbería\""
+                  - 'status "Badge: \"Masculino\"" [ref=e1918]': "\"Masculino\""
+                  - 'status "Badge: \"Premium\"" [ref=e1919]': "\"Premium\""
+                  - 'status "Badge: \"Turistas\"" [ref=e1920]': "\"Turistas\""
+              - cell "Barbería premium enfocada en hombre. Muchos clientes turistas en verano. Upselling muy alto en productos." [ref=e1921]
+              - cell [ref=e505]:
+                - button [ref=e507] [cursor=pointer]:
+                  - img [ref=e508]
+            - 'row "Select row 9 10 10 Bloom Hair Studio citas@bloomhair.es Santander true Lucía Romero Gil https://bloomhair.es https://placehold.co/64x64/fb923c/white?text=BH Calle Burgos 5 39002 Cantabria 08-03-2022 64000 1. nombre: Lucía Romero 2. nombre: Cristina Peña Badge: \"Corte\" Badge: \"Color Sostenible\" Badge: \"Mechas\" Badge: \"Tratamientos Eco\" 1. tipo: Insiders Base 2. tipo: Formación Sostenibilidad 142 4.7 55 Badge: \"Eco\" Badge: \"Sostenible\" Badge: \"Joven\" Badge: \"Crecimiento\" Salón joven con fuerte identidad de marca. Enfoque en sostenibilidad. Crecimiento acelerado en los últimos meses." [ref=e1922]':
+              - cell "Select row 9" [ref=e513]:
+                - checkbox "Select row 9" [ref=e515]
+              - cell "10" [ref=e516]:
+                - generic [ref=e517]: "10"
+              - cell "10" [ref=e518]
+              - cell "Bloom Hair Studio" [ref=e1923]
+              - cell "citas@bloomhair.es" [ref=e1924]
+              - cell "Santander" [ref=e1925]
+              - cell "true" [ref=e529]
+              - cell "Lucía Romero Gil" [ref=e1926]
+              - cell "https://bloomhair.es" [ref=e1927]
+              - cell "https://placehold.co/64x64/fb923c/white?text=BH" [ref=e1928]
+              - cell "Calle Burgos 5" [ref=e1929]
+              - cell "39002" [ref=e1930]
+              - cell "Cantabria" [ref=e1931]
+              - cell "08-03-2022" [ref=e1932]
+              - cell "64000" [ref=e1933]
+              - 'cell "1. nombre: Lucía Romero 2. nombre: Cristina Peña" [ref=e1934]':
+                - generic [ref=e1939]:
+                  - 'heading "1. nombre: Lucía Romero" [level=3] [ref=e1941]':
+                    - 'button "1. nombre: Lucía Romero" [ref=e1942]':
+                      - generic [ref=e1943]:
+                        - generic [ref=e1944]: "1."
+                        - generic [ref=e1945]: "nombre: Lucía Romero"
+                      - img
+                  - 'heading "2. nombre: Cristina Peña" [level=3] [ref=e1947]':
+                    - 'button "2. nombre: Cristina Peña" [ref=e1948]':
+                      - generic [ref=e1949]:
+                        - generic [ref=e1950]: "2."
+                        - generic [ref=e1951]: "nombre: Cristina Peña"
+                      - img
+              - 'cell "Badge: \"Corte\" Badge: \"Color Sostenible\" Badge: \"Mechas\" Badge: \"Tratamientos Eco\"" [ref=e1952]':
+                - generic [ref=e1953]:
+                  - 'status "Badge: \"Corte\"" [ref=e1954]': "\"Corte\""
+                  - 'status "Badge: \"Color Sostenible\"" [ref=e1955]': "\"Color Sostenible\""
+                  - 'status "Badge: \"Mechas\"" [ref=e1956]': "\"Mechas\""
+                  - 'status "Badge: \"Tratamientos Eco\"" [ref=e1957]': "\"Tratamientos Eco\""
+              - 'cell "1. tipo: Insiders Base 2. tipo: Formación Sostenibilidad" [ref=e1958]':
+                - generic [ref=e1963]:
+                  - 'heading "1. tipo: Insiders Base" [level=3] [ref=e1965]':
+                    - 'button "1. tipo: Insiders Base" [ref=e1966]':
+                      - generic [ref=e1967]:
+                        - generic [ref=e1968]: "1."
+                        - generic [ref=e1969]: "tipo: Insiders Base"
+                      - img
+                  - 'heading "2. tipo: Formación Sostenibilidad" [level=3] [ref=e1971]':
+                    - 'button "2. tipo: Formación Sostenibilidad" [ref=e1972]':
+                      - generic [ref=e1973]:
+                        - generic [ref=e1974]: "2."
+                        - generic [ref=e1975]: "tipo: Formación Sostenibilidad"
+                      - img
+              - cell "142" [ref=e1976]
+              - cell "4.7" [ref=e1977]
+              - cell "55" [ref=e1978]
+              - 'cell "Badge: \"Eco\" Badge: \"Sostenible\" Badge: \"Joven\" Badge: \"Crecimiento\"" [ref=e1979]':
+                - generic [ref=e1980]:
+                  - 'status "Badge: \"Eco\"" [ref=e1981]': "\"Eco\""
+                  - 'status "Badge: \"Sostenible\"" [ref=e1982]': "\"Sostenible\""
+                  - 'status "Badge: \"Joven\"" [ref=e1983]': "\"Joven\""
+                  - 'status "Badge: \"Crecimiento\"" [ref=e1984]': "\"Crecimiento\""
+              - cell "Salón joven con fuerte identidad de marca. Enfoque en sostenibilidad. Crecimiento acelerado en los últimos meses." [ref=e1985]
+              - cell [ref=e530]:
+                - button [ref=e532] [cursor=pointer]:
+                  - img [ref=e533]
+        - navigation "Paginacion de tabla" [ref=e537]:
+          - generic [ref=e538]:
+            - generic [ref=e539]:
+              - generic [ref=e540]:
+                - paragraph [ref=e541]: Rows per page
+                - combobox [ref=e542]:
+                  - generic: "10"
+                  - img [ref=e543]
+              - generic [ref=e546]: 25 registros
+            - generic [ref=e547]:
+              - generic [ref=e548]:
+                - paragraph [ref=e549]: Page
+                - generic [ref=e550]:
+                  - spinbutton [ref=e551]: "1"
+                  - paragraph [ref=e552]: of 3
+              - generic [ref=e553]:
+                - button [disabled]:
+                  - img
+                - button [disabled]:
+                  - img
+                - button [ref=e554] [cursor=pointer]:
+                  - img [ref=e555]
+                - button [ref=e557] [cursor=pointer]:
+                  - img [ref=e558]
+        - generic [ref=e560]:
+          - generic [ref=e561]:
+            - button [ref=e562]
+            - generic [ref=e564]: Texto
+          - generic [ref=e565]:
+            - button [ref=e566]
+            - generic [ref=e568]: Número
+          - generic [ref=e569]:
+            - button [ref=e570]
+            - generic [ref=e572]: Booleano
+          - generic [ref=e573]:
+            - button [ref=e574]
+            - generic [ref=e576]: Fecha
+          - generic [ref=e577]:
+            - button [ref=e578]
+            - generic [ref=e580]: Nulo
+          - generic [ref=e581]:
+            - button [ref=e582]
+            - generic [ref=e584]: Indefinido
+          - generic [ref=e585]:
+            - button [ref=e586]
+            - generic [ref=e588]: Objeto
+          - generic [ref=e589]:
+            - button [ref=e590]
+            - generic [ref=e592]: Array
+          - generic [ref=e593]:
+            - button [ref=e594]
+            - generic [ref=e596]: Array de primitivos
+          - generic [ref=e597]:
+            - button [ref=e598]
+            - generic [ref=e600]: Array de objetos
+    - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e606] [cursor=pointer]:
+    - img [ref=e607]
+  - alert [ref=e610]
+  - generic [ref=e612]:
+    - generic [ref=e613]:
+      - img [ref=e614]
+      - generic [ref=e616]:
+        - heading "Utilizamos cookies" [level=3] [ref=e617]
+        - paragraph [ref=e618]: Usamos cookies para mejorar tu experiencia de navegación. Puedes elegir qué tipos de cookies aceptar.
+    - generic [ref=e619]:
+      - button "Aceptar Todas" [ref=e620] [cursor=pointer]
+      - button "Rechazar Todas" [ref=e621] [cursor=pointer]
+      - button "Personalizar" [ref=e622] [cursor=pointer]:
+        - img [ref=e623]
+        - text: Personalizar
+    - paragraph [ref=e625]:
+      - text: Más información en nuestra
+      - link "Política de Cookies" [ref=e626] [cursor=pointer]:
+        - /url: /es/legal/cookie-policy
+      - text: "&"
+      - link "Política de Privacidad" [ref=e627] [cursor=pointer]:
+        - /url: /es/legal/privacy-policy

@@ -1,0 +1,22 @@
+[     684ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/es/auth/login:0
+[     700ms] [LOG] %c Console Ninja extension is connected to Next.js browser, background: rgb(30,30,30); color: rgb(255,213,92) see https://tinyurl.com/2vt8jxzw for more info. @ :0
+[     707ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[     730ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[     849ms] [LOG] Service Worker registration skipped in development mode for better debugging experience @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[     850ms] [LOG] Run in production mode to test service worker functionality @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[     851ms] [LOG] 🎨 [ThemeContext] Using hardcoded default theme @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[    2053ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:3001/trpc/theme.listAllThemes?batch=1&input=%7B%7D:0
+[    4061ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:3001/trpc/theme.listAllThemes?batch=1&input=%7B%7D:0
+[    8067ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:3001/trpc/theme.listAllThemes?batch=1&input=%7B%7D:0
+[   29606ms] [LOG] [redirectAfterLogin] Called with userData: {profileComplete: true, role: ADMIN} @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   29608ms] [LOG] [redirectAfterLogin] Current locale: es @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   29608ms] [LOG] [redirectAfterLogin] User role: ADMIN @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   29608ms] [LOG] [redirectAfterLogin] Final dashboard URL: /es/admin/dashboard @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   29608ms] [LOG] [redirectAfterLogin] About to call router.push()... @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   29611ms] [LOG] [redirectAfterLogin] router.push() called successfully @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   29768ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   33072ms] [LOG] [Fast Refresh] done in 3404ms @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   33490ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   33589ms] [LOG] [Fast Refresh] done in 211ms @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   33744ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   33750ms] [LOG] [Fast Refresh] done in 108ms @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441

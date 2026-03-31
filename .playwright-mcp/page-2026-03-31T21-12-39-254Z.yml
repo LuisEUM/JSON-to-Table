@@ -1,0 +1,686 @@
+- generic:
+  - generic [ref=e787] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e788]:
+      - img [ref=e789]
+    - generic [ref=e792]:
+      - button "Open issues overlay" [ref=e793]:
+        - generic [ref=e794]:
+          - generic [ref=e795]: "1"
+          - generic [ref=e796]: "2"
+        - generic [ref=e797]:
+          - text: Issue
+          - generic [ref=e798]: s
+      - button "Collapse issues badge" [ref=e799]:
+        - img [ref=e800]
+  - main:
+    - generic:
+      - generic:
+        - heading [level=1]: Alkitu Table — Demo
+        - paragraph: Sistema de tabla dinámica con detección de tipos, filtros adaptativos y datos anidados.
+      - generic:
+        - button: Tabla Simple (25 registros)
+        - button: Tabla Compleja (15 registros)
+      - generic:
+        - toolbar:
+          - generic:
+            - search:
+              - img
+              - textbox:
+                - /placeholder: Buscar en 25 registros...
+          - generic:
+            - button:
+              - img
+              - text: Iniciar sesión para filtros
+            - button:
+              - generic: Columnas
+            - button:
+              - img
+              - generic: Exportar
+        - generic: 25 registros
+        - generic:
+          - generic:
+            - generic:
+              - table:
+                - rowgroup:
+                  - row:
+                    - columnheader:
+                      - generic:
+                        - checkbox
+                    - columnheader:
+                      - generic: "#"
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: id
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: nombre
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: email
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: telefono
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: ciudad
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: rol
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: estado
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: fechaRegistro
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: ultimoContacto
+                        - generic:
+                          - button:
+                            - img
+                          - button [expanded]:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: valorTotal
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: satisfaccion
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: activo
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic: Acciones
+                - rowgroup:
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "1"
+                    - cell: "1"
+                    - cell: María García López
+                    - cell: maria.garcia@estiloscenter.com
+                    - cell: +34 612 345 678
+                    - cell: Madrid
+                    - cell: Cliente
+                    - cell: Activo
+                    - cell: 14-02-2023
+                    - cell: 10-03-2026
+                    - cell: "3840"
+                    - cell: "5"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "2"
+                    - cell: "2"
+                    - cell: Carlos Ruiz Pérez
+                    - cell: carlos.ruiz@peluqueriabella.es
+                    - cell: +34 634 567 890
+                    - cell: Barcelona
+                    - cell: Cliente
+                    - cell: Activo
+                    - cell: 08-11-2022
+                    - cell: 28-02-2026
+                    - cell: "6120"
+                    - cell: "4"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "3"
+                    - cell: "3"
+                    - cell: Laura Fernández
+                    - cell: laura.fdz@salonelite.com
+                    - cell: +34 655 678 901
+                    - cell: Sevilla
+                    - cell: Lead
+                    - cell: Pendiente
+                    - cell: 20-01-2026
+                    - cell: 18-03-2026
+                    - cell: "0"
+                    - cell: "3"
+                    - cell: "false"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "4"
+                    - cell: "4"
+                    - cell: Pedro Sánchez Muñoz
+                    - cell: pedro.sanchez@look&style.es
+                    - cell: +34 676 789 012
+                    - cell: Valencia
+                    - cell: Cliente
+                    - cell: Inactivo
+                    - cell: 30-06-2021
+                    - cell: 05-09-2025
+                    - cell: "2280"
+                    - cell: "2"
+                    - cell: "false"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "5"
+                    - cell: "5"
+                    - cell: Ana Martínez Torres
+                    - cell: ana.martinez@naturalcuts.com
+                    - cell: +34 697 890 123
+                    - cell: Bilbao
+                    - cell: Cliente
+                    - cell: Activo
+                    - cell: 01-09-2023
+                    - cell: 25-03-2026
+                    - cell: "4560"
+                    - cell: "5"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "6"
+                    - cell: "6"
+                    - cell: Distribuciones Capilares S.L.
+                    - cell: ventas@distcapilares.es
+                    - cell: +34 900 123 456
+                    - cell: Zaragoza
+                    - cell: Proveedor
+                    - cell: Activo
+                    - cell: 15-03-2020
+                    - cell: 01-03-2026
+                    - cell: "18750"
+                    - cell: "4"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "7"
+                    - cell: "7"
+                    - cell: Sofía Moreno Jiménez
+                    - cell: sofia.moreno@hairpro.es
+                    - cell: +34 618 234 567
+                    - cell: Málaga
+                    - cell: Lead
+                    - cell: Pendiente
+                    - cell: 10-02-2026
+                    - cell: 20-03-2026
+                    - cell: "0"
+                    - cell: "4"
+                    - cell: "false"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "8"
+                    - cell: "8"
+                    - cell: Javier López Martín
+                    - cell: javier.lopez@cortesymoda.com
+                    - cell: +34 639 345 678
+                    - cell: Murcia
+                    - cell: Cliente
+                    - cell: Activo
+                    - cell: 22-05-2023
+                    - cell: 12-03-2026
+                    - cell: "3120"
+                    - cell: "4"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "9"
+                    - cell: "9"
+                    - cell: Isabel Torres Vidal
+                    - cell: isabel.torres@glamourstudio.es
+                    - cell: +34 660 456 789
+                    - cell: Valladolid
+                    - cell: Cliente
+                    - cell: Inactivo
+                    - cell: 18-04-2022
+                    - cell: 30-11-2025
+                    - cell: "1680"
+                    - cell: "3"
+                    - cell: "false"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "10"
+                    - cell: "10"
+                    - cell: Roberto Navarro Ruiz
+                    - cell: roberto.navarro@trendyhair.com
+                    - cell: +34 681 567 890
+                    - cell: Alicante
+                    - cell: Lead
+                    - cell: Activo
+                    - cell: 05-12-2025
+                    - cell: 28-03-2026
+                    - cell: "480"
+                    - cell: "4"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+        - navigation:
+          - generic:
+            - generic:
+              - generic:
+                - paragraph: Rows per page
+                - combobox:
+                  - generic: "10"
+                  - img
+              - generic:
+                - generic: 25 registros
+            - generic:
+              - generic:
+                - paragraph: Page
+                - generic:
+                  - spinbutton: "1"
+                  - paragraph: of 3
+              - generic:
+                - button [disabled]:
+                  - img
+                - button [disabled]:
+                  - img
+                - button:
+                  - img
+                - button:
+                  - img
+        - generic:
+          - generic:
+            - button
+            - generic: Texto
+          - generic:
+            - button
+            - generic: Número
+          - generic:
+            - button
+            - generic: Booleano
+          - generic:
+            - button
+            - generic: Fecha
+          - generic:
+            - button
+            - generic: Nulo
+          - generic:
+            - button
+            - generic: Indefinido
+          - generic:
+            - button
+            - generic: Objeto
+          - generic:
+            - button
+            - generic: Array
+          - generic:
+            - button
+            - generic: Array de primitivos
+          - generic:
+            - button
+            - generic: Array de objetos
+    - region "Notifications alt+T"
+  - alert
+  - button:
+    - img
+  - dialog "Filtrar ultimoContacto" [ref=e1619]:
+    - heading "Filtrar ultimoContacto" [level=2] [ref=e1620]
+    - generic [ref=e1622]:
+      - 'heading "Filtro para: ultimoContacto" [level=3] [ref=e1624]':
+        - text: "Filtro para:"
+        - text: ultimoContacto
+      - generic [ref=e1626]:
+        - group "Presets de fecha" [ref=e1627]:
+          - combobox "Seleccionar rango de fecha predefinido" [ref=e1628]:
+            - generic: Personalizado
+            - img [ref=e1629]
+        - generic [ref=e1631]:
+          - generic [ref=e1632]:
+            - generic [ref=e1633]: Desde
+            - textbox "Fecha desde" [ref=e1634]
+          - generic [ref=e1635]:
+            - generic [ref=e1636]: Hasta
+            - textbox "Fecha hasta" [ref=e1637]
+        - generic [ref=e1638]:
+          - switch "Incluir fechas en el rango" [checked] [ref=e1639]
+          - generic [ref=e1640]: Incluir fechas en el rango
+        - generic [ref=e1642]:
+          - heading "Fechas disponibles 21" [level=3] [ref=e1643]:
+            - button "Fechas disponibles 21" [expanded] [active] [ref=e1644]:
+              - text: Fechas disponibles
+              - generic [ref=e1645]: "21"
+              - img
+          - region "Fechas disponibles 21" [ref=e1661]:
+            - generic [ref=e1663]:
+              - generic [ref=e1664]:
+                - img [ref=e1665]
+                - textbox "Buscar fechas" [ref=e1668]
+              - generic [ref=e1670]:
+                - tablist [ref=e1671]:
+                  - tab "Todos (21)" [selected] [ref=e1672]
+                  - tab "Activos (0)" [ref=e1673]
+                  - tab "Inactivos (21)" [ref=e1674]
+                - tabpanel "Todos (21)" [ref=e1676]:
+                  - generic [ref=e1680]:
+                    - generic [ref=e1681]:
+                      - generic [ref=e1682]:
+                        - checkbox "20/07/2025" [checked] [ref=e1683]:
+                          - generic:
+                            - img
+                        - generic [ref=e1684] [cursor=pointer]: 20/07/2025
+                      - generic [ref=e1685]: (1)
+                    - generic [ref=e1686]:
+                      - generic [ref=e1687]:
+                        - checkbox "05/09/2025" [checked] [ref=e1688]:
+                          - generic:
+                            - img
+                        - generic [ref=e1689] [cursor=pointer]: 05/09/2025
+                      - generic [ref=e1690]: (1)
+                    - generic [ref=e1691]:
+                      - generic [ref=e1692]:
+                        - checkbox "30/11/2025" [checked] [ref=e1693]:
+                          - generic:
+                            - img
+                        - generic [ref=e1694] [cursor=pointer]: 30/11/2025
+                      - generic [ref=e1695]: (1)
+                    - generic [ref=e1696]:
+                      - generic [ref=e1697]:
+                        - checkbox "01/12/2025" [checked] [ref=e1698]:
+                          - generic:
+                            - img
+                        - generic [ref=e1699] [cursor=pointer]: 01/12/2025
+                      - generic [ref=e1700]: (1)
+                    - generic [ref=e1701]:
+                      - generic [ref=e1702]:
+                        - checkbox "10/01/2026" [checked] [ref=e1703]:
+                          - generic:
+                            - img
+                        - generic [ref=e1704] [cursor=pointer]: 10/01/2026
+                      - generic [ref=e1705]: (1)
+                    - generic [ref=e1706]:
+                      - generic [ref=e1707]:
+                        - checkbox "15/02/2026" [checked] [ref=e1708]:
+                          - generic:
+                            - img
+                        - generic [ref=e1709] [cursor=pointer]: 15/02/2026
+                      - generic [ref=e1710]: (1)
+                    - generic [ref=e1711]:
+                      - generic [ref=e1712]:
+                        - checkbox "28/02/2026" [checked] [ref=e1713]:
+                          - generic:
+                            - img
+                        - generic [ref=e1714] [cursor=pointer]: 28/02/2026
+                      - generic [ref=e1715]: (1)
+                    - generic [ref=e1716]:
+                      - generic [ref=e1717]:
+                        - checkbox "01/03/2026" [checked] [ref=e1718]:
+                          - generic:
+                            - img
+                        - generic [ref=e1719] [cursor=pointer]: 01/03/2026
+                      - generic [ref=e1720]: (1)
+                    - generic [ref=e1721]:
+                      - generic [ref=e1722]:
+                        - checkbox "05/03/2026" [checked] [ref=e1723]:
+                          - generic:
+                            - img
+                        - generic [ref=e1724] [cursor=pointer]: 05/03/2026
+                      - generic [ref=e1725]: (1)
+                    - generic [ref=e1726]:
+                      - generic [ref=e1727]:
+                        - checkbox "08/03/2026" [checked] [ref=e1728]:
+                          - generic:
+                            - img
+                        - generic [ref=e1729] [cursor=pointer]: 08/03/2026
+                      - generic [ref=e1730]: (1)
+                    - generic [ref=e1731]:
+                      - generic [ref=e1732]:
+                        - checkbox "10/03/2026" [checked] [ref=e1733]:
+                          - generic:
+                            - img
+                        - generic [ref=e1734] [cursor=pointer]: 10/03/2026
+                      - generic [ref=e1735]: (1)
+                    - generic [ref=e1736]:
+                      - generic [ref=e1737]:
+                        - checkbox "12/03/2026" [checked] [ref=e1738]:
+                          - generic:
+                            - img
+                        - generic [ref=e1739] [cursor=pointer]: 12/03/2026
+                      - generic [ref=e1740]: (1)
+                    - generic [ref=e1741]:
+                      - generic [ref=e1742]:
+                        - checkbox "15/03/2026" [checked] [ref=e1743]:
+                          - generic:
+                            - img
+                        - generic [ref=e1744] [cursor=pointer]: 15/03/2026
+                      - generic [ref=e1745]: (1)
+                    - generic [ref=e1746]:
+                      - generic [ref=e1747]:
+                        - checkbox "18/03/2026" [checked] [ref=e1748]:
+                          - generic:
+                            - img
+                        - generic [ref=e1749] [cursor=pointer]: 18/03/2026
+                      - generic [ref=e1750]: (2)
+                    - generic [ref=e1751]:
+                      - generic [ref=e1752]:
+                        - checkbox "20/03/2026" [checked] [ref=e1753]:
+                          - generic:
+                            - img
+                        - generic [ref=e1754] [cursor=pointer]: 20/03/2026
+                      - generic [ref=e1755]: (2)
+                    - generic [ref=e1756]:
+                      - generic [ref=e1757]:
+                        - checkbox "22/03/2026" [checked] [ref=e1758]:
+                          - generic:
+                            - img
+                        - generic [ref=e1759] [cursor=pointer]: 22/03/2026
+                      - generic [ref=e1760]: (1)
+                    - generic [ref=e1761]:
+                      - generic [ref=e1762]:
+                        - checkbox "25/03/2026" [checked] [ref=e1763]:
+                          - generic:
+                            - img
+                        - generic [ref=e1764] [cursor=pointer]: 25/03/2026
+                      - generic [ref=e1765]: (2)
+                    - generic [ref=e1766]:
+                      - generic [ref=e1767]:
+                        - checkbox "27/03/2026" [checked] [ref=e1768]:
+                          - generic:
+                            - img
+                        - generic [ref=e1769] [cursor=pointer]: 27/03/2026
+                      - generic [ref=e1770]: (1)
+                    - generic [ref=e1771]:
+                      - generic [ref=e1772]:
+                        - checkbox "28/03/2026" [checked] [ref=e1773]:
+                          - generic:
+                            - img
+                        - generic [ref=e1774] [cursor=pointer]: 28/03/2026
+                      - generic [ref=e1775]: (2)
+                    - generic [ref=e1776]:
+                      - generic [ref=e1777]:
+                        - checkbox "29/03/2026" [checked] [ref=e1778]:
+                          - generic:
+                            - img
+                        - generic [ref=e1779] [cursor=pointer]: 29/03/2026
+                      - generic [ref=e1780]: (1)
+                    - generic [ref=e1781]:
+                      - generic [ref=e1782]:
+                        - checkbox "30/03/2026" [checked] [ref=e1783]:
+                          - generic:
+                            - img
+                        - generic [ref=e1784] [cursor=pointer]: 30/03/2026
+                      - generic [ref=e1785]: (1)
+      - toolbar "Acciones de filtro" [ref=e1646]:
+        - generic [ref=e1647]:
+          - button "Limpiar filtro" [ref=e1648] [cursor=pointer]:
+            - img [ref=e1649]
+          - button "Cerrar" [ref=e1652] [cursor=pointer]:
+            - img [ref=e1653]
+          - button "Aplicar filtro" [ref=e1656] [cursor=pointer]:
+            - img [ref=e1657]
+    - button "Close" [ref=e1659]:
+      - img
+      - generic [ref=e1660]: Close

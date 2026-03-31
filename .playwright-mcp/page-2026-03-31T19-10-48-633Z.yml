@@ -1,0 +1,282 @@
+- generic [ref=e1]:
+  - generic [ref=e787] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e788]:
+      - img [ref=e789]
+    - generic [ref=e792]:
+      - button "Open issues overlay" [ref=e793]:
+        - generic [ref=e794]:
+          - generic [ref=e795]: "1"
+          - generic [ref=e796]: "2"
+        - generic [ref=e797]:
+          - text: Issue
+          - generic [ref=e798]: s
+      - button "Collapse issues badge" [ref=e799]:
+        - img [ref=e800]
+  - main [ref=e802]:
+    - generic [ref=e803]:
+      - generic [ref=e804]:
+        - heading "Alkitu Table — Demo" [level=1] [ref=e805]
+        - paragraph [ref=e806]: Sistema de tabla dinámica con detección de tipos, filtros adaptativos y datos anidados.
+      - generic [ref=e807]:
+        - button "Tabla Simple (25 registros)" [ref=e808]
+        - button "Tabla Compleja (15 registros)" [ref=e809]
+      - generic [ref=e810]:
+        - toolbar "Herramientas de tabla" [ref=e811]:
+          - search [ref=e813]:
+            - img [ref=e814]
+            - textbox "Buscar en 25 registros..." [ref=e817]
+          - generic [ref=e818]:
+            - button "Iniciar sesión para filtros" [ref=e819] [cursor=pointer]:
+              - img [ref=e820]
+              - text: Iniciar sesión para filtros
+            - button "Columnas" [ref=e823] [cursor=pointer]:
+              - generic [ref=e824]: Columnas
+            - button "Exportar datos" [ref=e825] [cursor=pointer]:
+              - img [ref=e826]
+              - generic [ref=e829]: Exportar
+        - generic [ref=e830]: 1 resultados filtrados de 25
+        - table "Tabla de datos" [ref=e834]:
+          - rowgroup [ref=e835]:
+            - 'row "Select all rows # id nombre email telefono ciudad rol estado fechaRegistro ultimoContacto valorTotal satisfaccion activo Acciones" [ref=e836]':
+              - columnheader "Select all rows" [ref=e837]:
+                - checkbox "Select all rows" [ref=e839]
+              - columnheader "#" [ref=e840]:
+                - generic [ref=e841]: "#"
+              - columnheader "id" [ref=e843]:
+                - generic [ref=e844]:
+                  - generic [ref=e845]:
+                    - button [ref=e846]
+                    - button "id" [ref=e848]:
+                      - generic [ref=e849]: id
+                  - generic [ref=e850]:
+                    - button [ref=e851] [cursor=pointer]:
+                      - img [ref=e852]
+                    - button [ref=e855] [cursor=pointer]:
+                      - img [ref=e856]
+                    - button [ref=e858] [cursor=pointer]:
+                      - img [ref=e859]
+              - columnheader "nombre" [ref=e863]:
+                - generic [ref=e864]:
+                  - generic [ref=e865]:
+                    - button [ref=e866]
+                    - button "nombre" [ref=e868]:
+                      - generic [ref=e869]: nombre
+                  - generic [ref=e870]:
+                    - button [ref=e871] [cursor=pointer]:
+                      - img [ref=e872]
+                    - button [active] [ref=e875] [cursor=pointer]:
+                      - img [ref=e876]
+                    - button [ref=e878] [cursor=pointer]:
+                      - img [ref=e879]
+              - columnheader "email" [ref=e883]:
+                - generic [ref=e884]:
+                  - generic [ref=e885]:
+                    - button [ref=e886]
+                    - button "email" [ref=e888]:
+                      - generic [ref=e889]: email
+                  - generic [ref=e890]:
+                    - button [ref=e891] [cursor=pointer]:
+                      - img [ref=e892]
+                    - button [ref=e895] [cursor=pointer]:
+                      - img [ref=e896]
+                    - button [ref=e898] [cursor=pointer]:
+                      - img [ref=e899]
+              - columnheader "telefono" [ref=e903]:
+                - generic [ref=e904]:
+                  - generic [ref=e905]:
+                    - button [ref=e906]
+                    - button "telefono" [ref=e908]:
+                      - generic [ref=e909]: telefono
+                  - generic [ref=e910]:
+                    - button [ref=e911] [cursor=pointer]:
+                      - img [ref=e912]
+                    - button [ref=e915] [cursor=pointer]:
+                      - img [ref=e916]
+                    - button [ref=e918] [cursor=pointer]:
+                      - img [ref=e919]
+              - columnheader "ciudad" [ref=e923]:
+                - generic [ref=e924]:
+                  - generic [ref=e925]:
+                    - button [ref=e926]
+                    - button "ciudad" [ref=e928]:
+                      - generic [ref=e929]: ciudad
+                  - generic [ref=e930]:
+                    - button [ref=e931] [cursor=pointer]:
+                      - img [ref=e932]
+                    - button [ref=e935] [cursor=pointer]:
+                      - img [ref=e936]
+                    - button [ref=e938] [cursor=pointer]:
+                      - img [ref=e939]
+              - columnheader "rol" [ref=e943]:
+                - generic [ref=e944]:
+                  - generic [ref=e945]:
+                    - button [ref=e946]
+                    - button "rol" [ref=e948]:
+                      - generic [ref=e949]: rol
+                  - generic [ref=e950]:
+                    - button [ref=e951] [cursor=pointer]:
+                      - img [ref=e952]
+                    - button [ref=e955] [cursor=pointer]:
+                      - img [ref=e956]
+                    - button [ref=e958] [cursor=pointer]:
+                      - img [ref=e959]
+              - columnheader "estado" [ref=e963]:
+                - generic [ref=e964]:
+                  - generic [ref=e965]:
+                    - button [ref=e966]
+                    - button "estado" [ref=e968]:
+                      - generic [ref=e969]: estado
+                  - generic [ref=e970]:
+                    - button [ref=e971] [cursor=pointer]:
+                      - img [ref=e972]
+                    - button [ref=e975] [cursor=pointer]:
+                      - img [ref=e976]
+                    - button [ref=e978] [cursor=pointer]:
+                      - img [ref=e979]
+              - columnheader "fechaRegistro" [ref=e983]:
+                - generic [ref=e984]:
+                  - generic [ref=e985]:
+                    - button [ref=e986]
+                    - button "fechaRegistro" [ref=e988]:
+                      - generic [ref=e989]: fechaRegistro
+                  - generic [ref=e990]:
+                    - button [ref=e991] [cursor=pointer]:
+                      - img [ref=e992]
+                    - button [ref=e995] [cursor=pointer]:
+                      - img [ref=e996]
+                    - button [ref=e998] [cursor=pointer]:
+                      - img [ref=e999]
+              - columnheader "ultimoContacto" [ref=e1003]:
+                - generic [ref=e1004]:
+                  - generic [ref=e1005]:
+                    - button [ref=e1006]
+                    - button "ultimoContacto" [ref=e1008]:
+                      - generic [ref=e1009]: ultimoContacto
+                  - generic [ref=e1010]:
+                    - button [ref=e1011] [cursor=pointer]:
+                      - img [ref=e1012]
+                    - button [ref=e1015] [cursor=pointer]:
+                      - img [ref=e1016]
+                    - button [ref=e1018] [cursor=pointer]:
+                      - img [ref=e1019]
+              - columnheader "valorTotal" [ref=e1023]:
+                - generic [ref=e1024]:
+                  - generic [ref=e1025]:
+                    - button [ref=e1026]
+                    - button "valorTotal" [ref=e1028]:
+                      - generic [ref=e1029]: valorTotal
+                  - generic [ref=e1030]:
+                    - button [ref=e1031] [cursor=pointer]:
+                      - img [ref=e1032]
+                    - button [ref=e1035] [cursor=pointer]:
+                      - img [ref=e1036]
+                    - button [ref=e1038] [cursor=pointer]:
+                      - img [ref=e1039]
+              - columnheader "satisfaccion" [ref=e1043]:
+                - generic [ref=e1044]:
+                  - generic [ref=e1045]:
+                    - button [ref=e1046]
+                    - button "satisfaccion" [ref=e1048]:
+                      - generic [ref=e1049]: satisfaccion
+                  - generic [ref=e1050]:
+                    - button [ref=e1051] [cursor=pointer]:
+                      - img [ref=e1052]
+                    - button [ref=e1055] [cursor=pointer]:
+                      - img [ref=e1056]
+                    - button [ref=e1058] [cursor=pointer]:
+                      - img [ref=e1059]
+              - columnheader "activo" [ref=e1063]:
+                - generic [ref=e1064]:
+                  - generic [ref=e1065]:
+                    - button [ref=e1066]
+                    - button "activo" [ref=e1068]:
+                      - generic [ref=e1069]: activo
+                  - generic [ref=e1070]:
+                    - button [ref=e1071] [cursor=pointer]:
+                      - img [ref=e1072]
+                    - button [ref=e1075] [cursor=pointer]:
+                      - img [ref=e1076]
+                    - button [ref=e1078] [cursor=pointer]:
+                      - img [ref=e1079]
+              - columnheader "Acciones" [ref=e1083]:
+                - generic [ref=e1084]: Acciones
+          - rowgroup [ref=e1086]:
+            - row "Select row 5 6 6 Distribuciones Capilares S.L. ventas@distcapilares.es 08-02-1971 Zaragoza Proveedor Activo 15-03-2020 01-03-2026 18750 4 true" [ref=e1212]:
+              - cell "Select row 5" [ref=e1213]:
+                - checkbox "Select row 5" [ref=e1215]
+              - cell "6" [ref=e1216]:
+                - generic [ref=e1217]: "6"
+              - cell "6" [ref=e1218]
+              - cell "Distribuciones Capilares S.L." [ref=e1219]
+              - cell "ventas@distcapilares.es" [ref=e1220]
+              - cell "08-02-1971" [ref=e1221]
+              - cell "Zaragoza" [ref=e1222]
+              - cell "Proveedor" [ref=e1223]
+              - cell "Activo" [ref=e1224]
+              - cell "15-03-2020" [ref=e1225]
+              - cell "01-03-2026" [ref=e1226]
+              - cell "18750" [ref=e1227]
+              - cell "4" [ref=e1228]
+              - cell "true" [ref=e1229]
+              - cell [ref=e1230]:
+                - button [ref=e1232] [cursor=pointer]:
+                  - img [ref=e1233]
+        - navigation "Paginacion de tabla" [ref=e1337]:
+          - generic [ref=e1338]:
+            - generic [ref=e1339]:
+              - generic [ref=e1340]:
+                - paragraph [ref=e1341]: Rows per page
+                - combobox [ref=e1342]:
+                  - generic: "10"
+                  - img [ref=e1343]
+              - generic [ref=e1346]: 25 registros
+            - generic [ref=e1347]:
+              - generic [ref=e1348]:
+                - paragraph [ref=e1349]: Page
+                - generic [ref=e1350]:
+                  - spinbutton [ref=e1351]: "1"
+                  - paragraph [ref=e1352]: of 3
+              - generic [ref=e1353]:
+                - button [disabled]:
+                  - img
+                - button [disabled]:
+                  - img
+                - button [ref=e1354] [cursor=pointer]:
+                  - img [ref=e1355]
+                - button [ref=e1357] [cursor=pointer]:
+                  - img [ref=e1358]
+        - generic [ref=e1360]:
+          - generic [ref=e1361]:
+            - button [ref=e1362]
+            - generic [ref=e1364]: Texto
+          - generic [ref=e1365]:
+            - button [ref=e1366]
+            - generic [ref=e1368]: Número
+          - generic [ref=e1369]:
+            - button [ref=e1370]
+            - generic [ref=e1372]: Booleano
+          - generic [ref=e1373]:
+            - button [ref=e1374]
+            - generic [ref=e1376]: Fecha
+          - generic [ref=e1377]:
+            - button [ref=e1378]
+            - generic [ref=e1380]: Nulo
+          - generic [ref=e1381]:
+            - button [ref=e1382]
+            - generic [ref=e1384]: Indefinido
+          - generic [ref=e1385]:
+            - button [ref=e1386]
+            - generic [ref=e1388]: Objeto
+          - generic [ref=e1389]:
+            - button [ref=e1390]
+            - generic [ref=e1392]: Array
+          - generic [ref=e1393]:
+            - button [ref=e1394]
+            - generic [ref=e1396]: Array de primitivos
+          - generic [ref=e1397]:
+            - button [ref=e1398]
+            - generic [ref=e1400]: Array de objetos
+    - region "Notifications alt+T"
+  - alert [ref=e1401]
+  - button "Personalizar" [ref=e1402]:
+    - img [ref=e1403]

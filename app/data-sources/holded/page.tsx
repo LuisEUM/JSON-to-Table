@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/primitives/ui/button";
 import {
   Card,
   CardContent,
@@ -10,9 +10,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "@/components/primitives/ui/card";
+import { Input } from "@/components/primitives/ui/input";
+import { Label } from "@/components/primitives/ui/label";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -29,7 +29,7 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@/components/ui/alert";
+} from "@/components/primitives/ui/alert";
 import { useSession, signIn } from "next-auth/react";
 import {
   Select,
@@ -37,7 +37,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/primitives/ui/select";
 
 // Tipos de datos disponibles en Holded
 const holdedDataTypes = [

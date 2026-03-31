@@ -1,0 +1,71 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - navigation [ref=e4]:
+        - generic [ref=e6]:
+          - link "Alkitu Template" [ref=e8] [cursor=pointer]:
+            - /url: /es
+            - img "Alkitu Template" [ref=e9]:
+              - img [ref=e290]
+          - generic [ref=e104]:
+            - button "Mi Panel" [ref=e383] [cursor=pointer]:
+              - img [ref=e384]
+              - text: Mi Panel
+            - button [ref=e389] [cursor=pointer]:
+              - img [ref=e390]
+            - button "Cambiar a modo oscuro" [ref=e110] [cursor=pointer]:
+              - img [ref=e117]
+            - button "Idioma" [ref=e119] [cursor=pointer]:
+              - img [ref=e120]
+      - generic [ref=e125]:
+        - link "Volver al Inicio" [ref=e127] [cursor=pointer]:
+          - /url: /
+          - img [ref=e129]
+          - generic [ref=e131]: Volver al Inicio
+        - generic [ref=e134]:
+          - generic [ref=e135]:
+            - img "lock" [ref=e137]
+            - heading "Iniciar Sesión" [level=1] [ref=e140]
+            - paragraph [ref=e141]: Ingresa los detalles de tu cuenta para continuar
+          - generic [ref=e143]:
+            - generic [ref=e144]:
+              - generic [ref=e145]:
+                - generic [ref=e146]:
+                  - generic [ref=e147]: Correo electrónico
+                  - generic [ref=e148]:
+                    - img [ref=e150]
+                    - textbox "Correo electrónico" [ref=e153]: screenshot-admin@alkitu.test
+                - generic [ref=e154]:
+                  - generic [ref=e155]: Contraseña
+                  - generic [ref=e156]:
+                    - img [ref=e158]
+                    - textbox "Contraseña" [ref=e161]: Screenshot123
+                    - button [ref=e163] [cursor=pointer]:
+                      - img [ref=e165]
+              - generic [ref=e393]:
+                - img [ref=e394]
+                - generic [ref=e397]: Inicio de sesión exitoso
+              - button "Iniciar sesión con correo" [ref=e168] [cursor=pointer]
+            - generic [ref=e169]:
+              - link "¿Olvidaste tu contraseña?" [ref=e170] [cursor=pointer]:
+                - /url: /auth/forgot-password
+              - generic [ref=e171]:
+                - text: o
+                - link "accede con código de email" [ref=e172] [cursor=pointer]:
+                  - /url: /auth/email-login
+          - generic [ref=e175]: O continuar con
+          - link "Sign in with Google" [ref=e177] [cursor=pointer]:
+            - /url: http://localhost:3001/auth/google
+            - img [ref=e178]
+            - text: Sign in with Google
+    - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e398] [cursor=pointer]:
+    - generic [ref=e401]:
+      - text: Compiling
+      - generic [ref=e402]:
+        - generic [ref=e403]: .
+        - generic [ref=e404]: .
+        - generic [ref=e405]: .
+  - alert [ref=e192]
+  - button "Personalizar" [ref=e193]:
+    - img [ref=e194]

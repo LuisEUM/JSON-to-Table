@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { JsonTable } from "@/lib/table-system";
+import { JsonTable } from "@/lib/alkitu-table";
 import { getSimpleMockData } from "@/app/data-sources/demo/data/simple";
 import { getComplexMockData } from "@/app/data-sources/demo/data/complex";
 import {
@@ -11,8 +11,8 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@/components/primitives/ui/card";
+import { Button } from "@/components/primitives/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";

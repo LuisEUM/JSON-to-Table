@@ -1,0 +1,11 @@
+[    1671ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/es/auth/login?redirect=%2Fes%2Fdemo%2Ftable:0
+[    1682ms] [LOG] %c Console Ninja extension is connected to Next.js browser, background: rgb(30,30,30); color: rgb(255,213,92) see https://tinyurl.com/2vt8jxzw for more info. @ :0
+[    1708ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[    1754ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[    1975ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[    2020ms] [LOG] Service Worker registration skipped in development mode for better debugging experience @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[    2020ms] [LOG] Run in production mode to test service worker functionality @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[    2023ms] [LOG] 🎨 [ThemeContext] Using hardcoded default theme @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[    2395ms] [LOG] [Fast Refresh] done in 618ms @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   54852ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441
+[   55175ms] [LOG] [Fast Refresh] done in 72ms @ http://localhost:3000/_next/static/chunks/11hm_next_dist_0m6rgog._.js:2441

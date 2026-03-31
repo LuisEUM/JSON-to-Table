@@ -9,8 +9,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/components/primitives/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitives/ui/tabs";
 import { UserManagement } from "./components/user-management";
 
 export default function AdminPage() {

@@ -10,16 +10,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/primitives/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+} from "@/components/primitives/ui/select";
+import { Input } from "@/components/primitives/ui/input";
+import { Button } from "@/components/primitives/ui/button";
 import { Search, UserCog } from "lucide-react";
 
 interface User {

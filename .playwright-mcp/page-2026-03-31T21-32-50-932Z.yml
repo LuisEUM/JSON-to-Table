@@ -1,0 +1,438 @@
+- generic:
+  - generic [ref=e787] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e788]:
+      - img [ref=e789]
+    - generic [ref=e792]:
+      - button "Open issues overlay" [ref=e793]:
+        - generic [ref=e794]:
+          - generic [ref=e795]: "1"
+          - generic [ref=e796]: "2"
+        - generic [ref=e797]:
+          - text: Issue
+          - generic [ref=e798]: s
+      - button "Collapse issues badge" [ref=e799]:
+        - img [ref=e800]
+  - main:
+    - generic:
+      - generic:
+        - heading [level=1]: Alkitu Table — Demo
+        - paragraph: Sistema de tabla dinámica con detección de tipos, filtros adaptativos y datos anidados.
+      - generic:
+        - button: Tabla Simple (25 registros)
+        - button: Tabla Compleja (15 registros)
+      - generic:
+        - toolbar:
+          - generic:
+            - search:
+              - img
+              - textbox:
+                - /placeholder: Buscar en 25 registros...
+          - generic:
+            - button:
+              - img
+              - text: Iniciar sesión para filtros
+            - button:
+              - generic: Columnas
+            - button:
+              - img
+              - generic: Exportar
+        - generic: 6 resultados filtrados de 25
+        - generic:
+          - generic:
+            - generic:
+              - table:
+                - rowgroup:
+                  - row:
+                    - columnheader:
+                      - generic:
+                        - checkbox
+                    - columnheader:
+                      - generic: "#"
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: id
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: nombre
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: email
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: telefono
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: ciudad
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: rol
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: estado
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: fechaRegistro
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: ultimoContacto
+                        - generic:
+                          - button:
+                            - img
+                          - button [expanded]:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: valorTotal
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: satisfaccion
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: activo
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic: Acciones
+                - rowgroup:
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "3"
+                    - cell: "3"
+                    - cell: Laura Fernández
+                    - cell: laura.fdz@salonelite.com
+                    - cell: +34 655 678 901
+                    - cell: Sevilla
+                    - cell: Lead
+                    - cell: Pendiente
+                    - cell: 20-01-2026
+                    - cell: 18-03-2026
+                    - cell: "0"
+                    - cell: "3"
+                    - cell: "false"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "7"
+                    - cell: "7"
+                    - cell: Sofía Moreno Jiménez
+                    - cell: sofia.moreno@hairpro.es
+                    - cell: +34 618 234 567
+                    - cell: Málaga
+                    - cell: Lead
+                    - cell: Pendiente
+                    - cell: 10-02-2026
+                    - cell: 20-03-2026
+                    - cell: "0"
+                    - cell: "4"
+                    - cell: "false"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "10"
+                    - cell: "10"
+                    - cell: Roberto Navarro Ruiz
+                    - cell: roberto.navarro@trendyhair.com
+                    - cell: +34 681 567 890
+                    - cell: Alicante
+                    - cell: Lead
+                    - cell: Activo
+                    - cell: 05-12-2025
+                    - cell: 28-03-2026
+                    - cell: "480"
+                    - cell: "4"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "14"
+                    - cell: "14"
+                    - cell: Patricia Molina Esteve
+                    - cell: patricia.molina@salon21.es
+                    - cell: +34 644 890 123
+                    - cell: Palma
+                    - cell: Lead
+                    - cell: Pendiente
+                    - cell: 01-03-2026
+                    - cell: 29-03-2026
+                    - cell: "0"
+                    - cell: "3"
+                    - cell: "false"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "18"
+                    - cell: "18"
+                    - cell: Rosa Jiménez Castillo
+                    - cell: rosa.jimenez@artpelo.com
+                    - cell: +34 628 234 567
+                    - cell: San Sebastián
+                    - cell: Lead
+                    - cell: Activo
+                    - cell: 15-01-2026
+                    - cell: 25-03-2026
+                    - cell: "720"
+                    - cell: "4"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "22"
+                    - cell: "22"
+                    - cell: Marta Serrano López
+                    - cell: marta.serrano@clasiccuts.es
+                    - cell: +34 691 567 890
+                    - cell: Burgos
+                    - cell: Lead
+                    - cell: Pendiente
+                    - cell: 28-02-2026
+                    - cell: 27-03-2026
+                    - cell: "0"
+                    - cell: "3"
+                    - cell: "false"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+        - navigation:
+          - generic:
+            - generic:
+              - generic:
+                - paragraph: Rows per page
+                - combobox:
+                  - generic: "10"
+                  - img
+              - generic:
+                - generic: 25 registros
+            - generic:
+              - generic:
+                - paragraph: Page
+                - generic:
+                  - spinbutton: "1"
+                  - paragraph: of 3
+              - generic:
+                - button [disabled]:
+                  - img
+                - button [disabled]:
+                  - img
+                - button:
+                  - img
+                - button:
+                  - img
+        - generic:
+          - generic:
+            - button
+            - generic: Texto
+          - generic:
+            - button
+            - generic: Número
+          - generic:
+            - button
+            - generic: Booleano
+          - generic:
+            - button
+            - generic: Fecha
+          - generic:
+            - button
+            - generic: Nulo
+          - generic:
+            - button
+            - generic: Indefinido
+          - generic:
+            - button
+            - generic: Objeto
+          - generic:
+            - button
+            - generic: Array
+          - generic:
+            - button
+            - generic: Array de primitivos
+          - generic:
+            - button
+            - generic: Array de objetos
+    - region "Notifications alt+T"
+  - alert
+  - button:
+    - img
+  - dialog "Filtrar ultimoContacto" [ref=e1758]:
+    - heading "Filtrar ultimoContacto" [level=2] [ref=e1759]
+    - generic [ref=e1761]:
+      - 'heading "Filtro para: ultimoContacto" [level=3] [ref=e1763]':
+        - text: "Filtro para:"
+        - text: ultimoContacto
+      - generic [ref=e1765]:
+        - group "Presets de fecha" [ref=e1766]:
+          - combobox "Seleccionar rango de fecha predefinido" [active] [ref=e1767]:
+            - generic: Últimos 7 días
+            - img [ref=e1768]
+        - generic [ref=e1770]:
+          - generic [ref=e1771]:
+            - generic [ref=e1772]: Desde
+            - textbox "Fecha desde" [ref=e1773]: 2026-03-24
+          - generic [ref=e1774]:
+            - generic [ref=e1775]: Hasta
+            - textbox "Fecha hasta" [ref=e1776]: 2026-03-31
+        - generic [ref=e1777]:
+          - switch "Incluir fechas en el rango" [checked] [ref=e1778]
+          - generic [ref=e1779]: Incluir fechas en el rango
+        - heading "Fechas disponibles 4" [level=3] [ref=e1846]:
+          - button "Fechas disponibles 4" [ref=e1847]:
+            - text: Fechas disponibles
+            - generic [ref=e1784]: "4"
+            - img
+      - toolbar "Acciones de filtro" [ref=e1785]:
+        - generic [ref=e1786]:
+          - button "Limpiar filtro" [ref=e1787] [cursor=pointer]:
+            - img [ref=e1788]
+          - button "Cerrar" [ref=e1791] [cursor=pointer]:
+            - img [ref=e1792]
+          - button "Aplicar filtro" [ref=e1795] [cursor=pointer]:
+            - img [ref=e1796]
+    - button "Close" [ref=e1798]:
+      - img
+      - generic [ref=e1799]: Close

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/primitives/ui/button";
 import {
   Card,
   CardContent,
@@ -10,7 +10,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/primitives/ui/card";
 import { ArrowLeft, ExternalLink, Database } from "lucide-react";
 import {
   Select,
@@ -18,9 +18,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "@/components/primitives/ui/select";
+import { Input } from "@/components/primitives/ui/input";
+import { Label } from "@/components/primitives/ui/label";
 import { toast } from "sonner";
 
 // Tipos de API disponibles

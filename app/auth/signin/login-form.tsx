@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Icons } from "@/components/ui/icons";
+import { Button } from "@/components/primitives/ui/button";
+import { Input } from "@/components/primitives/ui/input";
+import { Label } from "@/components/primitives/ui/label";
+import { Icons } from "@/components/primitives/ui/icons";
 
 export default function LoginForm() {
   const router = useRouter();

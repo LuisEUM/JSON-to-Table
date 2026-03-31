@@ -7,10 +7,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@/components/primitives/ui/card";
+import { Button } from "@/components/primitives/ui/button";
 import { DATA_SOURCES, DataSourceType } from "../../lib/constants";
-import { Icons } from "@/components/ui/icons";
+import { Icons } from "@/components/primitives/ui/icons";
 
 // Interfaz para la fuente de datos
 interface DataSource {

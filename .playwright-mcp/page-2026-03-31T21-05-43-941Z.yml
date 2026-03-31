@@ -1,0 +1,266 @@
+- generic [ref=e1]:
+  - generic [ref=e6] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e7]:
+      - img [ref=e8]
+    - generic [ref=e11]:
+      - button "Open issues overlay" [ref=e12]:
+        - generic [ref=e13]:
+          - generic [ref=e14]: "1"
+          - generic [ref=e15]: "2"
+        - generic [ref=e16]:
+          - text: Issue
+          - generic [ref=e17]: s
+      - button "Collapse issues badge" [ref=e18]:
+        - img [ref=e19]
+  - main [ref=e21]:
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - heading "Alkitu Table — Demo" [level=1] [ref=e24]
+        - paragraph [ref=e25]: Sistema de tabla dinámica con detección de tipos, filtros adaptativos y datos anidados.
+      - generic [ref=e26]:
+        - button "Tabla Simple (25 registros)" [ref=e27]
+        - button "Tabla Compleja (15 registros)" [ref=e28]
+      - generic [ref=e29]:
+        - toolbar "Herramientas de tabla" [ref=e30]:
+          - search [ref=e32]:
+            - img [ref=e33]
+            - textbox "Buscar en 25 registros..." [ref=e36]
+          - generic [ref=e37]:
+            - button "Iniciar sesión para filtros" [ref=e38] [cursor=pointer]:
+              - img [ref=e39]
+              - text: Iniciar sesión para filtros
+            - button "Columnas" [ref=e42] [cursor=pointer]:
+              - generic [ref=e43]: Columnas
+            - button "Exportar datos" [ref=e44] [cursor=pointer]:
+              - img [ref=e45]
+              - generic [ref=e48]: Exportar
+        - generic [ref=e49]: 0 resultados filtrados de 25
+        - table "Tabla de datos" [ref=e53]:
+          - rowgroup [ref=e54]:
+            - 'row "Select all rows # id nombre email telefono ciudad rol estado fechaRegistro ultimoContacto valorTotal satisfaccion activo Acciones" [ref=e55]':
+              - columnheader "Select all rows" [ref=e56]:
+                - checkbox "Select all rows" [ref=e58]
+              - columnheader "#" [ref=e59]:
+                - generic [ref=e60]: "#"
+              - columnheader "id" [ref=e62]:
+                - generic [ref=e63]:
+                  - generic [ref=e64]:
+                    - button [ref=e65]
+                    - button "id" [ref=e67]:
+                      - generic [ref=e68]: id
+                  - generic [ref=e69]:
+                    - button [ref=e70] [cursor=pointer]:
+                      - img [ref=e71]
+                    - button [ref=e74] [cursor=pointer]:
+                      - img [ref=e75]
+                    - button [ref=e77] [cursor=pointer]:
+                      - img [ref=e78]
+              - columnheader "nombre" [ref=e82]:
+                - generic [ref=e83]:
+                  - generic [ref=e84]:
+                    - button [ref=e85]
+                    - button "nombre" [ref=e87]:
+                      - generic [ref=e88]: nombre
+                  - generic [ref=e89]:
+                    - button [ref=e90] [cursor=pointer]:
+                      - img [ref=e91]
+                    - button [ref=e94] [cursor=pointer]:
+                      - img [ref=e95]
+                    - button [ref=e97] [cursor=pointer]:
+                      - img [ref=e98]
+              - columnheader "email" [ref=e102]:
+                - generic [ref=e103]:
+                  - generic [ref=e104]:
+                    - button [ref=e105]
+                    - button "email" [ref=e107]:
+                      - generic [ref=e108]: email
+                  - generic [ref=e109]:
+                    - button [ref=e110] [cursor=pointer]:
+                      - img [ref=e111]
+                    - button [ref=e114] [cursor=pointer]:
+                      - img [ref=e115]
+                    - button [ref=e117] [cursor=pointer]:
+                      - img [ref=e118]
+              - columnheader "telefono" [ref=e122]:
+                - generic [ref=e123]:
+                  - generic [ref=e124]:
+                    - button [ref=e125]
+                    - button "telefono" [ref=e127]:
+                      - generic [ref=e128]: telefono
+                  - generic [ref=e129]:
+                    - button [ref=e130] [cursor=pointer]:
+                      - img [ref=e131]
+                    - button [ref=e134] [cursor=pointer]:
+                      - img [ref=e135]
+                    - button [ref=e137] [cursor=pointer]:
+                      - img [ref=e138]
+              - columnheader "ciudad" [ref=e142]:
+                - generic [ref=e143]:
+                  - generic [ref=e144]:
+                    - button [ref=e145]
+                    - button "ciudad" [ref=e147]:
+                      - generic [ref=e148]: ciudad
+                  - generic [ref=e149]:
+                    - button [ref=e150] [cursor=pointer]:
+                      - img [ref=e151]
+                    - button [ref=e154] [cursor=pointer]:
+                      - img [ref=e155]
+                    - button [ref=e157] [cursor=pointer]:
+                      - img [ref=e158]
+              - columnheader "rol" [ref=e162]:
+                - generic [ref=e163]:
+                  - generic [ref=e164]:
+                    - button [ref=e165]
+                    - button "rol" [ref=e167]:
+                      - generic [ref=e168]: rol
+                  - generic [ref=e169]:
+                    - button [ref=e170] [cursor=pointer]:
+                      - img [ref=e171]
+                    - button [ref=e174] [cursor=pointer]:
+                      - img [ref=e175]
+                    - button [ref=e177] [cursor=pointer]:
+                      - img [ref=e178]
+              - columnheader "estado" [ref=e182]:
+                - generic [ref=e183]:
+                  - generic [ref=e184]:
+                    - button [ref=e185]
+                    - button "estado" [ref=e187]:
+                      - generic [ref=e188]: estado
+                  - generic [ref=e189]:
+                    - button [ref=e190] [cursor=pointer]:
+                      - img [ref=e191]
+                    - button [ref=e194] [cursor=pointer]:
+                      - img [ref=e195]
+                    - button [ref=e197] [cursor=pointer]:
+                      - img [ref=e198]
+              - columnheader "fechaRegistro" [ref=e202]:
+                - generic [ref=e203]:
+                  - generic [ref=e204]:
+                    - button [ref=e205]
+                    - button "fechaRegistro" [ref=e207]:
+                      - generic [ref=e208]: fechaRegistro
+                  - generic [ref=e209]:
+                    - button [ref=e210] [cursor=pointer]:
+                      - img [ref=e211]
+                    - button [ref=e214] [cursor=pointer]:
+                      - img [ref=e215]
+                    - button [ref=e217] [cursor=pointer]:
+                      - img [ref=e218]
+              - columnheader "ultimoContacto" [ref=e222]:
+                - generic [ref=e223]:
+                  - generic [ref=e224]:
+                    - button [ref=e225]
+                    - button "ultimoContacto" [ref=e227]:
+                      - generic [ref=e228]: ultimoContacto
+                  - generic [ref=e229]:
+                    - button [ref=e230] [cursor=pointer]:
+                      - img [ref=e231]
+                    - button [active] [ref=e234] [cursor=pointer]:
+                      - img [ref=e235]
+                    - button [ref=e237] [cursor=pointer]:
+                      - img [ref=e238]
+              - columnheader "valorTotal" [ref=e242]:
+                - generic [ref=e243]:
+                  - generic [ref=e244]:
+                    - button [ref=e245]
+                    - button "valorTotal" [ref=e247]:
+                      - generic [ref=e248]: valorTotal
+                  - generic [ref=e249]:
+                    - button [ref=e250] [cursor=pointer]:
+                      - img [ref=e251]
+                    - button [ref=e254] [cursor=pointer]:
+                      - img [ref=e255]
+                    - button [ref=e257] [cursor=pointer]:
+                      - img [ref=e258]
+              - columnheader "satisfaccion" [ref=e262]:
+                - generic [ref=e263]:
+                  - generic [ref=e264]:
+                    - button [ref=e265]
+                    - button "satisfaccion" [ref=e267]:
+                      - generic [ref=e268]: satisfaccion
+                  - generic [ref=e269]:
+                    - button [ref=e270] [cursor=pointer]:
+                      - img [ref=e271]
+                    - button [ref=e274] [cursor=pointer]:
+                      - img [ref=e275]
+                    - button [ref=e277] [cursor=pointer]:
+                      - img [ref=e278]
+              - columnheader "activo" [ref=e282]:
+                - generic [ref=e283]:
+                  - generic [ref=e284]:
+                    - button [ref=e285]
+                    - button "activo" [ref=e287]:
+                      - generic [ref=e288]: activo
+                  - generic [ref=e289]:
+                    - button [ref=e290] [cursor=pointer]:
+                      - img [ref=e291]
+                    - button [ref=e294] [cursor=pointer]:
+                      - img [ref=e295]
+                    - button [ref=e297] [cursor=pointer]:
+                      - img [ref=e298]
+              - columnheader "Acciones" [ref=e302]:
+                - generic [ref=e303]: Acciones
+          - rowgroup [ref=e305]:
+            - row "No se encontraron resultados con los filtros aplicados. Limpiar filtros" [ref=e822]:
+              - cell "No se encontraron resultados con los filtros aplicados. Limpiar filtros" [ref=e823]:
+                - text: No se encontraron resultados con los filtros aplicados.
+                - button "Limpiar filtros" [ref=e825] [cursor=pointer]
+        - navigation "Paginacion de tabla" [ref=e556]:
+          - generic [ref=e557]:
+            - generic [ref=e558]:
+              - generic [ref=e559]:
+                - paragraph [ref=e560]: Rows per page
+                - combobox [ref=e561]:
+                  - generic: "10"
+                  - img [ref=e562]
+              - generic [ref=e565]: 25 registros
+            - generic [ref=e566]:
+              - generic [ref=e567]:
+                - paragraph [ref=e568]: Page
+                - generic [ref=e569]:
+                  - spinbutton [ref=e570]: "1"
+                  - paragraph [ref=e571]: of 3
+              - generic [ref=e572]:
+                - button [disabled]:
+                  - img
+                - button [disabled]:
+                  - img
+                - button [ref=e573] [cursor=pointer]:
+                  - img [ref=e574]
+                - button [ref=e576] [cursor=pointer]:
+                  - img [ref=e577]
+        - generic [ref=e579]:
+          - generic [ref=e580]:
+            - button [ref=e581]
+            - generic [ref=e583]: Texto
+          - generic [ref=e584]:
+            - button [ref=e585]
+            - generic [ref=e587]: Número
+          - generic [ref=e588]:
+            - button [ref=e589]
+            - generic [ref=e591]: Booleano
+          - generic [ref=e592]:
+            - button [ref=e593]
+            - generic [ref=e595]: Fecha
+          - generic [ref=e596]:
+            - button [ref=e597]
+            - generic [ref=e599]: Nulo
+          - generic [ref=e600]:
+            - button [ref=e601]
+            - generic [ref=e603]: Indefinido
+          - generic [ref=e604]:
+            - button [ref=e605]
+            - generic [ref=e607]: Objeto
+          - generic [ref=e608]:
+            - button [ref=e609]
+            - generic [ref=e611]: Array
+          - generic [ref=e612]:
+            - button [ref=e613]
+            - generic [ref=e615]: Array de primitivos
+          - generic [ref=e616]:
+            - button [ref=e617]
+            - generic [ref=e619]: Array de objetos
+    - region "Notifications alt+T"
+  - alert [ref=e646]
+  - button "Personalizar" [ref=e647]:
+    - img [ref=e648]

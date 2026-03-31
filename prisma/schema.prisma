@@ -7,6 +7,7 @@
 // Esquema para MongoDB con soporte para vistas guardadas
 datasource db {
   provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 generator client {

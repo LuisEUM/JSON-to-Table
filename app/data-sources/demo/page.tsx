@@ -2,14 +2,14 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/primitives/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/primitives/ui/card";
 import { ArrowLeft, TableProperties, Network, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 

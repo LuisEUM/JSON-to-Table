@@ -1,0 +1,539 @@
+- generic:
+  - generic [ref=e787] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e788]:
+      - img [ref=e789]
+    - generic [ref=e792]:
+      - button "Open issues overlay" [ref=e793]:
+        - generic [ref=e794]:
+          - generic [ref=e795]: "1"
+          - generic [ref=e796]: "2"
+        - generic [ref=e797]:
+          - text: Issue
+          - generic [ref=e798]: s
+      - button "Collapse issues badge" [ref=e799]:
+        - img [ref=e800]
+  - main:
+    - generic:
+      - generic:
+        - heading [level=1]: Alkitu Table — Demo
+        - paragraph: Sistema de tabla dinámica con detección de tipos, filtros adaptativos y datos anidados.
+      - generic:
+        - button: Tabla Simple (25 registros)
+        - button: Tabla Compleja (15 registros)
+      - generic:
+        - toolbar:
+          - generic:
+            - search:
+              - img
+              - textbox:
+                - /placeholder: Buscar en 25 registros...
+          - generic:
+            - button:
+              - img
+              - text: Iniciar sesión para filtros
+            - button:
+              - generic: Columnas
+            - button:
+              - img
+              - generic: Exportar
+        - generic: 25 registros
+        - generic:
+          - generic:
+            - generic:
+              - table:
+                - rowgroup:
+                  - row:
+                    - columnheader:
+                      - generic:
+                        - checkbox
+                    - columnheader:
+                      - generic: "#"
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: id
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: nombre
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: email
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: telefono
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: ciudad
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: rol
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: estado
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: fechaRegistro
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: ultimoContacto
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: valorTotal
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: satisfaccion
+                        - generic:
+                          - button:
+                            - img
+                          - button [expanded]:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic:
+                        - generic:
+                          - button
+                          - button:
+                            - generic: activo
+                        - generic:
+                          - button:
+                            - img
+                          - button:
+                            - img
+                          - button:
+                            - img
+                    - columnheader:
+                      - generic: Acciones
+                - rowgroup:
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "1"
+                    - cell: "1"
+                    - cell: María García López
+                    - cell: maria.garcia@estiloscenter.com
+                    - cell: 05-02-1971
+                    - cell: Madrid
+                    - cell: Cliente
+                    - cell: Activo
+                    - cell: 14-02-2023
+                    - cell: 10-03-2026
+                    - cell: "3840"
+                    - cell: "5"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "2"
+                    - cell: "2"
+                    - cell: Carlos Ruiz Pérez
+                    - cell: carlos.ruiz@peluqueriabella.es
+                    - cell: 05-02-1971
+                    - cell: Barcelona
+                    - cell: Cliente
+                    - cell: Activo
+                    - cell: 08-11-2022
+                    - cell: 28-02-2026
+                    - cell: "6120"
+                    - cell: "4"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "3"
+                    - cell: "3"
+                    - cell: Laura Fernández
+                    - cell: laura.fdz@salonelite.com
+                    - cell: 06-02-1971
+                    - cell: Sevilla
+                    - cell: Lead
+                    - cell: Pendiente
+                    - cell: 20-01-2026
+                    - cell: 18-03-2026
+                    - cell: "0"
+                    - cell: "3"
+                    - cell: "false"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "4"
+                    - cell: "4"
+                    - cell: Pedro Sánchez Muñoz
+                    - cell: pedro.sanchez@look&style.es
+                    - cell: 06-02-1971
+                    - cell: Valencia
+                    - cell: Cliente
+                    - cell: Inactivo
+                    - cell: 30-06-2021
+                    - cell: 05-09-2025
+                    - cell: "2280"
+                    - cell: "2"
+                    - cell: "false"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "5"
+                    - cell: "5"
+                    - cell: Ana Martínez Torres
+                    - cell: ana.martinez@naturalcuts.com
+                    - cell: 06-02-1971
+                    - cell: Bilbao
+                    - cell: Cliente
+                    - cell: Activo
+                    - cell: 01-09-2023
+                    - cell: 25-03-2026
+                    - cell: "4560"
+                    - cell: "5"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "6"
+                    - cell: "6"
+                    - cell: Distribuciones Capilares S.L.
+                    - cell: ventas@distcapilares.es
+                    - cell: 08-02-1971
+                    - cell: Zaragoza
+                    - cell: Proveedor
+                    - cell: Activo
+                    - cell: 15-03-2020
+                    - cell: 01-03-2026
+                    - cell: "18750"
+                    - cell: "4"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "7"
+                    - cell: "7"
+                    - cell: Sofía Moreno Jiménez
+                    - cell: sofia.moreno@hairpro.es
+                    - cell: 05-02-1971
+                    - cell: Málaga
+                    - cell: Lead
+                    - cell: Pendiente
+                    - cell: 10-02-2026
+                    - cell: 20-03-2026
+                    - cell: "0"
+                    - cell: "4"
+                    - cell: "false"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "8"
+                    - cell: "8"
+                    - cell: Javier López Martín
+                    - cell: javier.lopez@cortesymoda.com
+                    - cell: 05-02-1971
+                    - cell: Murcia
+                    - cell: Cliente
+                    - cell: Activo
+                    - cell: 22-05-2023
+                    - cell: 12-03-2026
+                    - cell: "3120"
+                    - cell: "4"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "9"
+                    - cell: "9"
+                    - cell: Isabel Torres Vidal
+                    - cell: isabel.torres@glamourstudio.es
+                    - cell: 06-02-1971
+                    - cell: Valladolid
+                    - cell: Cliente
+                    - cell: Inactivo
+                    - cell: 18-04-2022
+                    - cell: 30-11-2025
+                    - cell: "1680"
+                    - cell: "3"
+                    - cell: "false"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+                  - row:
+                    - cell:
+                      - generic:
+                        - checkbox
+                    - cell:
+                      - generic: "10"
+                    - cell: "10"
+                    - cell: Roberto Navarro Ruiz
+                    - cell: roberto.navarro@trendyhair.com
+                    - cell: 06-02-1971
+                    - cell: Alicante
+                    - cell: Lead
+                    - cell: Activo
+                    - cell: 05-12-2025
+                    - cell: 28-03-2026
+                    - cell: "480"
+                    - cell: "4"
+                    - cell: "true"
+                    - cell:
+                      - generic:
+                        - button:
+                          - img
+        - navigation:
+          - generic:
+            - generic:
+              - generic:
+                - paragraph: Rows per page
+                - combobox:
+                  - generic: "10"
+                  - img
+              - generic:
+                - generic: 25 registros
+            - generic:
+              - generic:
+                - paragraph: Page
+                - generic:
+                  - spinbutton: "1"
+                  - paragraph: of 3
+              - generic:
+                - button [disabled]:
+                  - img
+                - button [disabled]:
+                  - img
+                - button:
+                  - img
+                - button:
+                  - img
+        - generic:
+          - generic:
+            - button
+            - generic: Texto
+          - generic:
+            - button
+            - generic: Número
+          - generic:
+            - button
+            - generic: Booleano
+          - generic:
+            - button
+            - generic: Fecha
+          - generic:
+            - button
+            - generic: Nulo
+          - generic:
+            - button
+            - generic: Indefinido
+          - generic:
+            - button
+            - generic: Objeto
+          - generic:
+            - button
+            - generic: Array
+          - generic:
+            - button
+            - generic: Array de primitivos
+          - generic:
+            - button
+            - generic: Array de objetos
+    - region "Notifications alt+T"
+  - alert
+  - button:
+    - img
+  - dialog:
+    - heading [level=2]: Filtrar satisfaccion
+    - generic:
+      - generic:
+        - generic:
+          - heading [level=3]:
+            - text: "Filtro para:"
+            - text: satisfaccion
+        - generic:
+          - group:
+            - combobox [expanded]:
+              - generic: Personalizado
+              - img
+          - generic:
+            - generic: Dentro del rango
+            - switch [checked]
+          - generic:
+            - generic:
+              - generic: Desde
+              - spinbutton: "2"
+            - generic:
+              - generic: Hasta
+              - spinbutton: "5"
+          - generic: 4 valores seleccionados en el rango
+          - generic:
+            - generic:
+              - heading [level=3]:
+                - button:
+                  - text: Ver desglose por valores
+                  - img
+        - toolbar:
+          - generic:
+            - button:
+              - img
+            - button:
+              - img
+            - button:
+              - img
+    - button:
+      - img
+      - generic: Close
+  - listbox [ref=e845]:
+    - heading "Seleccionar rango predefinido" [level=2] [ref=e846]
+    - option "Personalizado" [active] [selected] [ref=e847]:
+      - img [ref=e850]
+      - generic [ref=e852]: Personalizado
+    - option "Valores mayores a la media" [ref=e853]:
+      - generic [ref=e855]: Valores mayores a la media
+    - option "Valores menores a la media" [ref=e856]:
+      - generic [ref=e858]: Valores menores a la media

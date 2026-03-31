@@ -1,0 +1,252 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e210]:
+      - navigation [ref=e211]:
+        - generic [ref=e213]:
+          - link "Alkitu Template" [ref=e215] [cursor=pointer]:
+            - /url: /es
+            - img "Alkitu Template" [ref=e216]:
+              - img [ref=e218]
+          - generic [ref=e311]:
+            - link "Inicio" [ref=e312] [cursor=pointer]:
+              - /url: /es
+              - text: Inicio
+            - link "Servicios" [ref=e313] [cursor=pointer]:
+              - /url: /es#services
+              - text: Servicios
+            - link "Nosotros" [ref=e314] [cursor=pointer]:
+              - /url: /es/about
+              - text: Nosotros
+            - link "Contacto" [ref=e315] [cursor=pointer]:
+              - /url: /es/contact
+              - text: Contacto
+          - generic [ref=e316]:
+            - button "Panel del Cliente" [ref=e317] [cursor=pointer]:
+              - img [ref=e318]
+              - text: Panel del Cliente
+            - button "Cambiar a modo oscuro" [ref=e322] [cursor=pointer]:
+              - img [ref=e323]
+            - button "Idioma" [ref=e325] [cursor=pointer]:
+              - img [ref=e326]
+      - generic [ref=e330]:
+        - heading "Organización, Crecimiento y Transformación" [level=1] [ref=e331]
+        - paragraph [ref=e332]: En Alianza Consulting Corp acompañamos a pequeños negocios y empresas familiares en Colorado en la organización, crecimiento y transformación de sus operaciones.
+        - generic [ref=e333]:
+          - link "Nuestros Servicios" [ref=e334] [cursor=pointer]:
+            - /url: "#services"
+            - button "Nuestros Servicios" [ref=e335]
+          - link "Agenda una Cita" [ref=e336] [cursor=pointer]:
+            - /url: "#contact"
+            - button "Agenda una Cita" [ref=e337]
+      - generic [ref=e339]:
+        - heading "Nuestros Servicios" [level=2] [ref=e341]
+        - generic [ref=e342]:
+          - generic [ref=e344]:
+            - generic [ref=e345]:
+              - img "Consultoría de Administración" [ref=e346]
+              - heading "Consultoría de Administración" [level=3] [ref=e348]
+            - generic [ref=e349]:
+              - paragraph [ref=e350]: Fortalecemos la estructura interna de tu empresa para que funcione con claridad, eficiencia y orden.
+              - list [ref=e351]:
+                - listitem [ref=e352]:
+                  - generic [ref=e353]: •
+                  - text: Diseño y optimización de procesos
+                - listitem [ref=e354]:
+                  - generic [ref=e355]: •
+                  - text: Estructuración administrativa
+                - listitem [ref=e356]:
+                  - generic [ref=e357]: •
+                  - text: Definición de roles, funciones y KPIs
+                - listitem [ref=e358]:
+                  - generic [ref=e359]: •
+                  - text: Implementación de buenas prácticas
+                - listitem [ref=e360]:
+                  - generic [ref=e361]: •
+                  - text: Acompañamiento en decisiones operativas
+          - generic [ref=e363]:
+            - generic [ref=e364]:
+              - img "Consultoría de Operaciones" [ref=e365]
+              - heading "Consultoría de Operaciones" [level=3] [ref=e367]
+            - generic [ref=e368]:
+              - paragraph [ref=e369]: Mejoramos el desempeño operativo de negocios que necesitan control, eficiencia y capacidad de servicio.
+              - list [ref=e370]:
+                - listitem [ref=e371]:
+                  - generic [ref=e372]: •
+                  - text: Diseño y estandarización de SOPs
+                - listitem [ref=e373]:
+                  - generic [ref=e374]: •
+                  - text: Modelos operativos eficientes
+                - listitem [ref=e375]:
+                  - generic [ref=e376]: •
+                  - text: Análisis de costos y flujos
+                - listitem [ref=e377]:
+                  - generic [ref=e378]: •
+                  - text: Sistemas de control y desempeño
+                - listitem [ref=e379]:
+                  - generic [ref=e380]: •
+                  - text: Optimización de empresas de servicios
+          - generic [ref=e382]:
+            - generic [ref=e383]:
+              - img "Bookkeeping y Finanzas" [ref=e384]
+              - heading "Bookkeeping y Finanzas" [level=3] [ref=e386]
+            - generic [ref=e387]:
+              - paragraph [ref=e388]: Orden financiero claro, práctico y confiable. Preparación completa antes de entregar todo al contador.
+              - list [ref=e389]:
+                - listitem [ref=e390]:
+                  - generic [ref=e391]: •
+                  - text: Registro contable y conciliaciones
+                - listitem [ref=e392]:
+                  - generic [ref=e393]: •
+                  - text: Reportes financieros simples
+                - listitem [ref=e394]:
+                  - generic [ref=e395]: •
+                  - text: Recuperación de Cuentas por cobrar
+                - listitem [ref=e396]:
+                  - generic [ref=e397]: •
+                  - text: Preparación previa para taxes
+                - listitem [ref=e398]:
+                  - generic [ref=e399]: •
+                  - text: Optimización de QuickBooks
+          - generic [ref=e401]:
+            - generic [ref=e402]:
+              - img "Desarrollo de Pequeños Negocios" [ref=e403]
+              - heading "Desarrollo de Pequeños Negocios" [level=3] [ref=e405]
+            - generic [ref=e406]:
+              - paragraph [ref=e407]: Acompañamos a emprendedores y pymes en su expansión y fortalecimiento.
+              - list [ref=e408]:
+                - listitem [ref=e409]:
+                  - generic [ref=e410]: •
+                  - text: Diseño de modelos de negocio
+                - listitem [ref=e411]:
+                  - generic [ref=e412]: •
+                  - text: Análisis financiero y planificación
+                - listitem [ref=e413]:
+                  - generic [ref=e414]: •
+                  - text: Estrategias de crecimiento
+                - listitem [ref=e415]:
+                  - generic [ref=e416]: •
+                  - text: Evaluación de inversiones
+                - listitem [ref=e417]:
+                  - generic [ref=e418]: •
+                  - text: Fortalecimiento de propuesta de valor
+          - generic [ref=e420]:
+            - generic [ref=e421]:
+              - img "Empresas Familiares" [ref=e422]
+              - heading "Empresas Familiares" [level=3] [ref=e424]
+            - generic [ref=e425]:
+              - paragraph [ref=e426]: Ayudamos a profesionalizar la gestión familiar para asegurar continuidad y armonía operativa.
+              - list [ref=e427]:
+                - listitem [ref=e428]:
+                  - generic [ref=e429]: •
+                  - text: Definición de responsabilidades
+                - listitem [ref=e430]:
+                  - generic [ref=e431]: •
+                  - text: Organización administrativa
+                - listitem [ref=e432]:
+                  - generic [ref=e433]: •
+                  - text: Sistemas de control
+                - listitem [ref=e434]:
+                  - generic [ref=e435]: •
+                  - text: Acompañamiento en transición generacional
+          - generic [ref=e437]:
+            - generic [ref=e438]:
+              - img "Marketing y Transformación Digital" [ref=e439]
+              - heading "Marketing y Transformación Digital" [level=3] [ref=e441]
+            - generic [ref=e442]:
+              - paragraph [ref=e443]: Impulsamos la presencia digital de tu negocio con estrategia, tecnología e IA.
+              - list [ref=e444]:
+                - listitem [ref=e445]:
+                  - generic [ref=e446]: •
+                  - text: Branding y posicionamiento
+                - listitem [ref=e447]:
+                  - generic [ref=e448]: •
+                  - text: Gestión y contenido para redes
+                - listitem [ref=e449]:
+                  - generic [ref=e450]: •
+                  - text: Automatización y campañas con IA
+                - listitem [ref=e451]:
+                  - generic [ref=e452]: •
+                  - text: Embudos de conversión
+                - listitem [ref=e453]:
+                  - generic [ref=e454]: •
+                  - text: Comunicación corporativa
+      - generic [ref=e457]:
+        - generic [ref=e458]:
+          - heading "Ecosistema de Empresas Aliadas" [level=2] [ref=e459]
+          - paragraph [ref=e460]: Proveemos soluciones integrales a través de empresas aliadas. Un solo grupo, múltiples soluciones para el negocio de nuestros clientes.
+          - list [ref=e461]:
+            - listitem [ref=e462]:
+              - generic [ref=e463]: ✓
+              - text: Diseño, branding, marketing digital y Consultoría AI
+            - listitem [ref=e464]:
+              - generic [ref=e465]: ✓
+              - text: Limpieza profesional residencial, comercios y áreas sociales
+            - listitem [ref=e466]:
+              - generic [ref=e467]: ✓
+              - text: Remodelación y restauración de residencias, oficinas, comercios
+            - listitem [ref=e468]:
+              - generic [ref=e469]: ✓
+              - text: Mantenimiento y jardinería
+        - img "Ecosistema Aliado" [ref=e471]
+      - generic [ref=e473]:
+        - generic [ref=e474]:
+          - generic [ref=e475]:
+            - heading "Alianza Consulting Corp" [level=3] [ref=e476]
+            - paragraph [ref=e477]: Acompañamos a pequeños negocios y empresas familiares en su camino hacia la organización y el crecimiento sostenible.
+          - generic [ref=e478]:
+            - generic [ref=e479]:
+              - generic [ref=e480]:
+                - img [ref=e481]
+                - text: Email
+              - link "admin@alianzaccorp.com" [ref=e484] [cursor=pointer]:
+                - /url: mailto:admin@alianzaccorp.com
+            - generic [ref=e485]:
+              - generic [ref=e486]:
+                - img [ref=e487]
+                - text: Base
+              - generic [ref=e490]: Colorado Springs, CO
+        - generic [ref=e493]:
+          - heading "Mantente Informado" [level=3] [ref=e494]
+          - paragraph [ref=e495]: Suscríbete a nuestro newsletter para recibir las últimas novedades.
+          - generic [ref=e496]:
+            - generic [ref=e497]:
+              - textbox "Tu correo electrónico" [ref=e498]
+              - button "Suscribirse" [ref=e499] [cursor=pointer]
+            - generic [ref=e500] [cursor=pointer]:
+              - checkbox "Acepto la Política de Privacidad" [ref=e501]
+              - text: Acepto la
+              - link "Política de Privacidad" [ref=e502]:
+                - /url: /es/privacy-policy
+        - img "Alkitu Logo" [ref=e505]:
+          - img [ref=e507]
+        - generic [ref=e544]:
+          - link "Política de Privacidad" [ref=e545] [cursor=pointer]:
+            - /url: /es/legal/privacy-policy
+          - link "Política de Cookies" [ref=e546] [cursor=pointer]:
+            - /url: /es/legal/cookie-policy
+          - link "Términos de Servicio" [ref=e547] [cursor=pointer]:
+            - /url: /es/legal/terms-of-service
+        - paragraph [ref=e549]: © 2025 Alianza Consulting Corp. Todos los derechos reservados.
+    - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e188] [cursor=pointer]:
+    - img [ref=e189]
+  - alert [ref=e192]: Inicio - Organización, Crecimiento y Transformación
+  - generic [ref=e194]:
+    - generic [ref=e195]:
+      - img [ref=e196]
+      - generic [ref=e198]:
+        - heading "Utilizamos cookies" [level=3] [ref=e199]
+        - paragraph [ref=e200]: Usamos cookies para mejorar tu experiencia de navegación. Puedes elegir qué tipos de cookies aceptar.
+    - generic [ref=e201]:
+      - button "Aceptar Todas" [ref=e202] [cursor=pointer]
+      - button "Rechazar Todas" [ref=e203] [cursor=pointer]
+      - button "Personalizar" [ref=e204] [cursor=pointer]:
+        - img [ref=e205]
+        - text: Personalizar
+    - paragraph [ref=e207]:
+      - text: Más información en nuestra
+      - link "Política de Cookies" [ref=e208] [cursor=pointer]:
+        - /url: /es/legal/cookie-policy
+      - text: "&"
+      - link "Política de Privacidad" [ref=e209] [cursor=pointer]:
+        - /url: /es/legal/privacy-policy

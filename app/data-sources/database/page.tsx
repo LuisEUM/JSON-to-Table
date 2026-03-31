@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/primitives/ui/button";
 import {
   Card,
   CardContent,
@@ -10,18 +10,18 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Icons } from "@/components/ui/icons";
+} from "@/components/primitives/ui/card";
+import { Icons } from "@/components/primitives/ui/icons";
 import { toast } from "sonner";
 import { ArrowLeft, Database } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/primitives/ui/alert";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/primitives/ui/select";
 import {
   Table,
   TableBody,
@@ -30,7 +30,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/primitives/ui/table";
 
 // Tipos para los datos de la base de datos
 type PreviewData = Record<string, string | boolean | number | null>;

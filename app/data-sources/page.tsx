@@ -7,9 +7,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Icons } from "@/components/ui/icons";
+} from "@/components/primitives/ui/card";
+import { Button } from "@/components/primitives/ui/button";
+import { Icons } from "@/components/primitives/ui/icons";
 
 // Enum para los tipos de fuentes de datos
 enum DataSourceType {
