@@ -7,10 +7,10 @@ interface TextCellProps {
   value: ProcessedValue;
 }
 
-export function TextCell({ value }: TextCellProps) {
+export const TextCell = React.memo(function TextCell({ value }: TextCellProps) {
   if (value.value === null || value.value === undefined) {
     return <span className='text-sm italic text-muted-foreground'>-</span>;
   }
 
   return <span className='text-sm'>{String(value.value)}</span>;
-}
+});

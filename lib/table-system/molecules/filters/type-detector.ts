@@ -5,6 +5,7 @@
 
 import type { FilterOption } from "./filter-types";
 import type { ProcessedItem } from "../../core";
+import { logger } from "../../core/services/logging-service";
 
 export type DetectedColumnType =
   | "realArray"
@@ -57,7 +58,7 @@ export class ColumnTypeDetector {
   static detectColumnType(uniqueValues: FilterOption[]): TypeDetectionResult {
     const samples = uniqueValues.slice(0, this.SAMPLE_SIZE);
 
-    console.log("🔍 ColumnTypeDetector analyzing:", {
+    logger.debug("ColumnTypeDetector analyzing:", {
       totalValues: uniqueValues.length,
       sampleSize: samples.length,
     });
@@ -106,7 +107,7 @@ export class ColumnTypeDetector {
     });
 
     const totalSamples = samples.length;
-    const metadata = {
+    const metadata: TypeDetectionResult["metadata"] = {
       arrayCount,
       stringCount,
       numberCount,
@@ -189,7 +190,7 @@ export class ColumnTypeDetector {
       metadata,
     };
 
-    console.log("🎯 Type detection result:", result);
+    logger.debug("Type detection result:", result);
     return result;
   }
 
@@ -230,7 +231,7 @@ export class ColumnTypeDetector {
 
     const confidence = bestSeparator.count / stringValues.length;
 
-    console.log("🔍 Separator detection:", {
+    logger.debug("Separator detection:", {
       stringValues: stringValues.length,
       separatorCounts,
       selected: bestSeparator,

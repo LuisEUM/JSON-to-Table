@@ -1,0 +1,463 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - link "JSON-to-Table" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e10]: JSON-to-Table
+      - generic [ref=e11]:
+        - button "Cambiar tema" [ref=e12]:
+          - img
+          - img
+          - generic [ref=e13]: Cambiar tema
+        - button "Iniciar Sesión" [ref=e14]:
+          - img
+          - text: Iniciar Sesión
+    - main [ref=e15]:
+      - generic [ref=e16]:
+        - button "Volver a fuentes de datos" [ref=e17]:
+          - img
+          - text: Volver a fuentes de datos
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - generic [ref=e20]: "Demo: Tabla Simple"
+            - generic [ref=e21]: "25 contactos de salones de belleza con datos planos: texto, números, fechas y booleanos"
+          - generic [ref=e23]:
+            - generic [ref=e24]:
+              - search [ref=e26]:
+                - img [ref=e27]
+                - textbox "Buscar en 25 registros..." [ref=e30]
+              - generic [ref=e31]:
+                - button "Iniciar sesión para filtros" [ref=e32]:
+                  - img
+                  - text: Iniciar sesión para filtros
+                - button "Columnas" [ref=e33]:
+                  - generic [ref=e34]: Columnas
+                - button "Exportar" [ref=e35]:
+                  - img
+                  - generic [ref=e36]: Exportar
+            - table "Tabla de datos" [ref=e40]:
+              - rowgroup [ref=e41]:
+                - 'row "Select all rows # id nombre email telefono ciudad rol estado fechaRegistro ultimoContacto valorTotal satisfaccion activo Acciones" [ref=e42]':
+                  - columnheader "Select all rows" [ref=e43]:
+                    - checkbox "Select all rows" [ref=e45]
+                  - columnheader "#" [ref=e46]:
+                    - generic [ref=e47]: "#"
+                  - columnheader "id" [ref=e49]:
+                    - generic [ref=e50]:
+                      - generic [ref=e51]:
+                        - button [ref=e52]
+                        - button "id" [ref=e54]:
+                          - generic [ref=e55]: id
+                      - generic [ref=e56]:
+                        - button [ref=e57]:
+                          - img
+                        - button [ref=e58]:
+                          - img
+                        - button [ref=e59]:
+                          - img
+                  - columnheader "nombre" [ref=e61]:
+                    - generic [ref=e62]:
+                      - generic [ref=e63]:
+                        - button [ref=e64]
+                        - button "nombre" [ref=e66]:
+                          - generic [ref=e67]: nombre
+                      - generic [ref=e68]:
+                        - button [ref=e69]:
+                          - img
+                        - button [ref=e70]:
+                          - img
+                        - button [ref=e71]:
+                          - img
+                  - columnheader "email" [ref=e73]:
+                    - generic [ref=e74]:
+                      - generic [ref=e75]:
+                        - button [ref=e76]
+                        - button "email" [ref=e78]:
+                          - generic [ref=e79]: email
+                      - generic [ref=e80]:
+                        - button [ref=e81]:
+                          - img
+                        - button [ref=e82]:
+                          - img
+                        - button [ref=e83]:
+                          - img
+                  - columnheader "telefono" [ref=e85]:
+                    - generic [ref=e86]:
+                      - generic [ref=e87]:
+                        - button [ref=e88]
+                        - button "telefono" [ref=e90]:
+                          - generic [ref=e91]: telefono
+                      - generic [ref=e92]:
+                        - button [ref=e93]:
+                          - img
+                        - button [ref=e94]:
+                          - img
+                        - button [ref=e95]:
+                          - img
+                  - columnheader "ciudad" [ref=e97]:
+                    - generic [ref=e98]:
+                      - generic [ref=e99]:
+                        - button [ref=e100]
+                        - button "ciudad" [ref=e102]:
+                          - generic [ref=e103]: ciudad
+                      - generic [ref=e104]:
+                        - button [ref=e105]:
+                          - img
+                        - button [ref=e106]:
+                          - img
+                        - button [ref=e107]:
+                          - img
+                  - columnheader "rol" [ref=e109]:
+                    - generic [ref=e110]:
+                      - generic [ref=e111]:
+                        - button [ref=e112]
+                        - button "rol" [ref=e114]:
+                          - generic [ref=e115]: rol
+                      - generic [ref=e116]:
+                        - button [ref=e117]:
+                          - img
+                        - button [ref=e118]:
+                          - img
+                        - button [ref=e119]:
+                          - img
+                  - columnheader "estado" [ref=e121]:
+                    - generic [ref=e122]:
+                      - generic [ref=e123]:
+                        - button [ref=e124]
+                        - button "estado" [ref=e126]:
+                          - generic [ref=e127]: estado
+                      - generic [ref=e128]:
+                        - button [ref=e129]:
+                          - img
+                        - button [ref=e130]:
+                          - img
+                        - button [ref=e131]:
+                          - img
+                  - columnheader "fechaRegistro" [ref=e133]:
+                    - generic [ref=e134]:
+                      - generic [ref=e135]:
+                        - button [ref=e136]
+                        - button "fechaRegistro" [ref=e138]:
+                          - generic [ref=e139]: fechaRegistro
+                      - generic [ref=e140]:
+                        - button [ref=e141]:
+                          - img
+                        - button [ref=e142]:
+                          - img
+                        - button [ref=e143]:
+                          - img
+                  - columnheader "ultimoContacto" [ref=e145]:
+                    - generic [ref=e146]:
+                      - generic [ref=e147]:
+                        - button [ref=e148]
+                        - button "ultimoContacto" [ref=e150]:
+                          - generic [ref=e151]: ultimoContacto
+                      - generic [ref=e152]:
+                        - button [ref=e153]:
+                          - img
+                        - button [ref=e154]:
+                          - img
+                        - button [ref=e155]:
+                          - img
+                  - columnheader "valorTotal" [ref=e157]:
+                    - generic [ref=e158]:
+                      - generic [ref=e159]:
+                        - button [ref=e160]
+                        - button "valorTotal" [ref=e162]:
+                          - generic [ref=e163]: valorTotal
+                      - generic [ref=e164]:
+                        - button [ref=e165]:
+                          - img
+                        - button [ref=e166]:
+                          - img
+                        - button [ref=e167]:
+                          - img
+                  - columnheader "satisfaccion" [ref=e169]:
+                    - generic [ref=e170]:
+                      - generic [ref=e171]:
+                        - button [ref=e172]
+                        - button "satisfaccion" [ref=e174]:
+                          - generic [ref=e175]: satisfaccion
+                      - generic [ref=e176]:
+                        - button [ref=e177]:
+                          - img
+                        - button [ref=e178]:
+                          - img
+                        - button [ref=e179]:
+                          - img
+                  - columnheader "activo" [ref=e181]:
+                    - generic [ref=e182]:
+                      - generic [ref=e183]:
+                        - button [ref=e184]
+                        - button "activo" [ref=e186]:
+                          - generic [ref=e187]: activo
+                      - generic [ref=e188]:
+                        - button [ref=e189]:
+                          - img
+                        - button [ref=e190]:
+                          - img
+                        - button [ref=e191]:
+                          - img
+                  - columnheader "Acciones" [ref=e193]:
+                    - generic [ref=e194]: Acciones
+              - rowgroup [ref=e196]:
+                - row "Select row 0 1 1 María García López maria.garcia@estiloscenter.com 05-02-1971 Madrid Cliente Activo 14-02-2023 10-03-2026 3840 5 true" [ref=e197]:
+                  - cell "Select row 0" [ref=e198]:
+                    - checkbox "Select row 0" [ref=e200]
+                  - cell "1" [ref=e201]:
+                    - generic [ref=e202]: "1"
+                  - cell "1" [ref=e203]
+                  - cell "María García López" [ref=e204]
+                  - cell "maria.garcia@estiloscenter.com" [ref=e205]
+                  - cell "05-02-1971" [ref=e206]
+                  - cell "Madrid" [ref=e207]
+                  - cell "Cliente" [ref=e208]
+                  - cell "Activo" [ref=e209]
+                  - cell "14-02-2023" [ref=e210]
+                  - cell "10-03-2026" [ref=e211]
+                  - cell "3840" [ref=e212]
+                  - cell "5" [ref=e213]
+                  - cell "true" [ref=e214]
+                  - cell [ref=e215]:
+                    - button [ref=e217]:
+                      - img
+                - row "Select row 1 2 2 Carlos Ruiz Pérez carlos.ruiz@peluqueriabella.es 05-02-1971 Barcelona Cliente Activo 08-11-2022 28-02-2026 6120 4 true" [ref=e218]:
+                  - cell "Select row 1" [ref=e219]:
+                    - checkbox "Select row 1" [ref=e221]
+                  - cell "2" [ref=e222]:
+                    - generic [ref=e223]: "2"
+                  - cell "2" [ref=e224]
+                  - cell "Carlos Ruiz Pérez" [ref=e225]
+                  - cell "carlos.ruiz@peluqueriabella.es" [ref=e226]
+                  - cell "05-02-1971" [ref=e227]
+                  - cell "Barcelona" [ref=e228]
+                  - cell "Cliente" [ref=e229]
+                  - cell "Activo" [ref=e230]
+                  - cell "08-11-2022" [ref=e231]
+                  - cell "28-02-2026" [ref=e232]
+                  - cell "6120" [ref=e233]
+                  - cell "4" [ref=e234]
+                  - cell "true" [ref=e235]
+                  - cell [ref=e236]:
+                    - button [ref=e238]:
+                      - img
+                - row "Select row 2 3 3 Laura Fernández laura.fdz@salonelite.com 06-02-1971 Sevilla Lead Pendiente 20-01-2026 18-03-2026 0 3 false" [ref=e239]:
+                  - cell "Select row 2" [ref=e240]:
+                    - checkbox "Select row 2" [ref=e242]
+                  - cell "3" [ref=e243]:
+                    - generic [ref=e244]: "3"
+                  - cell "3" [ref=e245]
+                  - cell "Laura Fernández" [ref=e246]
+                  - cell "laura.fdz@salonelite.com" [ref=e247]
+                  - cell "06-02-1971" [ref=e248]
+                  - cell "Sevilla" [ref=e249]
+                  - cell "Lead" [ref=e250]
+                  - cell "Pendiente" [ref=e251]
+                  - cell "20-01-2026" [ref=e252]
+                  - cell "18-03-2026" [ref=e253]
+                  - cell "0" [ref=e254]
+                  - cell "3" [ref=e255]
+                  - cell "false" [ref=e256]
+                  - cell [ref=e257]:
+                    - button [ref=e259]:
+                      - img
+                - row "Select row 3 4 4 Pedro Sánchez Muñoz pedro.sanchez@look&style.es 06-02-1971 Valencia Cliente Inactivo 30-06-2021 05-09-2025 2280 2 false" [ref=e260]:
+                  - cell "Select row 3" [ref=e261]:
+                    - checkbox "Select row 3" [ref=e263]
+                  - cell "4" [ref=e264]:
+                    - generic [ref=e265]: "4"
+                  - cell "4" [ref=e266]
+                  - cell "Pedro Sánchez Muñoz" [ref=e267]
+                  - cell "pedro.sanchez@look&style.es" [ref=e268]
+                  - cell "06-02-1971" [ref=e269]
+                  - cell "Valencia" [ref=e270]
+                  - cell "Cliente" [ref=e271]
+                  - cell "Inactivo" [ref=e272]
+                  - cell "30-06-2021" [ref=e273]
+                  - cell "05-09-2025" [ref=e274]
+                  - cell "2280" [ref=e275]
+                  - cell "2" [ref=e276]
+                  - cell "false" [ref=e277]
+                  - cell [ref=e278]:
+                    - button [ref=e280]:
+                      - img
+                - row "Select row 4 5 5 Ana Martínez Torres ana.martinez@naturalcuts.com 06-02-1971 Bilbao Cliente Activo 01-09-2023 25-03-2026 4560 5 true" [ref=e281]:
+                  - cell "Select row 4" [ref=e282]:
+                    - checkbox "Select row 4" [ref=e284]
+                  - cell "5" [ref=e285]:
+                    - generic [ref=e286]: "5"
+                  - cell "5" [ref=e287]
+                  - cell "Ana Martínez Torres" [ref=e288]
+                  - cell "ana.martinez@naturalcuts.com" [ref=e289]
+                  - cell "06-02-1971" [ref=e290]
+                  - cell "Bilbao" [ref=e291]
+                  - cell "Cliente" [ref=e292]
+                  - cell "Activo" [ref=e293]
+                  - cell "01-09-2023" [ref=e294]
+                  - cell "25-03-2026" [ref=e295]
+                  - cell "4560" [ref=e296]
+                  - cell "5" [ref=e297]
+                  - cell "true" [ref=e298]
+                  - cell [ref=e299]:
+                    - button [ref=e301]:
+                      - img
+                - row "Select row 5 6 6 Distribuciones Capilares S.L. ventas@distcapilares.es 08-02-1971 Zaragoza Proveedor Activo 15-03-2020 01-03-2026 18750 4 true" [ref=e302]:
+                  - cell "Select row 5" [ref=e303]:
+                    - checkbox "Select row 5" [ref=e305]
+                  - cell "6" [ref=e306]:
+                    - generic [ref=e307]: "6"
+                  - cell "6" [ref=e308]
+                  - cell "Distribuciones Capilares S.L." [ref=e309]
+                  - cell "ventas@distcapilares.es" [ref=e310]
+                  - cell "08-02-1971" [ref=e311]
+                  - cell "Zaragoza" [ref=e312]
+                  - cell "Proveedor" [ref=e313]
+                  - cell "Activo" [ref=e314]
+                  - cell "15-03-2020" [ref=e315]
+                  - cell "01-03-2026" [ref=e316]
+                  - cell "18750" [ref=e317]
+                  - cell "4" [ref=e318]
+                  - cell "true" [ref=e319]
+                  - cell [ref=e320]:
+                    - button [ref=e322]:
+                      - img
+                - row "Select row 6 7 7 Sofía Moreno Jiménez sofia.moreno@hairpro.es 05-02-1971 Málaga Lead Pendiente 10-02-2026 20-03-2026 0 4 false" [ref=e323]:
+                  - cell "Select row 6" [ref=e324]:
+                    - checkbox "Select row 6" [ref=e326]
+                  - cell "7" [ref=e327]:
+                    - generic [ref=e328]: "7"
+                  - cell "7" [ref=e329]
+                  - cell "Sofía Moreno Jiménez" [ref=e330]
+                  - cell "sofia.moreno@hairpro.es" [ref=e331]
+                  - cell "05-02-1971" [ref=e332]
+                  - cell "Málaga" [ref=e333]
+                  - cell "Lead" [ref=e334]
+                  - cell "Pendiente" [ref=e335]
+                  - cell "10-02-2026" [ref=e336]
+                  - cell "20-03-2026" [ref=e337]
+                  - cell "0" [ref=e338]
+                  - cell "4" [ref=e339]
+                  - cell "false" [ref=e340]
+                  - cell [ref=e341]:
+                    - button [ref=e343]:
+                      - img
+                - row "Select row 7 8 8 Javier López Martín javier.lopez@cortesymoda.com 05-02-1971 Murcia Cliente Activo 22-05-2023 12-03-2026 3120 4 true" [ref=e344]:
+                  - cell "Select row 7" [ref=e345]:
+                    - checkbox "Select row 7" [ref=e347]
+                  - cell "8" [ref=e348]:
+                    - generic [ref=e349]: "8"
+                  - cell "8" [ref=e350]
+                  - cell "Javier López Martín" [ref=e351]
+                  - cell "javier.lopez@cortesymoda.com" [ref=e352]
+                  - cell "05-02-1971" [ref=e353]
+                  - cell "Murcia" [ref=e354]
+                  - cell "Cliente" [ref=e355]
+                  - cell "Activo" [ref=e356]
+                  - cell "22-05-2023" [ref=e357]
+                  - cell "12-03-2026" [ref=e358]
+                  - cell "3120" [ref=e359]
+                  - cell "4" [ref=e360]
+                  - cell "true" [ref=e361]
+                  - cell [ref=e362]:
+                    - button [ref=e364]:
+                      - img
+                - row "Select row 8 9 9 Isabel Torres Vidal isabel.torres@glamourstudio.es 06-02-1971 Valladolid Cliente Inactivo 18-04-2022 30-11-2025 1680 3 false" [ref=e365]:
+                  - cell "Select row 8" [ref=e366]:
+                    - checkbox "Select row 8" [ref=e368]
+                  - cell "9" [ref=e369]:
+                    - generic [ref=e370]: "9"
+                  - cell "9" [ref=e371]
+                  - cell "Isabel Torres Vidal" [ref=e372]
+                  - cell "isabel.torres@glamourstudio.es" [ref=e373]
+                  - cell "06-02-1971" [ref=e374]
+                  - cell "Valladolid" [ref=e375]
+                  - cell "Cliente" [ref=e376]
+                  - cell "Inactivo" [ref=e377]
+                  - cell "18-04-2022" [ref=e378]
+                  - cell "30-11-2025" [ref=e379]
+                  - cell "1680" [ref=e380]
+                  - cell "3" [ref=e381]
+                  - cell "false" [ref=e382]
+                  - cell [ref=e383]:
+                    - button [ref=e385]:
+                      - img
+                - row "Select row 9 10 10 Roberto Navarro Ruiz roberto.navarro@trendyhair.com 06-02-1971 Alicante Lead Activo 05-12-2025 28-03-2026 480 4 true" [ref=e386]:
+                  - cell "Select row 9" [ref=e387]:
+                    - checkbox "Select row 9" [ref=e389]
+                  - cell "10" [ref=e390]:
+                    - generic [ref=e391]: "10"
+                  - cell "10" [ref=e392]
+                  - cell "Roberto Navarro Ruiz" [ref=e393]
+                  - cell "roberto.navarro@trendyhair.com" [ref=e394]
+                  - cell "06-02-1971" [ref=e395]
+                  - cell "Alicante" [ref=e396]
+                  - cell "Lead" [ref=e397]
+                  - cell "Activo" [ref=e398]
+                  - cell "05-12-2025" [ref=e399]
+                  - cell "28-03-2026" [ref=e400]
+                  - cell "480" [ref=e401]
+                  - cell "4" [ref=e402]
+                  - cell "true" [ref=e403]
+                  - cell [ref=e404]:
+                    - button [ref=e406]:
+                      - img
+            - navigation "Paginacion de tabla" [ref=e407]:
+              - generic [ref=e408]:
+                - generic [ref=e409]:
+                  - generic [ref=e410]:
+                    - paragraph [ref=e411]: Rows per page
+                    - combobox [ref=e412]:
+                      - generic: "10"
+                      - img [ref=e413]
+                  - generic [ref=e416]: 25 registros
+                - generic [ref=e417]:
+                  - generic [ref=e418]:
+                    - paragraph [ref=e419]: Page
+                    - generic [ref=e420]:
+                      - spinbutton [ref=e421]: "1"
+                      - paragraph [ref=e422]: of 3
+                  - generic [ref=e423]:
+                    - button [disabled]:
+                      - img
+                    - button [disabled]:
+                      - img
+                    - button [ref=e424]:
+                      - img
+                    - button [ref=e425]:
+                      - img
+            - generic [ref=e426]:
+              - generic [ref=e427]:
+                - button [ref=e428]
+                - generic [ref=e430]: Texto
+              - generic [ref=e431]:
+                - button [ref=e432]
+                - generic [ref=e434]: Número
+              - generic [ref=e435]:
+                - button [ref=e436]
+                - generic [ref=e438]: Booleano
+              - generic [ref=e439]:
+                - button [ref=e440]
+                - generic [ref=e442]: Fecha
+              - generic [ref=e443]:
+                - button [ref=e444]
+                - generic [ref=e446]: Nulo
+              - generic [ref=e447]:
+                - button [ref=e448]
+                - generic [ref=e450]: Indefinido
+              - generic [ref=e451]:
+                - button [ref=e452]
+                - generic [ref=e454]: Objeto
+              - generic [ref=e455]:
+                - button [ref=e456]
+                - generic [ref=e458]: Array
+              - generic [ref=e459]:
+                - button [ref=e460]
+                - generic [ref=e462]: Array de primitivos
+              - generic [ref=e463]:
+                - button [ref=e464]
+                - generic [ref=e466]: Array de objetos
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e499] [cursor=pointer]:
+    - img [ref=e500]
+  - alert [ref=e493]

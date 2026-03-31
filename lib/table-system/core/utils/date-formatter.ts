@@ -1,4 +1,5 @@
 import { isValid, parseISO } from "date-fns";
+import { logger } from "../services/logging-service";
 
 const createUTCDate = (date: Date): Date => {
   return new Date(
@@ -67,7 +68,7 @@ export const formatDateString = (value: Date | string | number): string => {
     // Formato consistente con guion medio
     return `${day}-${month}-${year}`;
   } catch (error) {
-    console.warn("Error al formatear fecha:", error, value);
+    logger.warn("Error al formatear fecha:", error, value);
     return String(value);
   }
 };
@@ -88,7 +89,7 @@ export const toUTCDate = (value: Date | string | number): Date => {
 
     return createUTCDate(date);
   } catch (error) {
-    console.warn("Error al convertir fecha a UTC:", error, value);
+    logger.warn("Error al convertir fecha a UTC:", error, value);
     return new Date(NaN); // Fecha inválida
   }
 };

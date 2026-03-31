@@ -8,7 +8,7 @@ interface ReferenceCellProps {
   value: ProcessedValue;
 }
 
-export function ReferenceCell({ value }: ReferenceCellProps) {
+export const ReferenceCell = React.memo(function ReferenceCell({ value }: ReferenceCellProps) {
   if (value.value === null || value.value === undefined) {
     return <span className='text-sm italic text-muted-foreground'>-</span>;
   }
@@ -22,4 +22,4 @@ export function ReferenceCell({ value }: ReferenceCellProps) {
       </span>
     </div>
   );
-}
+});

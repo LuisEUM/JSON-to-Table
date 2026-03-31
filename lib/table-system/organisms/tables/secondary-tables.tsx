@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Link2 } from "lucide-react";
 import { JsonTable } from "./json-table";
+import { logger } from "../../core/services/logging-service";
 
 interface SecondaryTablesProps {
   arrayColumns: {
@@ -28,7 +29,7 @@ export function SecondaryTables({
   parentId,
   isLoading = false,
 }: SecondaryTablesProps) {
-  console.log("🎯 Renderizando SecondaryTables:", {
+  logger.debug("Renderizando SecondaryTables:", {
     level,
     parentId,
     isLoading,
@@ -191,7 +192,7 @@ export function SecondaryTables({
         const tableData = arrayColumns.find((col) => col.id === tableId);
         if (!tableData) return null;
 
-        console.log("📑 Renderizando tabla secundaria:", {
+        logger.debug("Renderizando tabla secundaria:", {
           tableId,
           parentId,
           dataLength: tableData.data.length,

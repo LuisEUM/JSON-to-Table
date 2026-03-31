@@ -3,14 +3,16 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { JsonTable } from "@/lib/table-system";
+import { getSimpleMockData } from "@/app/data-sources/demo/data/simple";
+import { getComplexMockData } from "@/app/data-sources/demo/data/complex";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-} from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -39,6 +41,15 @@ function TablePageContent() {
         let endpoint = "";
         const headers: Record<string, string> = {};
         const params = new URLSearchParams();
+
+        // Demo: datos hardcodeados, sin fetch
+        if (source === "demo") {
+          const type = searchParams.get("type");
+          const mockData = type === "complex" ? getComplexMockData() : getSimpleMockData();
+          setData(mockData);
+          setLoading(false);
+          return;
+        }
 
         // Configurar el endpoint y los headers según la fuente de datos
         if (source.startsWith("api-")) {
@@ -213,6 +224,10 @@ function TablePageContent() {
   }, [source, dataType, searchParams, router]);
 
   const getSourceTitle = () => {
+    if (source === "demo") {
+      const type = searchParams.get("type");
+      return type === "complex" ? "Demo: Tabla Compleja" : "Demo: Tabla Simple";
+    }
     if (source?.startsWith("api-")) {
       const apiType = source.replace("api-", "");
       switch (apiType) {
@@ -282,6 +297,12 @@ function TablePageContent() {
   };
 
   const getSourceDescription = () => {
+    if (source === "demo") {
+      const type = searchParams.get("type");
+      return type === "complex"
+        ? "15 salones con datos anidados: empleados, servicios, membresías, métricas y objetos nested"
+        : "25 contactos de salones de belleza con datos planos: texto, números, fechas y booleanos";
+    }
     if (source?.startsWith("api-")) {
       return `Datos importados desde la API de ${source.replace("api-", "")}`;
     } else if (source === "holded" && dataType) {

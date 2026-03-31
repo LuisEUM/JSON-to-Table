@@ -4,7 +4,7 @@
  * Tests the complete flow from filter UI to data filtering
  */
 
-import { describe, it, expect } from "@jest/jest-globals";
+import { describe, it, expect } from "@jest/globals";
 
 // Mock data that matches the structure from the user's actual data
 const mockTableData = [
@@ -69,7 +69,7 @@ const mockTableData = [
 interface FilterCondition {
   field: string;
   operator: "arrIncludesSome" | "in" | "contains";
-  value: any[];
+  value: (string | number | boolean)[];
   exactMatch?: boolean;
 }
 
@@ -105,7 +105,7 @@ describe("AtomicPrimitiveArrayFilter Integration", () => {
       const hasArrayWithNumbers = filteredData.some(
         (row) =>
           Array.isArray(row.value) &&
-          row.value.some((val) => [1, 2, 10].includes(val))
+          row.value.some((val: unknown) => [1, 2, 10].includes(val as number))
       );
       expect(hasArrayWithNumbers).toBe(true);
     });
@@ -264,7 +264,7 @@ describe("AtomicPrimitiveArrayFilter Integration", () => {
     it("should integrate string controller with main filter", () => {
       const stringValues = extractStringValues(mockTableData);
       const selectedSeparator = "none";
-      const exactMatch = false;
+      // exactMatch = false (not used in this code path, separator is "none")
       const searchTerm = "grow";
 
       let filteredStrings = stringValues;
@@ -283,7 +283,7 @@ describe("AtomicPrimitiveArrayFilter Integration", () => {
 
     it("should integrate number controller with presets", () => {
       const numberValues = extractNumberValues(mockTableData);
-      const preset = "positive";
+      const preset: string = "positive";
 
       let selectedNumbers: number[] = [];
 
@@ -308,7 +308,7 @@ describe("AtomicPrimitiveArrayFilter Integration", () => {
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
 
-      const preset = "yesterday";
+      const preset: string = "yesterday";
       let dateRange = {
         start: undefined as Date | undefined,
         end: undefined as Date | undefined,
@@ -381,7 +381,14 @@ describe("AtomicPrimitiveArrayFilter Integration", () => {
 
 // Helper functions to simulate the filtering logic
 
-function applyFilter(data: any[], condition: FilterCondition): any[] {
+interface MockRow {
+  id: string;
+  value: string | number | boolean | (string | number | boolean)[];
+  metadata: { count: number };
+  [key: string]: unknown;
+}
+
+function applyFilter(data: MockRow[], condition: FilterCondition): MockRow[] {
   if (condition.operator === "arrIncludesSome") {
     return data.filter((row) => {
       const cellValue = row[condition.field];
@@ -411,7 +418,7 @@ function applyFilter(data: any[], condition: FilterCondition): any[] {
   return data;
 }
 
-function extractStringValues(data: any[]): string[] {
+function extractStringValues(data: MockRow[]): string[] {
   const strings: string[] = [];
 
   data.forEach((row) => {
@@ -431,7 +438,7 @@ function extractStringValues(data: any[]): string[] {
   return strings;
 }
 
-function extractNumberValues(data: any[]): number[] {
+function extractNumberValues(data: MockRow[]): number[] {
   const numbers: number[] = [];
 
   data.forEach((row) => {
@@ -451,7 +458,7 @@ function extractNumberValues(data: any[]): number[] {
   return numbers;
 }
 
-function extractDateValues(data: any[]): string[] {
+function extractDateValues(data: MockRow[]): string[] {
   const dates: string[] = [];
 
   data.forEach((row) => {
@@ -485,10 +492,17 @@ function parseDate(dateStr: string): Date | null {
   try {
     if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
       const [day, month, year] = dateStr.split("/").map((n) => parseInt(n, 10));
-      return new Date(year, month - 1, day);
+      if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+      const date = new Date(year, month - 1, day);
+      // Verify components match to catch overflow (e.g., Feb 30 -> Mar 2)
+      if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+      return date;
     } else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(dateStr)) {
       const [day, month, year] = dateStr.split("-").map((n) => parseInt(n, 10));
-      return new Date(year, month - 1, day);
+      if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+      const date = new Date(year, month - 1, day);
+      if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+      return date;
     } else {
       const date = new Date(dateStr);
       return isNaN(date.getTime()) ? null : date;

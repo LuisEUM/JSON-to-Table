@@ -1,10 +1,9 @@
 /** @type {import('jest').Config} */
 const config = {
   preset: "ts-jest",
-  testEnvironment: "node",
   testMatch: ["**/*.test.ts", "**/*.test.tsx"],
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/app/$1",
+    "^@/(.*)$": "<rootDir>/$1",
   },
   transform: {
     "^.+\\.tsx?$": [
@@ -17,26 +16,58 @@ const config = {
   collectCoverage: true,
   coverageDirectory: "coverage",
   collectCoverageFrom: [
-    "app/**/*.ts",
-    "app/**/*.tsx",
-    "!app/tests/**/*.ts",
-    "!app/tests/**/*.tsx",
+    "lib/table-system/**/*.ts",
+    "lib/table-system/**/*.tsx",
+    "!lib/table-system/**/__tests__/**",
+    "!lib/table-system/**/index.ts",
     "!**/node_modules/**",
   ],
   coverageReporters: ["text", "lcov", "clover"],
+  coverageThreshold: {
+    global: {
+      branches: 5,
+      functions: 10,
+      lines: 10,
+      statements: 10,
+    },
+  },
   verbose: true,
-  // Configuración específica para archivos .tsx
   projects: [
     {
       displayName: "node",
       testEnvironment: "node",
       testMatch: ["**/*.test.ts"],
+      moduleNameMapper: {
+        "^@/(.*)$": "<rootDir>/$1",
+      },
+      transform: {
+        "^.+\\.tsx?$": [
+          "ts-jest",
+          {
+            tsconfig: "tsconfig.json",
+          },
+        ],
+      },
     },
     {
       displayName: "jsdom",
       testEnvironment: "jsdom",
       testMatch: ["**/*.test.tsx"],
       setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+      moduleNameMapper: {
+        "^@/(.*)$": "<rootDir>/$1",
+      },
+      transformIgnorePatterns: [
+        "node_modules/(?!(lucide-react|@radix-ui)/)",
+      ],
+      transform: {
+        "^.+\\.[jt]sx?$": [
+          "ts-jest",
+          {
+            tsconfig: "tsconfig.test.json",
+          },
+        ],
+      },
     },
   ],
 };

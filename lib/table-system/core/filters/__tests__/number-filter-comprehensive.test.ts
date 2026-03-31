@@ -1,18 +1,22 @@
 import { describe, test, expect } from "@jest/globals";
 
+interface TestFilterValue {
+  value: unknown;
+}
+
 // Simulación de la lógica corregida de filtros numéricos
 const numericFilterLogic = {
   arrIncludesSome: (
     rawValue: number,
-    filterValue: any,
-    columnType: string = "número"
+    filterValue: TestFilterValue,
+    columnType: string = "number"
   ) => {
     const filterValues = Array.isArray(filterValue.value)
       ? filterValue.value
       : [filterValue.value];
 
     // Si es una columna numérica, hacer comparación exacta de números
-    if (columnType === "número") {
+    if (columnType === "number") {
       const numericRawValue = Number(rawValue);
       if (isNaN(numericRawValue)) return false;
 
@@ -218,18 +222,27 @@ describe("Comprehensive Number Filter Tests", () => {
       const result = numericFilterLogic.arrIncludesSome(
         8,
         { value: ["83"] },
-        "número"
+        "number"
       );
       expect(result).toBe(false);
     });
 
     test("✅ Should use includes matching for text columns", () => {
+      // "8".includes("83") is false - the raw value "8" does not contain the filter value "83"
       const result = numericFilterLogic.arrIncludesSome(
         8,
         { value: ["83"] },
         "string"
       );
-      expect(result).toBe(true); // "8" is included in "83" for text matching
+      expect(result).toBe(false);
+
+      // But "83".includes("8") would be true - raw value "83" contains filter value "8"
+      const result2 = numericFilterLogic.arrIncludesSome(
+        83,
+        { value: ["8"] },
+        "string"
+      );
+      expect(result2).toBe(true);
     });
 
     test("✅ Should default to number logic when no column type specified", () => {

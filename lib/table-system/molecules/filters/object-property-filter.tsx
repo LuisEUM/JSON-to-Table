@@ -19,19 +19,8 @@ import { FilterTabs, useFilterTabs } from "./filter-tabs";
 import { DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { DataPatternAnalyzer, type ObjectSchema } from "./pattern-analyzer";
-
-interface PropertyFilter {
-  property: string;
-  values: Set<string>;
-}
-
-interface PropertyOption {
-  path: string;
-  value: string;
-  count: number;
-  displayValue: string;
-}
+import { DataPatternAnalyzer } from "./pattern-analyzer";
+import { extractPropertyOptions, type PropertyOption } from "./object-property-utils";
 
 export function ObjectPropertyFilter({
   columnId,
@@ -77,217 +66,8 @@ export function ObjectPropertyFilter({
       return;
     }
 
-    const valueCounts = new Map<string, number>();
-
-    uniqueValues.forEach((option) => {
-      // Helper function to get nested property value with enhanced path handling
-      const getNestedPropertyValue = (
-        obj: unknown,
-        propertyPath: string
-      ): unknown[] => {
-        const values: unknown[] = [];
-
-        // Handle dot notation paths (e.g., "items.value", "customFields.label")
-        const pathParts = propertyPath.split(".");
-
-        const extractValue = (current: unknown, parts: string[]): void => {
-          if (parts.length === 0) return;
-
-          const [currentPart, ...remainingParts] = parts;
-
-          if (typeof current === "object" && current !== null) {
-            if (Array.isArray(current)) {
-              // For arrays, extract from each item
-              current.forEach((item) => {
-                if (typeof item === "object" && item !== null) {
-                  const itemValue = (item as Record<string, unknown>)[
-                    currentPart
-                  ];
-                  if (remainingParts.length === 0) {
-                    // This is the final property
-                    if (itemValue !== null && itemValue !== undefined) {
-                      values.push(itemValue);
-                    }
-                  } else {
-                    // Continue down the path
-                    extractValue(itemValue, remainingParts);
-                  }
-                }
-              });
-            } else {
-              // For objects, get the property
-              const directValue = (current as Record<string, unknown>)[
-                currentPart
-              ];
-              if (remainingParts.length === 0) {
-                // This is the final property
-                if (directValue !== null && directValue !== undefined) {
-                  values.push(directValue);
-                }
-              } else {
-                // Continue down the path
-                extractValue(directValue, remainingParts);
-              }
-            }
-          }
-        };
-
-        extractValue(obj, pathParts);
-        return values;
-      };
-
-      const propertyValues = getNestedPropertyValue(
-        option.original,
-        selectedProperty
-      );
-
-      propertyValues.forEach((value) => {
-        if (Array.isArray(value)) {
-          // For arrays, extract each individual element as a separate filter option
-          value.forEach((arrayItem) => {
-            let displayValue: string;
-
-            if (typeof arrayItem === "object" && arrayItem !== null) {
-              try {
-                // Create a more readable JSON-like format
-                const obj = arrayItem as Record<string, unknown>;
-                const entries = Object.entries(obj);
-
-                if (entries.length > 0) {
-                  const formattedProps = entries.map(([key, value]) => {
-                    let formattedValue: string;
-                    if (typeof value === "string") {
-                      formattedValue = `"${value}"`;
-                    } else if (value === null) {
-                      formattedValue = "null";
-                    } else if (Array.isArray(value)) {
-                      if (value.length === 0) {
-                        formattedValue = "[]";
-                      } else if (value.length <= 3) {
-                        // Show all elements for small arrays
-                        const elements = value.map((item) => {
-                          if (typeof item === "string") return `"${item}"`;
-                          if (typeof item === "object" && item !== null)
-                            return "{...}";
-                          return String(item);
-                        });
-                        formattedValue = `[${elements.join(", ")}]`;
-                      } else {
-                        // Show first 3 elements for larger arrays
-                        const firstElements = value.slice(0, 3).map((item) => {
-                          if (typeof item === "string") return `"${item}"`;
-                          if (typeof item === "object" && item !== null)
-                            return "{...}";
-                          return String(item);
-                        });
-                        formattedValue = `[${firstElements.join(", ")}, ... +${
-                          value.length - 3
-                        } más]`;
-                      }
-                    } else if (typeof value === "object") {
-                      formattedValue = "{...}";
-                    } else {
-                      formattedValue = String(value);
-                    }
-                    return `  ${key}: ${formattedValue}`;
-                  });
-
-                  displayValue = `{\n${formattedProps.join(",\n")}\n}`;
-                } else {
-                  displayValue = "{}";
-                }
-              } catch {
-                displayValue = "[Objeto inválido]";
-              }
-            } else {
-              displayValue = String(arrayItem);
-            }
-
-            valueCounts.set(
-              displayValue,
-              (valueCounts.get(displayValue) || 0) + option.count
-            );
-          });
-        } else if (typeof value === "object" && value !== null) {
-          // For object values, create readable JSON format
-          let displayValue: string;
-          try {
-            const obj = value as Record<string, unknown>;
-            const entries = Object.entries(obj);
-
-            if (entries.length > 0) {
-              const formattedProps = entries.map(([key, propValue]) => {
-                let formattedValue: string;
-                if (typeof propValue === "string") {
-                  formattedValue = `"${propValue}"`;
-                } else if (propValue === null) {
-                  formattedValue = "null";
-                } else if (Array.isArray(propValue)) {
-                  if (propValue.length === 0) {
-                    formattedValue = "[]";
-                  } else if (propValue.length <= 3) {
-                    // Show all elements for small arrays
-                    const elements = propValue.map((item) => {
-                      if (typeof item === "string") return `"${item}"`;
-                      if (typeof item === "object" && item !== null)
-                        return "{...}";
-                      return String(item);
-                    });
-                    formattedValue = `[${elements.join(", ")}]`;
-                  } else {
-                    // Show first 3 elements for larger arrays
-                    const firstElements = propValue.slice(0, 3).map((item) => {
-                      if (typeof item === "string") return `"${item}"`;
-                      if (typeof item === "object" && item !== null)
-                        return "{...}";
-                      return String(item);
-                    });
-                    formattedValue = `[${firstElements.join(", ")}, ... +${
-                      propValue.length - 3
-                    } más]`;
-                  }
-                } else if (typeof propValue === "object") {
-                  formattedValue = "{...}";
-                } else {
-                  formattedValue = String(propValue);
-                }
-                return `  ${key}: ${formattedValue}`;
-              });
-
-              displayValue = `{\n${formattedProps.join(",\n")}\n}`;
-            } else {
-              displayValue = "{}";
-            }
-          } catch {
-            displayValue = "[Objeto inválido]";
-          }
-          valueCounts.set(
-            displayValue,
-            (valueCounts.get(displayValue) || 0) + option.count
-          );
-        } else {
-          // For primitive values, show them directly
-          const displayValue = String(value);
-          valueCounts.set(
-            displayValue,
-            (valueCounts.get(displayValue) || 0) + option.count
-          );
-        }
-      });
-    });
-
-    const options: PropertyOption[] = Array.from(valueCounts.entries())
-      .map(([displayValue, count]) => ({
-        path: selectedProperty,
-        value: displayValue.toLowerCase(),
-        count,
-        displayValue,
-      }))
-      .sort((a, b) => a.displayValue.localeCompare(b.displayValue));
-
+    const options = extractPropertyOptions(uniqueValues, selectedProperty);
     setPropertyOptions(options);
-
-    // Reset selected values when property changes
     setSelectedValues(new Set());
   }, [selectedProperty, uniqueValues, analysis]);
 
@@ -299,7 +79,6 @@ export function ObjectPropertyFilter({
       typeof initialValue.value === "string" &&
       initialValue.value.includes(".")
     ) {
-      // Try to extract property from existing filter
       const parts = initialValue.value.split(".");
       if (parts.length >= 2) {
         setSelectedProperty(parts[0]);
@@ -316,7 +95,8 @@ export function ObjectPropertyFilter({
       (value) =>
         ({
           value,
-          label: value,
+          path: value,
+          displayValue: value,
           count: 0,
         } as PropertyOption)
     ),
@@ -341,28 +121,17 @@ export function ObjectPropertyFilter({
     }
 
     const selectedArray = Array.from(selectedValues);
-
-    // Always use objectPropertyFilter for object-based filtering
-    // The inclusion/exclusion logic is handled in the filter function itself
     const operator: FilterOperator = "objectPropertyFilter";
 
-    // Add a flag to indicate whether it's inverted
     onApply({
       field: columnId,
       operator,
       value: selectedArray,
-      // Add custom metadata to indicate if this should be inverted
       additionalValue: isInverted ? "include" : "exclude",
     });
 
     onClose();
   };
-
-  // Filter options based on search term
-  const filteredOptions = propertyOptions.filter((option) => {
-    if (!searchTerm.trim()) return true;
-    return option.displayValue.toLowerCase().includes(searchTerm.toLowerCase());
-  });
 
   // Don't render if this isn't suitable for object property filtering
   if (analysis.type !== "object-property" || !analysis.schema) {
@@ -428,7 +197,7 @@ export function ObjectPropertyFilter({
           Filtro inteligente para:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
-              getTypeStyle(columnType || "objeto").bg
+              getTypeStyle(columnType || "object").bg
             }`}
           ></span>{" "}
           {columnName}
@@ -483,7 +252,7 @@ export function ObjectPropertyFilter({
           <>
             <div className='text-sm text-muted-foreground'>
               {selectedValues.size} valores seleccionados de{" "}
-              {propertyOptions.length} disponibles para "{selectedProperty}"
+              {propertyOptions.length} disponibles para &quot;{selectedProperty}&quot;
             </div>
 
             <div className='relative'>
@@ -510,7 +279,7 @@ export function ObjectPropertyFilter({
 
         {selectedProperty && propertyOptions.length === 0 && (
           <div className='flex-1 flex items-center justify-center text-muted-foreground text-sm'>
-            No hay valores disponibles para la propiedad "{selectedProperty}"
+            No hay valores disponibles para la propiedad &quot;{selectedProperty}&quot;
           </div>
         )}
 

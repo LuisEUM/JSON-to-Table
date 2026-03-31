@@ -22,7 +22,7 @@ describe("Sistema de detección de tipos", () => {
 
     test("debe detectar números", () => {
       const result = typeDetector.detectType(123);
-      expect(result.typeName).toBe("número");
+      expect(result.typeName).toBe("number");
     });
 
     test("debe detectar booleanos", () => {
@@ -32,29 +32,29 @@ describe("Sistema de detección de tipos", () => {
 
     test("debe detectar fechas", () => {
       const result = typeDetector.detectType(new Date());
-      expect(result.typeName).toBe("fecha");
+      expect(result.typeName).toBe("date");
     });
 
     test("debe detectar objetos", () => {
       const result = typeDetector.detectType({ a: 1, b: 2 });
-      expect(result.typeName).toBe("objeto");
+      expect(result.typeName).toBe("object");
     });
   });
 
   describe("Detección de arrays", () => {
     test("debe detectar arrays de primitivos", () => {
       const result = typeDetector.detectType([1, 2, 3]);
-      expect(result.typeName).toBe("array[primitivo]");
+      expect(result.typeName).toBe("primitiveArray");
     });
 
     test("debe detectar arrays de objetos", () => {
       const result = typeDetector.detectType([{ a: 1 }, { b: 2 }]);
-      expect(result.typeName).toBe("array[objeto]");
+      expect(result.typeName).toBe("objectArray");
     });
 
     test("debe detectar arrays vacíos como arrays de primitivos", () => {
       const result = typeDetector.detectType([]);
-      expect(result.typeName).toBe("array[primitivo]");
+      expect(result.typeName).toBe("primitiveArray");
     });
 
     test("debe detectar arrays con objetos representados como strings", () => {
@@ -62,19 +62,19 @@ describe("Sistema de detección de tipos", () => {
         "[object Object]",
         "[object Object]",
       ]);
-      expect(result.typeName).toBe("array[objeto]");
+      expect(result.typeName).toBe("objectArray");
     });
   });
 
   describe("Detección basada en nombres de columna", () => {
     test("debe priorizar la detección de fechas para columnas con nombres de fecha", () => {
       const result = typeDetector.detectType("2023-01-01", "created_at");
-      expect(result.typeName).toBe("fecha");
+      expect(result.typeName).toBe("date");
     });
 
     test("debe detectar IDs para columnas con nombres de ID", () => {
       const result = typeDetector.detectType("123", "user_id");
-      expect(result.typeName).toBe("número");
+      expect(result.typeName).toBe("number");
       // La detección de IDs se maneja en el procesador de datos, no en el detector de tipos
     });
   });
@@ -82,12 +82,12 @@ describe("Sistema de detección de tipos", () => {
   describe("Normalización de valores", () => {
     test("debe normalizar fechas", () => {
       const date = new Date("2023-01-01");
-      const result = typeDetector.normalizeValue(date, "fecha");
+      const result = typeDetector.normalizeValue(date, "date");
       expect(result).toBe(date);
     });
 
     test("debe normalizar números", () => {
-      const result = typeDetector.normalizeValue("123", "número");
+      const result = typeDetector.normalizeValue("123", "number");
       expect(result).toBe(123);
     });
 

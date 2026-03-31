@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,7 +22,7 @@ interface TablePaginationProps<TData> {
   table: Table<TData>;
 }
 
-export function TablePagination<TData>({ table }: TablePaginationProps<TData>) {
+function TablePaginationInner<TData>({ table }: TablePaginationProps<TData>) {
   // Obtenemos el total de filas desde el modelo completo (sin filtrar)
   const totalRowsAll = table.getCoreRowModel().rows.length;
   // Total de filas filtradas
@@ -131,3 +132,5 @@ export function TablePagination<TData>({ table }: TablePaginationProps<TData>) {
     </div>
   );
 }
+
+export const TablePagination = React.memo(TablePaginationInner) as typeof TablePaginationInner;

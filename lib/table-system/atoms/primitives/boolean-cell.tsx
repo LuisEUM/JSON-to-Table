@@ -8,7 +8,7 @@ interface BooleanCellProps {
   value: ProcessedValue;
 }
 
-export function BooleanCell({ value }: BooleanCellProps) {
+export const BooleanCell = React.memo(function BooleanCell({ value }: BooleanCellProps) {
   if (value.value === null || value.value === undefined) {
     return <span className='text-sm italic text-muted-foreground'>-</span>;
   }
@@ -24,4 +24,4 @@ export function BooleanCell({ value }: BooleanCellProps) {
       )}
     </span>
   );
-}
+});

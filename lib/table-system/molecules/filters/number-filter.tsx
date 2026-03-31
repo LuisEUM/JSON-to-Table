@@ -305,7 +305,7 @@ export function NumberFilter({
                   htmlFor={`number-${option.value}`}
                   className='text-sm cursor-pointer'
                   style={{
-                    color: getTypeStyle("número").text,
+                    color: getTypeStyle("number").text,
                   }}
                 >
                   {option.label}
@@ -367,7 +367,7 @@ export function NumberFilter({
           Filtro para:{" "}
           <span
             className={`inline-block w-3 h-3 rounded-full ${
-              getTypeStyle(columnType || "número").bg
+              getTypeStyle(columnType || "number").bg
             }`}
           ></span>{" "}
           {columnName}
@@ -375,21 +375,27 @@ export function NumberFilter({
       </div>
 
       <div className='space-y-4 flex-1'>
-        <Select value={selectedPreset} onValueChange={handlePresetChange}>
-          <SelectTrigger>
-            <SelectValue placeholder='Selecciona un rango predefinido' />
-          </SelectTrigger>
-          <SelectContent>
-            <DialogTitle className='sr-only'>
-              Seleccionar rango predefinido
-            </DialogTitle>
-            {PRESETS.map((preset) => (
-              <SelectItem key={preset.value} value={preset.value}>
-                {preset.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div role="group" aria-label="Presets de filtro">
+          <Select value={selectedPreset} onValueChange={handlePresetChange}>
+            <SelectTrigger aria-label="Seleccionar rango predefinido">
+              <SelectValue placeholder='Selecciona un rango predefinido' />
+            </SelectTrigger>
+            <SelectContent>
+              <DialogTitle className='sr-only'>
+                Seleccionar rango predefinido
+              </DialogTitle>
+              {PRESETS.map((preset) => (
+                <SelectItem
+                  key={preset.value}
+                  value={preset.value}
+                  aria-pressed={selectedPreset === preset.value}
+                >
+                  {preset.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className='flex items-center justify-between space-x-2'>
           <Label htmlFor='range-mode' className='text-sm'>
@@ -416,6 +422,7 @@ export function NumberFilter({
               max={calculatedMax}
               step='any'
               placeholder={calculatedMin.toString()}
+              aria-label='Valor mínimo'
             />
           </div>
           <div className='space-y-2'>
@@ -431,6 +438,7 @@ export function NumberFilter({
               max={calculatedMax}
               step='any'
               placeholder={calculatedMax.toString()}
+              aria-label='Valor máximo'
             />
           </div>
         </div>

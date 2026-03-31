@@ -7,7 +7,7 @@ interface NumberCellProps {
   value: ProcessedValue;
 }
 
-export function NumberCell({ value }: NumberCellProps) {
+export const NumberCell = React.memo(function NumberCell({ value }: NumberCellProps) {
   if (value.value === null || value.value === undefined) {
     return <span className='text-sm italic text-muted-foreground'>-</span>;
   }
@@ -19,4 +19,4 @@ export function NumberCell({ value }: NumberCellProps) {
       {isNaN(numValue) ? String(value.value) : numValue}
     </span>
   );
-}
+});

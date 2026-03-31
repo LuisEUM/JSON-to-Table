@@ -35,11 +35,11 @@ export async function POST(request: NextRequest) {
     const validationResult = userSchema.safeParse(body);
 
     if (!validationResult.success) {
-      console.log("Error de validación:", validationResult.error.errors);
+      console.log("Error de validación:", validationResult.error.issues);
       return NextResponse.json(
         {
           message: "Datos de usuario inválidos",
-          errors: validationResult.error.errors,
+          errors: validationResult.error.issues,
         },
         { status: 400 }
       );

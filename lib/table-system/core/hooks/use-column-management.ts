@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ProcessedRow } from "../utils/data-processor";
+import { logger } from "../services/logging-service";
 
 export interface ColumnConfig {
   id: string;
@@ -56,7 +57,7 @@ export function useColumnManagement({
       try {
         localStorage.setItem(storageKey, JSON.stringify(newVisibility));
       } catch (error) {
-        console.warn('Failed to save column visibility to localStorage:', error);
+        logger.warn('Failed to save column visibility to localStorage:', error);
       }
     }
   }, [onVisibilityChange, storageKey]);
@@ -73,7 +74,7 @@ export function useColumnManagement({
         try {
           localStorage.setItem(storageKey, JSON.stringify(newVisibility));
         } catch (error) {
-          console.warn('Failed to save column visibility to localStorage:', error);
+          logger.warn('Failed to save column visibility to localStorage:', error);
         }
       }
 
@@ -93,7 +94,7 @@ export function useColumnManagement({
         try {
           localStorage.setItem(storageKey, JSON.stringify(newVisibility));
         } catch (error) {
-          console.warn('Failed to save column visibility to localStorage:', error);
+          logger.warn('Failed to save column visibility to localStorage:', error);
         }
       }
 
@@ -113,7 +114,7 @@ export function useColumnManagement({
         try {
           localStorage.setItem(storageKey, JSON.stringify(newVisibility));
         } catch (error) {
-          console.warn('Failed to save column visibility to localStorage:', error);
+          logger.warn('Failed to save column visibility to localStorage:', error);
         }
       }
 

@@ -113,7 +113,7 @@ export function useTableExport({
     onExportStart?.();
 
     try {
-      let exportData = options.selectedRowsOnly && selectedRows ? selectedRows : data;
+      const exportData = options.selectedRowsOnly && selectedRows ? selectedRows : data;
 
       if (exportData.length === 0) {
         throw new Error('No data to export');

@@ -11,6 +11,7 @@ import { ReferenceCell } from "../../atoms/primitives/reference-cell";
 import { ArrayCellWrapper } from "./array-cell-wrapper";
 import { ObjectCellWrapper } from "./object-cell-wrapper";
 import { NullCell } from "../../atoms/primitives/null-cell";
+import { logger } from "../../core/services/logging-service";
 
 interface CellFactoryProps {
   value: ProcessedValue;
@@ -38,26 +39,26 @@ function detectRealType(value: ProcessedValue): string {
         typeof item === "object" && item !== null && !Array.isArray(item)
     );
 
-    return hasObjects ? "array[objeto]" : "array[primitivo]";
+    return hasObjects ? "objectArray" : "primitiveArray";
   }
 
   // Si es una fecha (independientemente del tipo marcado)
-  if (isDate(actualValue)) return "fecha";
+  if (isDate(actualValue)) return "date";
 
   // Si es un número
-  if (typeof actualValue === "number" && !isNaN(actualValue)) return "número";
+  if (typeof actualValue === "number" && !isNaN(actualValue)) return "number";
 
   // Si es booleano
   if (typeof actualValue === "boolean") return "boolean";
 
   // Si es un objeto (no array ni null)
-  if (typeof actualValue === "object" && actualValue !== null) return "objeto";
+  if (typeof actualValue === "object" && actualValue !== null) return "object";
 
   // Por defecto, es string
   return "string";
 }
 
-export function CellFactory({ value, isReference = false }: CellFactoryProps) {
+export const CellFactory = React.memo(function CellFactory({ value, isReference = false }: CellFactoryProps) {
   // Handle null, undefined, or missing values
   if (!value) {
     return <span className='text-sm italic text-muted-foreground'>-</span>;
@@ -73,7 +74,7 @@ export function CellFactory({ value, isReference = false }: CellFactoryProps) {
 
   // Console log para debugging (remover en producción)
   if (value.type !== realType) {
-    console.log(`Tipo corregido: ${value.type} → ${realType}`, {
+    logger.debug(`Tipo corregido: ${value.type} -> ${realType}`, {
       originalValue: value.value,
       originalType: value.type,
       detectedType: realType,
@@ -94,25 +95,25 @@ export function CellFactory({ value, isReference = false }: CellFactoryProps) {
     case "string":
       return <TextCell value={value} />;
 
-    case "número":
+    case "number":
       return <NumberCell value={value} />;
 
-    case "fecha":
+    case "date":
       return <DateCell value={value} />;
 
     case "boolean":
       return <BooleanCell value={value} />;
 
     case "array":
-    case "array[primitivo]":
-    case "array[objeto]":
+    case "primitiveArray":
+    case "objectArray":
       return <ArrayCellWrapper value={value} />;
 
-    case "objeto":
+    case "object":
       return <ObjectCellWrapper value={value} />;
 
     default:
       // Fallback to text representation
       return <TextCell value={value} />;
   }
-}
+});

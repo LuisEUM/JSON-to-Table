@@ -22,12 +22,21 @@ const improvedDateDetection = {
         const parts = item.split(/[-\/\.]/);
         const [first, second, year] = parts.map(Number);
 
+        // Validate ranges before constructing Date
+        if (second < 1 || second > 12 || first < 1 || first > 31) {
+          return false;
+        }
+
         // Intentar DD-MM-YYYY primero (más común en Europa)
         testDate = new Date(year, second - 1, first);
 
-        // Si no es válida, intentar MM-DD-YYYY
-        if (isNaN(testDate.getTime()) || first > 31 || second > 12) {
-          testDate = new Date(year, first - 1, second);
+        // Verify the date components match (catches invalid days like Feb 29 in non-leap years, Apr 31, etc.)
+        if (
+          testDate.getFullYear() !== year ||
+          testDate.getMonth() !== second - 1 ||
+          testDate.getDate() !== first
+        ) {
+          return false;
         }
       }
       // YYYY-MM-DD
@@ -49,13 +58,13 @@ const improvedDateDetection = {
 
   groupArrayByType: (arrayValues: string[]) => {
     const groups = {
-      fecha: [] as string[],
+      date: [] as string[],
       string: [] as string[],
     };
 
     arrayValues.forEach((value) => {
       if (improvedDateDetection.detectDateInArray(value)) {
-        groups.fecha.push(value);
+        groups.date.push(value);
       } else {
         groups.string.push(value);
       }
@@ -126,7 +135,7 @@ describe("Improved Date Detection in Arrays", () => {
 
       const groups = improvedDateDetection.groupArrayByType(userArrayValues);
 
-      expect(groups.fecha).toEqual(["31-05-2025", "01-02-2025"]);
+      expect(groups.date).toEqual(["31-05-2025", "01-02-2025"]);
       expect(groups.string).toEqual([
         "LORENA",
         "C_EXPERTO",
@@ -150,7 +159,7 @@ describe("Improved Date Detection in Arrays", () => {
 
       const groups = improvedDateDetection.groupArrayByType(mixedDateFormats);
 
-      expect(groups.fecha).toEqual([
+      expect(groups.date).toEqual([
         "31-05-2025",
         "2025/02/01",
         "15.12.2023",
@@ -163,7 +172,7 @@ describe("Improved Date Detection in Arrays", () => {
       const onlyStrings = ["LORENA", "C_EXPERTO", "HOLDED"];
       const groups = improvedDateDetection.groupArrayByType(onlyStrings);
 
-      expect(groups.fecha).toEqual([]);
+      expect(groups.date).toEqual([]);
       expect(groups.string).toEqual(["LORENA", "C_EXPERTO", "HOLDED"]);
     });
 
@@ -171,7 +180,7 @@ describe("Improved Date Detection in Arrays", () => {
       const onlyDates = ["31-05-2025", "01-02-2025", "15-12-2023"];
       const groups = improvedDateDetection.groupArrayByType(onlyDates);
 
-      expect(groups.fecha).toEqual(["31-05-2025", "01-02-2025", "15-12-2023"]);
+      expect(groups.date).toEqual(["31-05-2025", "01-02-2025", "15-12-2023"]);
       expect(groups.string).toEqual([]);
     });
   });
@@ -191,7 +200,7 @@ describe("Improved Date Detection in Arrays", () => {
       const endTime = performance.now();
 
       expect(endTime - startTime).toBeLessThan(100); // Should complete in < 100ms
-      expect(groups.fecha.length).toBeGreaterThan(0);
+      expect(groups.date.length).toBeGreaterThan(0);
       expect(groups.string.length).toBeGreaterThan(0);
     });
 
@@ -199,7 +208,7 @@ describe("Improved Date Detection in Arrays", () => {
       const emptyArray: string[] = [];
       const groups = improvedDateDetection.groupArrayByType(emptyArray);
 
-      expect(groups.fecha).toEqual([]);
+      expect(groups.date).toEqual([]);
       expect(groups.string).toEqual([]);
     });
 
@@ -207,7 +216,7 @@ describe("Improved Date Detection in Arrays", () => {
       const arrayWithEmpties = ["31-05-2025", "", "LORENA", ""];
       const groups = improvedDateDetection.groupArrayByType(arrayWithEmpties);
 
-      expect(groups.fecha).toEqual(["31-05-2025"]);
+      expect(groups.date).toEqual(["31-05-2025"]);
       expect(groups.string).toEqual(["", "LORENA", ""]);
     });
   });
@@ -231,12 +240,12 @@ describe("Improved Date Detection in Arrays", () => {
       const groups = improvedDateDetection.groupArrayByType(valueColumnData);
 
       // Should create two groups: dates and strings
-      expect(groups.fecha.length).toBe(2);
+      expect(groups.date.length).toBe(2);
       expect(groups.string.length).toBe(8);
 
       // Verify specific dates are detected
-      expect(groups.fecha).toContain("31-05-2025");
-      expect(groups.fecha).toContain("01-02-2025");
+      expect(groups.date).toContain("31-05-2025");
+      expect(groups.date).toContain("01-02-2025");
 
       // Verify strings are not misclassified as dates
       expect(groups.string).toContain("LORENA");
@@ -252,7 +261,7 @@ describe("Improved Date Detection in Arrays", () => {
       // 2. "Valores de Texto" accordion with 2 items
 
       const expectedAccordions = [
-        { type: "fecha", count: groups.fecha.length, displayName: "Fechas" },
+        { type: "date", count: groups.date.length, displayName: "Fechas" },
         {
           type: "string",
           count: groups.string.length,

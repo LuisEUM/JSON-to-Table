@@ -1,5 +1,5 @@
 // Importar las utilidades de testing para DOM
-import "@testing-library/jest-dom";
+require("@testing-library/jest-dom");
 
 // Mock para ResizeObserver que no está disponible en jsdom
 global.ResizeObserver = class ResizeObserver {

@@ -1,27 +1,27 @@
 export type AvailableType =
   | "string"
-  | "número"
+  | "number"
   | "boolean"
-  | "fecha"
+  | "date"
   | "null"
   | "undefined"
-  | "objeto"
+  | "object"
   | "array"
-  | "array[primitivo]"
-  | "array[objeto]"
+  | "primitiveArray"
+  | "objectArray"
   | "unknown";
 
 export const AVAILABLE_TYPES: AvailableType[] = [
   "string",
-  "número",
+  "number",
   "boolean",
-  "fecha",
+  "date",
   "null",
   "undefined",
-  "objeto",
+  "object",
   "array",
-  "array[primitivo]",
-  "array[objeto]",
+  "primitiveArray",
+  "objectArray",
 ];
 
 interface TypeStyle {
@@ -36,7 +36,7 @@ const TYPE_STYLES: Record<AvailableType, TypeStyle> = {
     text: "text-green-700",
     border: "border-green-200",
   },
-  número: {
+  number: {
     bg: "bg-blue-200",
     text: "text-blue-700",
     border: "border-blue-200",
@@ -46,7 +46,7 @@ const TYPE_STYLES: Record<AvailableType, TypeStyle> = {
     text: "text-purple-700",
     border: "border-purple-200",
   },
-  fecha: {
+  date: {
     bg: "bg-pink-200",
     text: "text-pink-700",
     border: "border-pink-200",
@@ -61,7 +61,7 @@ const TYPE_STYLES: Record<AvailableType, TypeStyle> = {
     text: "text-gray-700",
     border: "border-gray-200",
   },
-  objeto: {
+  object: {
     bg: "bg-yellow-200",
     text: "text-yellow-700",
     border: "border-yellow-200",
@@ -71,12 +71,12 @@ const TYPE_STYLES: Record<AvailableType, TypeStyle> = {
     text: "text-orange-700",
     border: "border-orange-200",
   },
-  "array[primitivo]": {
+  primitiveArray: {
     bg: "bg-orange-100",
     text: "text-orange-800",
     border: "border-orange-100",
   },
-  "array[objeto]": {
+  objectArray: {
     bg: "bg-orange-300",
     text: "text-orange-800",
     border: "border-orange-300",
@@ -94,15 +94,15 @@ export function getTypeStyle(type: string): TypeStyle {
 
 const TYPE_LABELS: Record<AvailableType, string> = {
   string: "Texto",
-  número: "Número",
+  number: "Número",
   boolean: "Booleano",
-  fecha: "Fecha",
+  date: "Fecha",
   null: "Nulo",
   undefined: "Indefinido",
-  objeto: "Objeto",
+  object: "Objeto",
   array: "Array",
-  "array[primitivo]": "Array de primitivos",
-  "array[objeto]": "Array de objetos",
+  primitiveArray: "Array de primitivos",
+  objectArray: "Array de objetos",
   unknown: "Desconocido",
 };
 

@@ -1,4 +1,11 @@
-import { describe, test, expect, beforeEach } from "@jest/globals";
+import { describe, test, expect } from "@jest/globals";
+
+// Local filter value shape used by the test helpers below
+interface TestFilterValue {
+  value: unknown;
+  additionalValue?: string;
+  exactMatch?: boolean;
+}
 
 // Helper para dividir por separador
 const splitBySeparator = (value: string, separator: string): string[] => {
@@ -22,13 +29,13 @@ const splitBySeparator = (value: string, separator: string): string[] => {
 
 // Simulación de la lógica actual del filtro (INCORRECTA)
 const currentFilterLogic = {
-  in: (rawValue: string, filterValue: any) => {
+  in: (rawValue: string, filterValue: TestFilterValue) => {
     return (
       Array.isArray(filterValue.value) &&
       filterValue.value.includes(String(rawValue))
     );
   },
-  contains: (rawValue: string, filterValue: any) => {
+  contains: (rawValue: string, filterValue: TestFilterValue) => {
     return String(rawValue)
       .toLowerCase()
       .includes(String(filterValue.value).toLowerCase());
@@ -37,7 +44,7 @@ const currentFilterLogic = {
 
 // Lógica propuesta del filtro (CORRECTA)
 const proposedFilterLogic = {
-  in: (rawValue: string, filterValue: any) => {
+  in: (rawValue: string, filterValue: TestFilterValue) => {
     // Si hay separador, dividir el valor del campo y verificar intersección
     if (filterValue.additionalValue && filterValue.additionalValue !== "none") {
       const fieldValues = splitBySeparator(
@@ -66,7 +73,7 @@ const proposedFilterLogic = {
     );
   },
 
-  contains: (rawValue: string, filterValue: any) => {
+  contains: (rawValue: string, filterValue: TestFilterValue) => {
     const searchTerms = Array.isArray(filterValue.value)
       ? filterValue.value
       : [filterValue.value];

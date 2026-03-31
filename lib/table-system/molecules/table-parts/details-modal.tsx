@@ -96,7 +96,7 @@ const renderPrimitiveArray = (item: ProcessedValue) => {
         // Determinar el tipo del valor primitivo
         const valueType =
           typeof value === "number"
-            ? "número"
+            ? "number"
             : typeof value === "boolean"
             ? "boolean"
             : "string";
@@ -138,9 +138,9 @@ const renderGroup = (groupName: string, items: ProcessedValue[]) => {
                   ) : (
                     "No"
                   )
-                ) : item.type === "fecha" ? (
+                ) : item.type === "date" ? (
                   String(item.value)
-                ) : item.type === "array[objeto]" ? (
+                ) : item.type === "objectArray" ? (
                   <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4'>
                     {item.items?.map((subItem, idx) => {
                       const subItemValue = subItem.value as {
@@ -163,7 +163,7 @@ const renderGroup = (groupName: string, items: ProcessedValue[]) => {
                       );
                     })}
                   </div>
-                ) : item.type === "array[primitivo]" ? (
+                ) : item.type === "primitiveArray" ? (
                   renderPrimitiveArray(item)
                 ) : (
                   String(item.value || "-")

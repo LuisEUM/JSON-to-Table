@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,10 +15,10 @@ import {
 import type { FilterComponentProps, FilterOperator } from "./filter-types";
 import { FilterFooter } from "./filter-footer";
 import { getTypeStyle } from "../../core/constants/type-styles";
-import { DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { FilterTabs, useFilterTabs } from "./filter-tabs";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 const SEPARATORS = [
   { label: "Ninguno", value: "none" },
@@ -197,49 +197,147 @@ export function StringFilter({
     inactivos: getFilteredOptions(filteredItems.inactivos),
   };
 
+  // Componente para renderizar lista virtualizada de opciones
+  const VirtualizedOptionsList = ({ options }: { options: StringOption[] }) => {
+    const parentRef = useRef<HTMLDivElement>(null);
+    const useVirtual = options.length > 200;
+
+    const virtualizer = useVirtualizer({
+      count: options.length,
+      getScrollElement: () => parentRef.current,
+      estimateSize: () => 52,
+      overscan: 10,
+      enabled: useVirtual,
+    });
+
+    if (useVirtual) {
+      return (
+        <div
+          ref={parentRef}
+          role="listbox"
+          aria-label="Lista de valores de filtro"
+          className="flex-1 w-full rounded-md border overflow-auto"
+          style={{ height: '300px' }}
+        >
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              position: 'relative',
+              width: '100%',
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualRow) => {
+              const option = options[virtualRow.index];
+              const isSelected = selectedStrings.has(option.value);
+              return (
+                <div
+                  key={virtualRow.key}
+                  role="option"
+                  aria-selected={isSelected}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  <div
+                    className={`flex items-start justify-between p-3 rounded-md hover:bg-muted/50 transition-colors mx-4 ${
+                      virtualRow.index < options.length - 1 ? "border-b border-border/30" : ""
+                    }`}
+                  >
+                    <div className='flex items-start space-x-3 flex-1 min-w-0'>
+                      <Checkbox
+                        id={`string-${virtualRow.index}-${option.value}`}
+                        checked={isSelected}
+                        onCheckedChange={(checked) => {
+                          handleCheckboxChange(option.value, !!checked);
+                        }}
+                        className='mt-0.5 flex-shrink-0'
+                      />
+                      <div className='flex-1 min-w-0'>
+                        <label
+                          htmlFor={`string-${virtualRow.index}-${option.value}`}
+                          className='text-sm cursor-pointer block'
+                        >
+                          <span
+                            className='break-all'
+                            style={{
+                              color: getTypeStyle(columnType || "string").text,
+                            }}
+                          >
+                            {option.value || "(vacío)"}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                    <span className='text-xs text-muted-foreground ml-2 flex-shrink-0'>
+                      ({option.count})
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <ScrollArea className='flex-1 w-full rounded-md border'>
+        <div role="listbox" aria-label="Lista de valores de filtro" className='p-4 space-y-1 min-h-[250px] max-h-[300px]'>
+          {options.map((option, index) => {
+            const isSelected = selectedStrings.has(option.value);
+            return (
+              <div
+                key={option.value}
+                role="option"
+                aria-selected={isSelected}
+                className={`flex items-start justify-between p-3 rounded-md hover:bg-muted/50 transition-colors ${
+                  index < options.length - 1 ? "border-b border-border/30" : ""
+                }`}
+              >
+                <div className='flex items-start space-x-3 flex-1 min-w-0'>
+                  <Checkbox
+                    id={`string-${option.value}`}
+                    checked={isSelected}
+                    onCheckedChange={(checked) => {
+                      handleCheckboxChange(option.value, !!checked);
+                    }}
+                    className='mt-0.5 flex-shrink-0'
+                  />
+                  <div className='flex-1 min-w-0'>
+                    <label
+                      htmlFor={`string-${option.value}`}
+                      className='text-sm cursor-pointer block'
+                    >
+                      <span
+                        className='break-all'
+                        style={{
+                          color: getTypeStyle(columnType || "string").text,
+                        }}
+                      >
+                        {option.value || "(vacío)"}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+                <span className='text-xs text-muted-foreground ml-2 flex-shrink-0'>
+                  ({option.count})
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </ScrollArea>
+    );
+  };
+
   // Función para renderizar lista de opciones
   const renderOptionsList = (options: StringOption[]) => (
-    <ScrollArea className='flex-1 w-full rounded-md border'>
-      <div className='p-4 space-y-1 min-h-[250px] max-h-[300px]'>
-        {options.map((option, index) => (
-          <div
-            key={option.value}
-            className={`flex items-start justify-between p-3 rounded-md hover:bg-muted/50 transition-colors ${
-              index < options.length - 1 ? "border-b border-border/30" : ""
-            }`}
-          >
-            <div className='flex items-start space-x-3 flex-1 min-w-0'>
-              <Checkbox
-                id={`string-${option.value}`}
-                checked={selectedStrings.has(option.value)}
-                onCheckedChange={(checked) => {
-                  handleCheckboxChange(option.value, !!checked);
-                }}
-                className='mt-0.5 flex-shrink-0'
-              />
-              <div className='flex-1 min-w-0'>
-                <label
-                  htmlFor={`string-${option.value}`}
-                  className='text-sm cursor-pointer block'
-                >
-                  <span
-                    className='break-all'
-                    style={{
-                      color: getTypeStyle(columnType || "string").text,
-                    }}
-                  >
-                    {option.value || "(vacío)"}
-                  </span>
-                </label>
-              </div>
-            </div>
-            <span className='text-xs text-muted-foreground ml-2 flex-shrink-0'>
-              ({option.count})
-            </span>
-          </div>
-        ))}
-      </div>
-    </ScrollArea>
+    <VirtualizedOptionsList options={options} />
   );
 
   return (
@@ -269,7 +367,7 @@ export function StringFilter({
                 setSelectedSeparator(value)
               }
             >
-              <SelectTrigger id='separator-select'>
+              <SelectTrigger id='separator-select' aria-label='Seleccionar separador'>
                 <SelectValue placeholder='Seleccionar separador' />
               </SelectTrigger>
               <SelectContent>
@@ -317,6 +415,7 @@ export function StringFilter({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className='pl-8'
+                aria-label='Buscar valores'
               />
             </div>
 

@@ -28,17 +28,17 @@ const renderValue = (
   }
 
   // Para objetos anidados
-  if (value.type === "objeto") {
+  if (value.type === "object") {
     const nestedItems = Object.entries(
       value.value as Record<string, unknown>
     ).map(([key, val]) => ({
-      type: typeof val === "object" ? "objeto" : typeof val,
+      type: typeof val === "object" ? "object" : typeof val,
       value: val,
       label: key,
       items:
         val && typeof val === "object" && !Array.isArray(val)
           ? Object.entries(val as Record<string, unknown>).map(([k, v]) => ({
-              type: typeof v === "object" ? "objeto" : typeof v,
+              type: typeof v === "object" ? "object" : typeof v,
               value: v,
               label: k,
             }))
@@ -59,7 +59,7 @@ const renderValue = (
               </span>
             </div>
             <div className='flex-1 min-w-0'>
-              {item.type === "objeto" ? (
+              {item.type === "object" ? (
                 <ObjectCard
                   value={item}
                   showLabels
@@ -101,7 +101,7 @@ const renderValue = (
   }
 
   // Para otros tipos primitivos (mantener el código existente)
-  if (value.type === "fecha") {
+  if (value.type === "date") {
     const formattedDate = formatDateString(
       value.value as string | number | Date
     );
@@ -115,7 +115,7 @@ const renderValue = (
     );
   }
 
-  if (value.type === "número") {
+  if (value.type === "number") {
     return (
       <span className='text-sm font-mono text-left whitespace-nowrap'>
         {Number(value.value).toLocaleString()}

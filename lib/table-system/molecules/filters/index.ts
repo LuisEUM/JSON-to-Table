@@ -1,44 +1,50 @@
 // Filter components - Atomic Design Level 2
-// TEMPORARY: Minimal exports while we fix internal imports
 
-// Basic re-exports that don't have complex dependencies
-// NOTE: Individual filter components have internal import issues that need to be resolved
-// For now, we'll export basic types to prevent breaking the build
+// Filter components
+export { FilterFactory } from "./filter-factory";
+export { StringFilter } from "./string-filter";
+export { NumberFilter } from "./number-filter";
+export { DateFilter } from "./date-filter";
+export { ArrayFilter } from "./array-filter";
+export { AtomicPrimitiveArrayFilter } from "./atomic-primitive-array-filter";
+export { ObjectPropertyFilter } from "./object-property-filter";
 
-// Basic filter types that can be imported separately when needed
-// Components can be imported directly when their dependencies are fixed:
-// import { ArrayFilter } from '@/lib/table-system/molecules/filters/array-filter'
-// import { DateFilter } from '@/lib/table-system/molecules/filters/date-filter'
-// etc.
+// Filter UI components
+export { FilterCombobox } from "./filter-combobox";
+export { FilterFooter } from "./filter-footer";
+export { FilterHoverCard } from "./filter-hover-card";
+export { FilterTabs } from "./filter-tabs";
 
-// Export a basic type to keep the module valid
-export interface FilterSystemInfo {
-  componentsAvailable: string[];
-  status: 'pending-import-fixes';
-  availableComponents: string[];
-}
+// Embedded filter components (used by AtomicPrimitiveArrayFilter)
+export {
+  EmbeddedArrayFilter,
+  EmbeddedStringFilter,
+  EmbeddedNumberFilter,
+  EmbeddedDateFilter,
+  getAvailableFilterTypes,
+} from "./embedded-filter-components";
 
-export const FILTER_SYSTEM_INFO: FilterSystemInfo = {
-  componentsAvailable: [
-    'ArrayFilter',
-    'DateFilter',
-    'FilterTabs',
-    'AdaptiveFilter',
-    'FilterFactory',
-    'NumberFilter',
-    'StringFilter',
-    'ObjectPropertyFilter',
-    'FilterCombobox',
-    'FilterFooter',
-    'FilterHoverCard'
-  ],
-  status: 'pending-import-fixes',
-  availableComponents: [
-    'All components exist but need import path fixes',
-    'Can be imported directly via: ./component-name',
-    'Example: import { DateFilter } from "./date-filter"'
-  ]
-};
+// Utilities
+export { DataPatternAnalyzer } from "./pattern-analyzer";
+export { ColumnTypeDetector, TypeDetectionUtils } from "./type-detector";
 
-// Re-export pattern analyzer as it's a utility
-// export * from "./pattern-analyzer";
+// Filter function implementations
+export { filterFns, dateBetweenFilterFn } from "./filter-fns";
+export type { FilterFunctions } from "./filter-fns";
+
+// Types
+export type {
+  FilterComponentProps,
+  FilterCondition,
+  FilterOperator,
+  FilterValue,
+  FilterOption,
+} from "./filter-types";
+
+export type {
+  TypeDetectionResult,
+  DetectedColumnType,
+  SeparatorDetectionResult,
+} from "./type-detector";
+
+export type { FilterTypeOption } from "./embedded-filter-components";

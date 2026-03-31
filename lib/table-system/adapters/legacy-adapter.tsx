@@ -47,7 +47,7 @@ export const JsonTable: React.FC<JsonTableProps> = (props) => {
 }
 
 // Re-export other commonly used types and components for compatibility
-export { FilterContext } from '../organisms/tables/json-table'
+export { FilterContext } from '../core/contexts/filter-context'
 
 // Convenience exports for components that might be imported directly
 export { CellFactory } from '../molecules/table-parts/cell-factory'

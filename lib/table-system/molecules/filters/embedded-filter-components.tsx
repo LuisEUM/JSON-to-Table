@@ -12,6 +12,7 @@ import { NumberFilter } from "./number-filter";
 import { DateFilter } from "./date-filter";
 import type { FilterComponentProps, FilterCondition } from "./filter-types";
 import type { ProcessedItem } from "../../core";
+import { logger } from "../../core/services/logging-service";
 
 interface EmbeddedFilterProps
   extends Omit<FilterComponentProps, "onApply" | "onClose" | "onClear"> {
@@ -29,14 +30,14 @@ export function EmbeddedArrayFilter({
 }: EmbeddedFilterProps) {
   const handleApply = useCallback(
     (condition: FilterCondition) => {
-      console.log("🔧 EmbeddedArrayFilter applying:", condition);
+      logger.debug("EmbeddedArrayFilter applying:", condition);
       onFilterChange(condition);
     },
     [onFilterChange]
   );
 
   const handleClear = useCallback(() => {
-    console.log("🔧 EmbeddedArrayFilter clearing");
+    logger.debug("EmbeddedArrayFilter clearing");
     onFilterChange(null);
   }, [onFilterChange]);
 
@@ -48,7 +49,7 @@ export function EmbeddedArrayFilter({
     });
   }, [props.uniqueValues]);
 
-  console.log("🔧 EmbeddedArrayFilter:", {
+  logger.debug("EmbeddedArrayFilter:", {
     totalValues: props.uniqueValues.length,
     arrayValues: processedUniqueValues.length,
     isEmbedded,
@@ -70,7 +71,7 @@ export function EmbeddedArrayFilter({
         onApply={handleApply}
         onClear={handleClear}
         onClose={() => {}} // Embedded, no close action
-        arrayType='array[primitivo]'
+        arrayType='primitiveArray'
         hideFooter={false} // Show footer in embedded mode
       />
     </div>
@@ -88,14 +89,14 @@ export function EmbeddedStringFilter({
 }: EmbeddedFilterProps & { autoDetectedSeparator?: string }) {
   const handleApply = useCallback(
     (condition: FilterCondition) => {
-      console.log("🔧 EmbeddedStringFilter applying:", condition);
+      logger.debug("EmbeddedStringFilter applying:", condition);
       onFilterChange(condition);
     },
     [onFilterChange]
   );
 
   const handleClear = useCallback(() => {
-    console.log("🔧 EmbeddedStringFilter clearing");
+    logger.debug("EmbeddedStringFilter clearing");
     onFilterChange(null);
   }, [onFilterChange]);
 
@@ -136,12 +137,12 @@ export function EmbeddedStringFilter({
       return {
         ...props.initialValue,
         additionalValue: separatorMapping[autoDetectedSeparator] || "none",
-      };
+      } as FilterCondition;
     }
     return props.initialValue;
   }, [props.initialValue, autoDetectedSeparator]);
 
-  console.log("🔧 EmbeddedStringFilter:", {
+  logger.debug("EmbeddedStringFilter:", {
     totalValues: props.uniqueValues.length,
     stringValues: processedUniqueValues.length,
     autoDetectedSeparator,
@@ -182,14 +183,14 @@ export function EmbeddedNumberFilter({
 }: EmbeddedFilterProps) {
   const handleApply = useCallback(
     (condition: FilterCondition) => {
-      console.log("🔧 EmbeddedNumberFilter applying:", condition);
+      logger.debug("EmbeddedNumberFilter applying:", condition);
       onFilterChange(condition);
     },
     [onFilterChange]
   );
 
   const handleClear = useCallback(() => {
-    console.log("🔧 EmbeddedNumberFilter clearing");
+    logger.debug("EmbeddedNumberFilter clearing");
     onFilterChange(null);
   }, [onFilterChange]);
 
@@ -249,7 +250,7 @@ export function EmbeddedNumberFilter({
     return [isNaN(min) ? undefined : min, isNaN(max) ? undefined : max];
   }, [processedUniqueValues]);
 
-  console.log("🔧 EmbeddedNumberFilter:", {
+  logger.debug("EmbeddedNumberFilter:", {
     totalValues: props.uniqueValues.length,
     numberValues: processedUniqueValues.length,
     minValue,
@@ -291,14 +292,14 @@ export function EmbeddedDateFilter({
 }: EmbeddedFilterProps) {
   const handleApply = useCallback(
     (condition: FilterCondition) => {
-      console.log("🔧 EmbeddedDateFilter applying:", condition);
+      logger.debug("EmbeddedDateFilter applying:", condition);
       onFilterChange(condition);
     },
     [onFilterChange]
   );
 
   const handleClear = useCallback(() => {
-    console.log("🔧 EmbeddedDateFilter clearing");
+    logger.debug("EmbeddedDateFilter clearing");
     onFilterChange(null);
   }, [onFilterChange]);
 
@@ -341,7 +342,7 @@ export function EmbeddedDateFilter({
       });
   }, [props.uniqueValues]);
 
-  console.log("🔧 EmbeddedDateFilter:", {
+  logger.debug("EmbeddedDateFilter:", {
     totalValues: props.uniqueValues.length,
     dateValues: processedUniqueValues.length,
     isEmbedded,

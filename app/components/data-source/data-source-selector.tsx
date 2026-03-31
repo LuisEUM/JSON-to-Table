@@ -7,10 +7,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DATA_SOURCES, DataSourceType } from "../../lib/constants";
-import { Icons } from "@/app/components/ui/icons";
+import { Icons } from "@/components/ui/icons";
 
 // Interfaz para la fuente de datos
 interface DataSource {

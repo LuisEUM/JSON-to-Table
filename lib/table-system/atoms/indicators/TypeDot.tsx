@@ -1,4 +1,4 @@
-import type React from "react";
+import React from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -11,7 +11,7 @@ interface TypeDotProps {
   type: string;
 }
 
-export function TypeDot({ type }: TypeDotProps) {
+export const TypeDot = React.memo(function TypeDot({ type }: TypeDotProps) {
   const { bg: colorClass } = getTypeStyle(type);
 
   return (
@@ -26,4 +26,4 @@ export function TypeDot({ type }: TypeDotProps) {
       </Tooltip>
     </TooltipProvider>
   );
-}
+});

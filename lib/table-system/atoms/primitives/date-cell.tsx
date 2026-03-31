@@ -9,7 +9,7 @@ interface DateCellProps {
   value: ProcessedValue;
 }
 
-export function DateCell({ value }: DateCellProps) {
+export const DateCell = React.memo(function DateCell({ value }: DateCellProps) {
   if (value.value === null || value.value === undefined) {
     return <span className='text-sm italic text-muted-foreground'>-</span>;
   }
@@ -22,4 +22,4 @@ export function DateCell({ value }: DateCellProps) {
       <span className='text-sm italic text-muted-foreground'>Invalid date</span>
     );
   }
-}
+});

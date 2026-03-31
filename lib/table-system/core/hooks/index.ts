@@ -4,6 +4,9 @@ export * from './use-column-management';
 export * from './use-filter-tabs';
 export * from './use-data-processing';
 export * from './use-table-export';
+export * from './use-secondary-tables';
+export * from './use-table-persistence';
+export * from './use-column-pinning';
 
 // Re-export types for convenience
 export type {
@@ -32,3 +35,12 @@ export type {
   ExportOptions,
   UseTableExportProps,
 } from './use-table-export';
+
+export type {
+  UseTablePersistenceOptions,
+  TableConfig,
+} from './use-table-persistence';
+
+export type {
+  UseColumnPinningOptions,
+} from './use-column-pinning';

@@ -7,15 +7,34 @@ import { NumberFilter } from "./number-filter";
 import { StringFilter } from "./string-filter";
 import { ArrayFilter } from "./array-filter";
 import { AtomicPrimitiveArrayFilter } from "./atomic-primitive-array-filter";
-import {
-  FilterFactory as AdaptiveFilterFactory,
-  shouldUseAdaptiveFilter,
-} from "./adaptive-filter-factory";
+import { ObjectPropertyFilter } from "./object-property-filter";
+import { DataPatternAnalyzer } from "./pattern-analyzer";
 import type { ProcessedItem } from "../../core/utils/data-processor";
 import type { FilterComponentProps, FilterCondition } from "./filter-types";
 import type { ProcessedRow } from "../../core/utils/data-processor";
-import { FilterContext } from "../../organisms/tables/json-table";
+import { FilterContext } from "../../core/contexts/filter-context";
 import { DialogTitle } from "@/components/ui/dialog";
+import { logger } from "../../core/services/logging-service";
+
+function shouldUseAdaptiveFilter(
+  uniqueValues: FilterComponentProps["uniqueValues"]
+): boolean {
+  if (uniqueValues.length === 0) return false;
+  const hasObjects = uniqueValues.some(
+    (option) =>
+      typeof option.original === "object" &&
+      option.original !== null &&
+      !Array.isArray(option.original)
+  );
+  const hasArraysOfObjects = uniqueValues.some(
+    (option) =>
+      Array.isArray(option.original) &&
+      option.original.length > 0 &&
+      typeof option.original[0] === "object" &&
+      option.original[0] !== null
+  );
+  return hasObjects || hasArraysOfObjects;
+}
 
 interface FilterFactoryProps extends FilterComponentProps {
   column: Column<ProcessedRow>;
@@ -49,8 +68,8 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
 
   if (
     columnType === "array" ||
-    columnType === "array[objeto]" ||
-    columnType === "array[primitivo]"
+    columnType === "objectArray" ||
+    columnType === "primitiveArray"
   ) {
     // Para arrays, pasar los ProcessedItem originales sin convertir a string
     const uniqueValuesMap = new Map<ProcessedItem, number>();
@@ -109,7 +128,7 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
     );
   }
 
-  console.log("🔍 Valores únicos procesados:", {
+  logger.debug("Valores unicos procesados:", {
     columnId: column.id,
     columnType,
     uniqueValues: uniqueValues.map((v) => ({
@@ -127,7 +146,7 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
   ];
 
   // Debug: Ver qué initialValue se está pasando
-  console.log("🔍 FilterFactory initialValue debug:", {
+  logger.debug("FilterFactory initialValue debug:", {
     columnId: column.id,
     columnType,
     propsInitialValue: props.initialValue,
@@ -150,7 +169,7 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
   // Check if this column would benefit from adaptive filtering
   const useAdaptiveFiltering = shouldUseAdaptiveFilter(uniqueValues);
 
-  console.log("🎯 Filter selection for column:", {
+  logger.debug("Filter selection for column:", {
     columnId: column.id,
     columnType,
     useAdaptiveFiltering,
@@ -165,7 +184,7 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
   });
 
   // Seleccionar el componente de filtro basado en el tipo y contenido
-  console.log("🏭 FILTER FACTORY - Seleccionando filtro:", {
+  logger.debug("FILTER FACTORY - Seleccionando filtro:", {
     columnId: column.id,
     columnType,
     uniqueValuesCount: uniqueValues.length,
@@ -173,26 +192,29 @@ export function FilterFactory({ column, ...props }: FilterFactoryProps) {
   });
 
   switch (columnType) {
-    case "número":
+    case "number":
       return <NumberFilter {...filterProps} />;
-    case "fecha":
+    case "date":
       return <DateFilter {...filterProps} />;
     case "array":
       return <ArrayFilter {...filterProps} arrayType={columnType} />;
-    case "array[primitivo]":
+    case "primitiveArray":
       return (
         <AtomicPrimitiveArrayFilter {...filterProps} arrayType={columnType} />
       );
-    case "array[objeto]":
+    case "objectArray":
       return <ArrayFilter {...filterProps} arrayType={columnType} />;
     case "boolean":
     case "string":
     default:
       // For string/default columns, check if they contain complex objects
       if (useAdaptiveFiltering) {
-        return AdaptiveFilterFactory.createFilter(filterProps, {
-          useAdaptive: true,
-        });
+        const strategy = DataPatternAnalyzer.analyzeColumn(
+          filterProps.uniqueValues
+        );
+        if (strategy.type === "object-property") {
+          return <ObjectPropertyFilter {...filterProps} />;
+        }
       }
       return <StringFilter {...filterProps} />;
   }

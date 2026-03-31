@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Icons } from "@/app/components/ui/icons";
+import { Icons } from "@/components/ui/icons";
 import { toast } from "sonner";
 import {
   AlertCircle,

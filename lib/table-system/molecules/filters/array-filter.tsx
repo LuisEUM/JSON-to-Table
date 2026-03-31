@@ -11,6 +11,7 @@ import { getTypeStyle } from "../../core/constants/type-styles";
 import { processValue, type ProcessedItem } from "../../core";
 import { TypeDot } from "../../atoms/indicators/TypeDot";
 import { FilterTabs, useFilterTabs } from "./filter-tabs";
+import { logger } from "../../core/services/logging-service";
 
 interface FilterItem {
   value: unknown;
@@ -33,7 +34,7 @@ export function ArrayFilter({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedValues, setSelectedValues] = useState<FilterValue[]>(() => {
     const initial = (initialValue?.value as FilterValue[]) || [];
-    console.log("🔍 ArrayFilter loading initial values:", {
+    logger.debug("ArrayFilter loading initial values:", {
       columnId,
       initialValue,
       extractedValues: initial,
@@ -45,7 +46,7 @@ export function ArrayFilter({
   // Detectar el tipo real del array analizando el contenido
   const detectedArrayType = useMemo(() => {
     if (arrayType) {
-      console.log("🎯 ArrayFilter using provided arrayType:", arrayType);
+      logger.debug("ArrayFilter using provided arrayType:", arrayType);
       return arrayType;
     }
 
@@ -57,7 +58,7 @@ export function ArrayFilter({
       .map((item) => item.value as unknown[]);
 
     if (sampleArrays.length === 0) {
-      console.log("🎯 ArrayFilter: No arrays found, defaulting to 'array'");
+      logger.debug("ArrayFilter: No arrays found, defaulting to 'array'");
       return "array";
     }
 
@@ -72,14 +73,14 @@ export function ArrayFilter({
       )
     );
 
-    const detectedType = hasObjects ? "array[objeto]" : "array[primitivo]";
-    console.log("🎯 ARRAY FILTER DETECTÓ TIPO:", {
+    const detectedType = hasObjects ? "objectArray" : "primitiveArray";
+    logger.debug("ARRAY FILTER DETECTO TIPO:", {
       columnId,
       detectedType,
       sampleCount: sampleArrays.length,
       hasObjects,
       sampleItems: sampleArrays.slice(0, 2).map((arr) => arr.slice(0, 3)),
-      shouldUsePrimitiveFilter: detectedType === "array[primitivo]",
+      shouldUsePrimitiveFilter: detectedType === "primitiveArray",
     });
 
     return detectedType;
@@ -96,7 +97,7 @@ export function ArrayFilter({
       processedItem.value.forEach((item) => {
         let displayKey: string;
         let displayType: string;
-        let originalValue: unknown = item;
+        const originalValue: unknown = item;
 
         if (typeof item === "object" && item !== null && !Array.isArray(item)) {
           // Para objetos, crear una representación legible
@@ -139,7 +140,7 @@ export function ArrayFilter({
               displayKey += "...";
             }
           }
-          displayType = "objeto";
+          displayType = "object";
         } else {
           // Para valores primitivos, usar el procesamiento normal
           const processedItem = processValue(item, columnId, undefined);
@@ -194,8 +195,8 @@ export function ArrayFilter({
   // Hook para manejar los tabs
   const { filteredItems, counts } = useFilterTabs(
     allFilterItems,
-    selectedValues.map((val) => ({ value: val } as FilterItem)),
-    (item, selected) => compareItems(item, selected.value)
+    selectedValues.map((val) => ({ value: val, count: 0 } as FilterItem)),
+    (item, selected) => compareItems(item, selected.value as FilterValue)
   );
 
   // Aplicar filtro de búsqueda a cada tab
@@ -218,7 +219,7 @@ export function ArrayFilter({
   };
 
   const handleApply = () => {
-    console.log("🎯 ArrayFilter applying filter:", {
+    logger.debug("ArrayFilter applying filter:", {
       field: columnId,
       operator: "arrIncludesSome",
       value: selectedValues as FilterValue[],

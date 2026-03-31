@@ -26,17 +26,16 @@ import { getTypeStyle } from "../../core/constants/type-styles";
 import type { ProcessedItem } from "../../core";
 import {
   ColumnTypeDetector,
-  TypeDetectionUtils,
-  type TypeDetectionResult,
 } from "./type-detector";
+import { logger } from "../../core/services/logging-service";
 import {
   EmbeddedArrayFilter,
   EmbeddedStringFilter,
   EmbeddedNumberFilter,
   EmbeddedDateFilter,
   getAvailableFilterTypes,
-  type FilterTypeOption,
 } from "./embedded-filter-components";
+import { getTypeDescription, getFilterTypeDotColor } from "./primitive-array-filter-utils";
 
 interface PrimitiveArrayFilterProps extends FilterComponentProps {
   arrayType?: string;
@@ -45,7 +44,6 @@ interface PrimitiveArrayFilterProps extends FilterComponentProps {
 interface FilterState {
   selectedFilterType: string;
   activeFilters: Map<string, FilterCondition>;
-  typeDetectionResult: TypeDetectionResult | null;
 }
 
 export function AtomicPrimitiveArrayFilter({
@@ -71,13 +69,12 @@ export function AtomicPrimitiveArrayFilter({
   const [filterState, setFilterState] = useState<FilterState>(() => ({
     selectedFilterType: "all",
     activeFilters: new Map(),
-    typeDetectionResult,
   }));
 
   // Handle filter changes from embedded components
   const handleFilterChange = useCallback(
     (filterType: string, condition: FilterCondition | null) => {
-      console.log("🔧 AtomicPrimitiveArrayFilter - Filter change:", {
+      logger.debug("AtomicPrimitiveArrayFilter - Filter change:", {
         filterType,
         condition,
       });
@@ -102,7 +99,7 @@ export function AtomicPrimitiveArrayFilter({
 
   // Combine all active filters into a single condition
   const handleApply = useCallback(() => {
-    console.log("🎯 AtomicPrimitiveArrayFilter applying combined filters:", {
+    logger.debug("AtomicPrimitiveArrayFilter applying combined filters:", {
       activeFilters: Array.from(filterState.activeFilters.entries()),
       selectedFilterType: filterState.selectedFilterType,
     });
@@ -121,13 +118,12 @@ export function AtomicPrimitiveArrayFilter({
       return;
     }
 
-    // For multiple filters, combine them (this is the power of the atomic filter)
+    // For multiple filters, combine them
     const allValues: (string | number | boolean | Date)[] = [];
     const allConditions: FilterCondition[] = [];
 
     filterState.activeFilters.forEach((condition) => {
       if (Array.isArray(condition.value)) {
-        // Filter to ensure type safety
         const validValues = condition.value.filter(
           (v): v is string | number | boolean | Date =>
             typeof v === "string" ||
@@ -147,12 +143,10 @@ export function AtomicPrimitiveArrayFilter({
       allConditions.push(condition);
     });
 
-    // Create combined condition
     const combinedCondition: FilterCondition = {
       field: columnId,
       operator: "arrIncludesSome",
       value: allValues,
-      // Preserve additional metadata from the most specific filter
       additionalValue: allConditions.find((c) => c.additionalValue)
         ?.additionalValue,
       exactMatch: allConditions.some((c) => c.exactMatch),
@@ -172,15 +166,13 @@ export function AtomicPrimitiveArrayFilter({
 
   // Handle select all functionality
   const handleSelectAll = useCallback(() => {
-    console.log("🔲 Selecting all available filters");
+    logger.debug("Selecting all available filters");
 
-    // Create filters for each available type
     const newActiveFilters = new Map<string, FilterCondition>();
 
     availableFilterTypes
       .filter((type) => type.type !== "all" && type.available && type.count > 0)
       .forEach((type) => {
-        // Create a basic "select all" condition for each type
         const allValuesOfType = uniqueValues
           .filter((option) => {
             const processedItem = option.original as ProcessedItem;
@@ -229,7 +221,7 @@ export function AtomicPrimitiveArrayFilter({
   // Update filter type selection
   const handleFilterTypeChange = useCallback(
     (newType: string) => {
-      console.log("🔄 Changing filter type:", {
+      logger.debug("Changing filter type:", {
         from: filterState.selectedFilterType,
         to: newType,
       });
@@ -237,7 +229,6 @@ export function AtomicPrimitiveArrayFilter({
       setFilterState((prev) => ({
         ...prev,
         selectedFilterType: newType,
-        // Keep active filters when switching to "all", clear when switching to specific type
         activeFilters: newType === "all" ? prev.activeFilters : new Map(),
       }));
     },
@@ -249,69 +240,27 @@ export function AtomicPrimitiveArrayFilter({
     return ColumnTypeDetector.getRecommendedFilter(typeDetectionResult);
   }, [typeDetectionResult]);
 
-  // Get type description for UI
-  const getTypeDescription = useCallback(() => {
-    const { primaryType, confidence, metadata } = typeDetectionResult;
-
-    switch (primaryType) {
-      case "realArray":
-        return `📋 Arrays reales detectados (${Math.round(
-          confidence * 100
-        )}% confianza)`;
-      case "stringWithSeparators":
-        const separator = metadata.detectedSeparator;
-        const separatorName =
-          separator === ","
-            ? "coma"
-            : separator === ";"
-            ? "punto y coma"
-            : separator === "|"
-            ? "pipe"
-            : separator || "desconocido";
-        return `📝 Strings con separadores detectados (${separatorName}, ${Math.round(
-          confidence * 100
-        )}% confianza)`;
-      case "mixedContent":
-        return `🔄 Contenido mixto detectado (${metadata.arrayCount} arrays, ${metadata.stringCount} strings, ${metadata.numberCount} números, ${metadata.dateCount} fechas)`;
-      case "pureString":
-        return `📝 Columna de texto puro (${Math.round(
-          confidence * 100
-        )}% confianza)`;
-      case "pureNumber":
-        return `🔢 Columna numérica pura (${Math.round(
-          confidence * 100
-        )}% confianza)`;
-      case "pureDate":
-        return `📅 Columna de fechas pura (${Math.round(
-          confidence * 100
-        )}% confianza)`;
-      default:
-        return `❓ Tipo no determinado`;
-    }
-  }, [typeDetectionResult]);
-
   // Get active filter count for display
-  const activeFilterCount = useMemo(() => {
-    return filterState.activeFilters.size;
-  }, [filterState.activeFilters]);
+  const activeFilterCount = filterState.activeFilters.size;
+
+  // Base props for embedded filters
+  const baseProps = {
+    columnId,
+    columnName,
+    columnType: "primitiveArray" as const,
+    uniqueValues,
+    initialValue,
+  };
 
   // Render the appropriate embedded filter based on selected type
   const renderEmbeddedFilter = useCallback(() => {
     const { selectedFilterType } = filterState;
 
-    console.log("🎨 Rendering embedded filter:", {
+    logger.debug("Rendering embedded filter:", {
       selectedFilterType,
       typeDetectionResult: typeDetectionResult.primaryType,
       availableTypes: availableFilterTypes.map((t) => t.type),
     });
-
-    const baseProps = {
-      columnId,
-      columnName,
-      columnType: "array[primitivo]" as const,
-      uniqueValues,
-      initialValue,
-    };
 
     switch (selectedFilterType) {
       case "array":
@@ -370,17 +319,7 @@ export function AtomicPrimitiveArrayFilter({
                     <AccordionTrigger className='text-sm'>
                       <div className='flex items-center gap-2'>
                         <div
-                          className={`w-2 h-2 rounded-full ${
-                            type.type === "array"
-                              ? "bg-blue-500"
-                              : type.type === "string"
-                              ? "bg-green-500"
-                              : type.type === "number"
-                              ? "bg-orange-500"
-                              : type.type === "date"
-                              ? "bg-purple-500"
-                              : "bg-gray-500"
-                          }`}
+                          className={`w-2 h-2 rounded-full ${getFilterTypeDotColor(type.type)}`}
                         />
                         {type.label} ({type.count})
                         {filterState.activeFilters.has(type.type) && (
@@ -437,10 +376,7 @@ export function AtomicPrimitiveArrayFilter({
     filterState.selectedFilterType,
     availableFilterTypes,
     typeDetectionResult,
-    columnId,
-    columnName,
-    uniqueValues,
-    initialValue,
+    baseProps,
     handleFilterChange,
     filterState.activeFilters,
   ]);
@@ -454,15 +390,15 @@ export function AtomicPrimitiveArrayFilter({
             Filtro para{" "}
             <span
               className={`inline-block w-3 h-3 rounded-full ${
-                getTypeStyle("array[primitivo]").bg
+                getTypeStyle("primitiveArray").bg
               }`}
             />{" "}
             {columnName}
           </h3>
           <div className='text-xs text-muted-foreground mt-1'>
-            {getTypeDescription()}
+            {getTypeDescription(typeDetectionResult)}
             {recommendedFilter.useMultiFilter &&
-              " • Filtro múltiple recomendado"}
+              " - Filtro múltiple recomendado"}
           </div>
         </div>
         {activeFilterCount > 0 && (
@@ -493,17 +429,7 @@ export function AtomicPrimitiveArrayFilter({
                     <div className='flex items-center gap-2'>
                       {type.type !== "all" && (
                         <div
-                          className={`w-2 h-2 rounded-full ${
-                            type.type === "array"
-                              ? "bg-blue-500"
-                              : type.type === "string"
-                              ? "bg-green-500"
-                              : type.type === "number"
-                              ? "bg-orange-500"
-                              : type.type === "date"
-                              ? "bg-purple-500"
-                              : "bg-gray-500"
-                          }`}
+                          className={`w-2 h-2 rounded-full ${getFilterTypeDotColor(type.type)}`}
                         />
                       )}
                       {type.label}
@@ -522,7 +448,7 @@ export function AtomicPrimitiveArrayFilter({
         {/* Show recommendation if applicable */}
         {recommendedFilter.primary !== "AtomicPrimitiveArrayFilter" && (
           <div className='p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm'>
-            <div className='font-medium text-blue-900'>💡 Recomendación</div>
+            <div className='font-medium text-blue-900'>Recomendación</div>
             <div className='text-blue-700 mt-1'>
               Para este tipo de datos ({typeDetectionResult.primaryType}), se
               recomienda usar{" "}

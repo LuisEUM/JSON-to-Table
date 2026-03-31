@@ -1,0 +1,24 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - link "JSON-to-Table" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e10]: JSON-to-Table
+      - generic [ref=e11]:
+        - button "Cambiar tema" [ref=e12]:
+          - img
+          - generic [ref=e13]: Cambiar tema
+        - button "Iniciar Sesión" [ref=e14]:
+          - img
+          - text: Iniciar Sesión
+    - main [ref=e15]:
+      - generic [ref=e16]:
+        - button "Volver a fuentes de datos" [ref=e17]:
+          - img
+          - text: Volver a fuentes de datos
+        - generic [ref=e19]:
+          - generic [ref=e20]: "Demo: Tabla Compleja"
+          - generic [ref=e21]: "15 salones con datos anidados: empleados, servicios, membresías, métricas y objetos nested"
+  - region "Notifications alt+T"
+  - alert [ref=e25]

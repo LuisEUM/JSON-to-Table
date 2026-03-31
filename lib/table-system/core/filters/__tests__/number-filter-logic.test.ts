@@ -1,24 +1,12 @@
 import { describe, test, expect } from "@jest/globals";
 
-// Simulación de la lógica ACTUAL (INCORRECTA) para filtros numéricos
-const currentNumericFilterLogic = {
-  arrIncludesSome: (rawValue: number, filterValue: any) => {
-    const filterValues = Array.isArray(filterValue.value)
-      ? filterValue.value
-      : [filterValue.value];
+interface TestFilterValue {
+  value: unknown;
+}
 
-    // PROBLEMA: Está comparando como strings con includes()
-    return filterValues.some((val: unknown) => {
-      const stringVal = String(val).toLowerCase();
-      const stringRawVal = String(rawValue).toLowerCase();
-      return stringRawVal.includes(stringVal);
-    });
-  },
-};
-
-// Lógica CORRECTA propuesta para filtros numéricos
+// Lógica CORRECTA para filtros numéricos (comparación exacta)
 const proposedNumericFilterLogic = {
-  arrIncludesSome: (rawValue: number, filterValue: any) => {
+  arrIncludesSome: (rawValue: number, filterValue: TestFilterValue) => {
     const filterValues = Array.isArray(filterValue.value)
       ? filterValue.value
       : [filterValue.value];
@@ -32,37 +20,7 @@ const proposedNumericFilterLogic = {
 };
 
 describe("Number Filter Logic Tests", () => {
-  describe("Current Logic (INCORRECT)", () => {
-    test("❌ Should fail: 83 should match [83] but uses string includes", () => {
-      const result = currentNumericFilterLogic.arrIncludesSome(83, {
-        value: ["83"],
-      });
-      expect(result).toBe(true); // Funciona por casualidad
-    });
-
-    test("❌ Should fail: 8 incorrectly matches [83] due to string includes", () => {
-      const result = currentNumericFilterLogic.arrIncludesSome(8, {
-        value: ["83"],
-      });
-      expect(result).toBe(true); // INCORRECTO: 8 está incluido en "83"
-    });
-
-    test("❌ Should fail: 3 incorrectly matches [83] due to string includes", () => {
-      const result = currentNumericFilterLogic.arrIncludesSome(3, {
-        value: ["83"],
-      });
-      expect(result).toBe(true); // INCORRECTO: 3 está incluido en "83"
-    });
-
-    test("❌ Should fail: 1 incorrectly matches [10, 100] due to string includes", () => {
-      const result = currentNumericFilterLogic.arrIncludesSome(1, {
-        value: ["10", "100"],
-      });
-      expect(result).toBe(true); // INCORRECTO: "1" está incluido en "10" y "100"
-    });
-  });
-
-  describe("Proposed Logic (CORRECT)", () => {
+  describe("Corrected Logic (Exact Number Matching)", () => {
     test("✅ Should match exact numbers: 83 with [83]", () => {
       const result = proposedNumericFilterLogic.arrIncludesSome(83, {
         value: ["83"],

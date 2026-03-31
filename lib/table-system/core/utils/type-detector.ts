@@ -10,6 +10,7 @@ import {
   isDateColumnName,
   isStrongDateColumn,
 } from "./date-utils";
+import { logger } from "../services/logging-service";
 
 /**
  * Interfaz para estrategias de detección de tipos
@@ -98,7 +99,7 @@ export class UndefinedTypeDetectionStrategy extends BaseTypeDetectionStrategy {
  */
 export class DateTypeDetectionStrategy extends BaseTypeDetectionStrategy {
   constructor() {
-    super("fecha", 80);
+    super("date", 80);
   }
 
   matches(
@@ -141,7 +142,7 @@ export class DateTypeDetectionStrategy extends BaseTypeDetectionStrategy {
           return date;
         }
       } catch (e) {
-        console.warn("Error normalizing date", e);
+        logger.warn("Error normalizing date", e);
       }
     }
     return value;
@@ -198,7 +199,7 @@ export class BooleanTypeDetectionStrategy extends BaseTypeDetectionStrategy {
  */
 export class NumberTypeDetectionStrategy extends BaseTypeDetectionStrategy {
   constructor() {
-    super("número", 60);
+    super("number", 60);
   }
 
   matches(value: unknown, fieldName?: string): boolean {
@@ -258,7 +259,7 @@ export class NumberTypeDetectionStrategy extends BaseTypeDetectionStrategy {
  */
 export class ObjectTypeDetectionStrategy extends BaseTypeDetectionStrategy {
   constructor() {
-    super("objeto", 50);
+    super("object", 50);
   }
 
   matches(value: unknown): boolean {
@@ -280,7 +281,7 @@ export class ObjectTypeDetectionStrategy extends BaseTypeDetectionStrategy {
  */
 export class ObjectArrayTypeDetectionStrategy extends BaseTypeDetectionStrategy {
   constructor() {
-    super("array[objeto]", 45);
+    super("objectArray", 45);
   }
 
   matches(value: unknown): boolean {
@@ -326,7 +327,7 @@ export class ObjectArrayTypeDetectionStrategy extends BaseTypeDetectionStrategy 
  */
 export class PrimitiveArrayTypeDetectionStrategy extends BaseTypeDetectionStrategy {
   constructor() {
-    super("array[primitivo]", 40);
+    super("primitiveArray", 40);
   }
 
   matches(value: unknown): boolean {
@@ -349,25 +350,30 @@ export class PrimitiveArrayTypeDetectionStrategy extends BaseTypeDetectionStrate
 }
 
 /**
- * Estrategia para detectar strings (fallback)
+ * Fallback strategy for values that can be meaningfully represented as strings.
+ * Has the lowest priority so all other type strategies are tried first.
+ * Returns false for null/undefined (those are handled by dedicated strategies).
  */
-export class StringTypeDetectionStrategy extends BaseTypeDetectionStrategy {
+export class FallbackTypeDetectionStrategy extends BaseTypeDetectionStrategy {
   constructor() {
-    super("string", 10); // Baja prioridad (fallback)
+    super("string", 10); // lowest priority
   }
 
-  matches(): boolean {
-    // Siempre coincide como fallback
-    return true;
+  matches(value: unknown): boolean {
+    // Only match values that are actual strings or can be meaningfully represented as strings
+    // Returns false for null/undefined (those should be handled by other strategies)
+    return value !== null && value !== undefined;
   }
 
   normalize(value: unknown): unknown {
-    if (value === null || value === undefined) return "";
-    return typeof value === "string"
-      ? value.replace(/^["']|["']$/g, "")
-      : String(value).replace(/^["']|["']$/g, "");
+    return String(value);
   }
 }
+
+/**
+ * @deprecated Use FallbackTypeDetectionStrategy instead. Kept for backward compatibility.
+ */
+export const StringTypeDetectionStrategy = FallbackTypeDetectionStrategy;
 
 /**
  * Clase que coordina la detección de tipos usando las estrategias disponibles
@@ -385,7 +391,7 @@ export class TypeDetector {
     this.registerStrategy(new ObjectArrayTypeDetectionStrategy());
     this.registerStrategy(new PrimitiveArrayTypeDetectionStrategy());
     this.registerStrategy(new NumberTypeDetectionStrategy());
-    this.registerStrategy(new StringTypeDetectionStrategy());
+    this.registerStrategy(new FallbackTypeDetectionStrategy());
   }
 
   /**
@@ -411,7 +417,7 @@ export class TypeDetector {
       }
     }
 
-    // Nunca debería llegar aquí (StringTypeDetectionStrategy siempre coincide)
+    // Nunca debería llegar aquí (FallbackTypeDetectionStrategy matches most values)
     return this.strategies[this.strategies.length - 1];
   }
 

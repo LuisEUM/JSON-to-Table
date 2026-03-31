@@ -1,8 +1,17 @@
 /**
- * Módulo de manejo de errores
+ * Error Handling Patterns for the Table System
  *
- * Define tipos de errores específicos para la aplicación y proporciona
- * utilidades para capturar, procesar y reportar errores de manera consistente.
+ * 1. `withErrorHandling(fn, fallback)` — for pure/utility functions
+ *    Wraps a function with try-catch and provides a fallback return value.
+ *    Use when a function should never throw but should degrade gracefully.
+ *
+ * 2. `try-catch` with `logError()` — for side-effect functions
+ *    Use in callbacks, event handlers, and async operations where you need
+ *    to handle the error and continue execution.
+ *
+ * 3. React Error Boundaries — for component rendering
+ *    Use to catch rendering errors and show fallback UI.
+ *    See: core/components/table-error-boundary.tsx
  */
 
 import { logger } from "../services/logging-service";

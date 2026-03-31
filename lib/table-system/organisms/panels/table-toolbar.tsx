@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Download, FileJson } from "lucide-react";
 import { cleanProcessedData, convertToCSV } from "../../core/utils/export-utils";
 import { ColumnManagerModal } from "./column-manager-modal";
-import type { ProcessedRow } from "../../core/utils/data-processor";
+import { logger } from "../../core/services/logging-service";
+import type { ProcessedRow, ProcessedItem } from "../../core/utils/data-processor";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,7 +52,7 @@ export function TableToolbar({
   onSaveAsDefault,
 }: TableToolbarProps) {
   return (
-    <div className='flex flex-col md:flex-row justify-between items-start md:items-center py-4 gap-3'>
+    <div className='flex flex-col md:flex-row justify-between items-start md:items-center py-4 gap-3' role='toolbar' aria-label='Herramientas de tabla'>
       <div className='flex-1 w-full md:w-auto'>
         <TableSearch table={table} placeholder={searchPlaceholder} />
       </div>
@@ -75,7 +76,7 @@ export function TableToolbar({
         {/* Botón de exportación unificado */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant='outline' size='sm' className='gap-2'>
+            <Button variant='outline' size='sm' className='gap-2' aria-label='Exportar datos'>
               <Download className='h-4 w-4' />
               <span>Exportar</span>
             </Button>
@@ -84,14 +85,14 @@ export function TableToolbar({
             <DropdownMenuItem
               onClick={() => {
                 if (!downloadFile) {
-                  console.warn("downloadFile function not provided");
+                  logger.warn("downloadFile function not provided");
                   return;
                 }
 
                 // Obtener solo las filas filtradas de la tabla
                 const filteredRows = table.getFilteredRowModel().rows;
 
-                console.log("📊 Exportando JSON filtrado:", {
+                logger.debug("Exportando JSON filtrado:", {
                   totalRows: processedData.length,
                   filteredRows: filteredRows.length,
                   hasFilters:
@@ -102,7 +103,7 @@ export function TableToolbar({
                 const cleanedData = cleanProcessedData(
                   filteredRows.map((row) => row.original) as Record<
                     string,
-                    any
+                    ProcessedItem
                   >[]
                 );
 
@@ -126,14 +127,14 @@ export function TableToolbar({
             <DropdownMenuItem
               onClick={() => {
                 if (!downloadFile) {
-                  console.warn("downloadFile function not provided");
+                  logger.warn("downloadFile function not provided");
                   return;
                 }
 
                 // Obtener solo las filas filtradas de la tabla
                 const filteredRows = table.getFilteredRowModel().rows;
 
-                console.log("📊 Exportando CSV filtrado:", {
+                logger.debug("Exportando CSV filtrado:", {
                   totalRows: processedData.length,
                   filteredRows: filteredRows.length,
                   hasFilters:

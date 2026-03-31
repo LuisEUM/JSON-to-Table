@@ -1,3 +1,4 @@
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { getTypeLabel, getTypeStyle } from "../../core/constants/type-styles";
 
@@ -5,7 +6,7 @@ interface TypeBadgeProps {
   type: string;
 }
 
-export function TypeBadge({ type }: TypeBadgeProps) {
+export const TypeBadge = React.memo(function TypeBadge({ type }: TypeBadgeProps) {
   const style = getTypeStyle(type);
   return (
     <Badge
@@ -15,4 +16,4 @@ export function TypeBadge({ type }: TypeBadgeProps) {
       {getTypeLabel(type)}
     </Badge>
   );
-}
+});

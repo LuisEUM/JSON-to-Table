@@ -7,9 +7,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Icons } from "@/app/components/ui/icons";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Icons } from "@/components/ui/icons";
 
 // Enum para los tipos de fuentes de datos
 enum DataSourceType {
@@ -17,10 +17,18 @@ enum DataSourceType {
   HOLDED = "holded",
   API = "api",
   DATABASE = "database",
+  DEMO = "demo",
 }
 
 // Datos de las fuentes disponibles
 const DATA_SOURCES = [
+  {
+    id: DataSourceType.DEMO,
+    name: "Demostración",
+    description: "Explora tablas simple y compleja con datos de ejemplo listos para usar, sin configuración",
+    icon: "Database",
+    path: "/data-sources/demo",
+  },
   {
     id: DataSourceType.FILE,
     name: "Archivos",
@@ -53,7 +61,7 @@ const DATA_SOURCES = [
 
 // Interfaz para la fuente de datos
 interface DataSource {
-  id: DataSourceType;
+  id: DataSourceType | string;
   name: string;
   description: string;
   icon: string;

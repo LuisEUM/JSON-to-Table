@@ -25,6 +25,7 @@ import { FilterFactory } from "../../molecules/filters/filter-factory";
 import type { FilterCondition } from "../../molecules/filters/filter-types";
 import { CellFactory } from "../../molecules/table-parts/cell-factory";
 import { TypeDot } from "../../atoms/indicators/TypeDot";
+import { logger } from "../../core/services/logging-service";
 
 interface NestedRecord {
   [key: string]: ProcessedItem | unknown | { [key: string]: NestedRecord };
@@ -34,14 +35,14 @@ interface NestedRecord {
 const getSortableInfo = (type: string) => {
   const sortableTypes = {
     string: { sortable: true, sortType: "text" },
-    número: { sortable: true, sortType: "numeric" },
+    number: { sortable: true, sortType: "numeric" },
     boolean: { sortable: true, sortType: "basic" },
-    fecha: { sortable: true, sortType: "datetime" },
-    "array[primitivo]": { sortable: false, sortType: "none" },
-    "array[objeto]": { sortable: false, sortType: "none" },
+    date: { sortable: true, sortType: "datetime" },
+    primitiveArray: { sortable: false, sortType: "none" },
+    objectArray: { sortable: false, sortType: "none" },
     array: { sortable: false, sortType: "none" },
-    objeto: { sortable: false, sortType: "none" },
-    referencia: { sortable: true, sortType: "text" },
+    object: { sortable: false, sortType: "none" },
+    reference: { sortable: true, sortType: "text" },
     null: { sortable: false, sortType: "none" },
     undefined: { sortable: false, sortType: "none" },
   };
@@ -83,7 +84,7 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
   const columnName = item.path[item.path.length - 1];
   const fullPathName = item.id;
 
-  console.log("📊 Creando definición de columna:", {
+  logger.debug("Creando definicion de columna:", {
     columnId: item.id,
     isReference: isReferenceColumn,
     type: item.type,
@@ -208,15 +209,15 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
                       uniqueValues={[]} // This will be overridden in FilterFactory
                       initialValue={column.getFilterValue() as FilterCondition}
                       onApply={(condition) => {
-                        console.log("🎯 Applying filter condition:", {
+                        logger.debug("Applying filter condition:", {
                           columnId: column.id,
                           condition,
                         });
                         column.setFilterValue(condition);
                       }}
                       onClear={() => {
-                        console.log(
-                          "🧹 Clearing filter for column:",
+                        logger.debug(
+                          "Clearing filter for column:",
                           column.id
                         );
                         column.setFilterValue(undefined);
@@ -254,7 +255,7 @@ const createColumnDef = (item: ProcessedItem): ColumnDef<ProcessedRow> => {
     cell: ({ getValue }) => {
       const value = getValue() as ProcessedValue;
 
-      console.log("🔍 Renderizando celda:", {
+      logger.debug("Renderizando celda:", {
         columnId: item.id,
         isReference: item.isReference,
         value,

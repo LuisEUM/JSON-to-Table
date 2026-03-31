@@ -98,25 +98,38 @@ export class LoggingService implements ILogger {
 }
 
 /**
- * Instancia global del servicio de logging para el sistema de tabla
+ * Registry that holds the current logger instance.
+ * Provides a clean way to swap loggers (e.g. for testing) without
+ * mutating properties on a shared singleton object.
  */
-export const logger: ILogger = new LoggingService(
-  process.env.NODE_ENV === "production" ? LogLevel.WARN : LogLevel.DEBUG
+class LoggerRegistry {
+  private currentLogger: ILogger;
+
+  constructor(defaultLogger: ILogger) {
+    this.currentLogger = defaultLogger;
+  }
+
+  get(): ILogger {
+    return this.currentLogger;
+  }
+
+  set(newLogger: ILogger): void {
+    this.currentLogger = newLogger;
+  }
+}
+
+const registry = new LoggerRegistry(
+  new LoggingService(
+    process.env.NODE_ENV === "production" ? LogLevel.WARN : LogLevel.DEBUG
+  )
 );
 
-/**
- * Método para reemplazar el logger global (útil para testing)
- */
-export function setLogger(newLogger: ILogger): ILogger {
-  const previousLogger = Object.assign({}, logger);
+// Convenience export - most code uses this
+export const logger = registry.get();
 
-  // Reemplazar métodos
-  Object.keys(newLogger).forEach((key) => {
-    if (typeof newLogger[key as keyof ILogger] === "function") {
-      (logger as unknown as Record<string, unknown>)[key] =
-        newLogger[key as keyof ILogger];
-    }
-  });
-
-  return previousLogger;
+// For testing/configuration
+export function setLogger(newLogger: ILogger): void {
+  registry.set(newLogger);
 }
+
+export { registry as loggerRegistry };

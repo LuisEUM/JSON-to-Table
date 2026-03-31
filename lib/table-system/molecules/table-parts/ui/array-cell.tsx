@@ -14,6 +14,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { logger } from "../../../core/services/logging-service";
 
 function isProcessedValue(value: unknown): value is ProcessedValue {
   return typeof value === "object" && value !== null && "type" in value;
@@ -45,7 +46,7 @@ const PrimitiveArrayDisplay = ({ items }: ArrayCellProps): ReactElement => {
               ? processedItem.value
                 ? "verdadero"
                 : "falso"
-              : processedItem.type === "número"
+              : processedItem.type === "number"
               ? Number(processedItem.value).toLocaleString()
               : String(processedItem.value)}
           </Badge>
@@ -59,7 +60,7 @@ const SimpleArrayDisplay = ({ items }: ArrayCellProps): ReactElement => {
   // Verificar si el array contiene objetos
   const containsObjects = items.some(
     (item) =>
-      item.type === "objeto" || (item.value && typeof item.value === "object")
+      item.type === "object" || (item.value && typeof item.value === "object")
   );
 
   if (!containsObjects) {
@@ -84,7 +85,7 @@ const ObjectArrayAccordion = ({ items }: ArrayCellProps): ReactElement => {
   const processedItems = React.useMemo(() => {
     // Obtener todas las propiedades únicas
     const allProperties = items.reduce((props, item) => {
-      if (isProcessedValue(item) && item.type === "objeto") {
+      if (isProcessedValue(item) && item.type === "object") {
         const itemProps = Object.keys(item.value as Record<string, unknown>);
         itemProps.forEach((prop) => props.add(prop));
       }
@@ -92,7 +93,7 @@ const ObjectArrayAccordion = ({ items }: ArrayCellProps): ReactElement => {
     }, new Set<string>());
 
     return items.map((item, index) => {
-      if (isProcessedValue(item) && item.type === "objeto") {
+      if (isProcessedValue(item) && item.type === "object") {
         const processedProperties = Object.entries(
           item.value as Record<string, unknown>
         ).map(([key, val]) => ({
@@ -110,7 +111,7 @@ const ObjectArrayAccordion = ({ items }: ArrayCellProps): ReactElement => {
             // Si la propiedad es única, usar solo el nombre de la propiedad
             const propCount = items.filter(
               (i) =>
-                i.type === "objeto" &&
+                i.type === "object" &&
                 (i.value as Record<string, unknown>)[prop] === propValue
             ).length;
 
@@ -124,7 +125,7 @@ const ObjectArrayAccordion = ({ items }: ArrayCellProps): ReactElement => {
         }
 
         return {
-          type: "objeto",
+          type: "object",
           value: item.value,
           items: processedProperties,
           id: `item-${index}`,
@@ -175,7 +176,7 @@ export function ArrayCell({ items }: ArrayCellProps): ReactElement {
   // Verificar si todos los elementos son primitivos (no objetos)
   const allPrimitives = !items.some(
     (item) =>
-      item.type === "objeto" ||
+      item.type === "object" ||
       (item.value &&
         typeof item.value === "object" &&
         item.value !== null &&
@@ -185,7 +186,7 @@ export function ArrayCell({ items }: ArrayCellProps): ReactElement {
   const isPrimitiveArray = items.length > 0 && allPrimitives;
   const isObjectArray = items.length > 0 && !allPrimitives;
 
-  console.log("🔄 Renderizando ArrayCell:", {
+  logger.debug("Renderizando ArrayCell:", {
     itemsLength: items.length,
     isPrimitiveArray,
     isObjectArray,

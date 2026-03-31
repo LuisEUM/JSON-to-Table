@@ -8,10 +8,10 @@ interface NullCellProps {
   type: "null" | "undefined";
 }
 
-export function NullCell({ type }: NullCellProps) {
+export const NullCell = React.memo(function NullCell({ type }: NullCellProps) {
   return (
     <span className='text-sm italic text-muted-foreground'>
       {type === "null" ? "null" : "undefined"}
     </span>
   );
-}
+});

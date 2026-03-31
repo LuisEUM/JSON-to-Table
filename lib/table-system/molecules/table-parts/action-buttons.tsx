@@ -41,7 +41,7 @@ export function ActionButtons({ row, onDelete }: ActionButtonsProps) {
   };
 
   const rowAsProcessedValue = {
-    type: "objeto",
+    type: "object",
     value: row,
     items: Object.entries(row).map(([key, value]) => ({
       ...value,

@@ -47,8 +47,8 @@ export async function GET(request: NextRequest) {
 
     if (compatibilityHash || currentColumns.length > 0) {
       compatibleViews = allViews.filter((view) => {
-        const config = view.config as any;
-        const viewMetadata = config.tableMetadata || config.columnMetadata; // Soporte para formato anterior
+        const config = view.config as Record<string, Record<string, unknown> | undefined>;
+        const viewMetadata = (config.tableMetadata || config.columnMetadata) as Record<string, unknown> | undefined; // Soporte para formato anterior
 
         if (!viewMetadata) return false; // Sin metadata, no se puede determinar compatibilidad
 
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
 
         // Verificar compatibilidad por columnas (método de respaldo)
         if (currentColumns.length > 0 && viewMetadata.availableColumns) {
-          const viewColumns = viewMetadata.availableColumns.filter(
+          const viewColumns = (viewMetadata.availableColumns as string[]).filter(
             (col: string) => !["index", "selection", "actions"].includes(col)
           );
           const currentCoreColumns = currentColumns.filter(

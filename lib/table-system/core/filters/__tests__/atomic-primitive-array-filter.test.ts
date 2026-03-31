@@ -5,7 +5,7 @@
  * of the primitive array filter with enhanced controllers.
  */
 
-import { describe, it, expect, beforeEach } from "@jest/jest-globals";
+import { describe, it, expect } from "@jest/globals";
 
 // Mock data for testing
 const mockUniqueValues = [
@@ -39,7 +39,7 @@ const mockUniqueValues = [
       id: "test",
       path: ["test"],
       value: 42,
-      type: "número",
+      type: "number",
     },
   },
   {
@@ -49,7 +49,7 @@ const mockUniqueValues = [
       id: "test",
       path: ["test"],
       value: -15,
-      type: "número",
+      type: "number",
     },
   },
   {
@@ -59,7 +59,7 @@ const mockUniqueValues = [
       id: "test",
       path: ["test"],
       value: 0,
-      type: "número",
+      type: "number",
     },
   },
 
@@ -71,7 +71,7 @@ const mockUniqueValues = [
       id: "test",
       path: ["test"],
       value: "01/12/2022",
-      type: "fecha",
+      type: "date",
     },
   },
   {
@@ -81,7 +81,7 @@ const mockUniqueValues = [
       id: "test",
       path: ["test"],
       value: "15-03-2023",
-      type: "fecha",
+      type: "date",
     },
   },
 
@@ -115,7 +115,7 @@ const mockUniqueValues = [
       id: "test",
       path: ["test"],
       value: ["red", "blue", "green"],
-      type: "array[primitivo]",
+      type: "primitiveArray",
     },
   },
   {
@@ -125,7 +125,7 @@ const mockUniqueValues = [
       id: "test",
       path: ["test"],
       value: [1, 2, 3, 4, 5],
-      type: "array[primitivo]",
+      type: "primitiveArray",
     },
   },
   {
@@ -135,7 +135,7 @@ const mockUniqueValues = [
       id: "test",
       path: ["test"],
       value: ["01/01/2024", "02/01/2024"],
-      type: "array[primitivo]",
+      type: "primitiveArray",
     },
   },
 ];
@@ -144,7 +144,7 @@ describe("AtomicPrimitiveArrayFilter", () => {
   describe("Type Detection and Grouping", () => {
     it("should correctly detect and group different primitive types", () => {
       // Test would validate the arrayOptions processing logic
-      const expectedTypes = ["string", "número", "fecha", "boolean"];
+      const expectedTypes = ["string", "number", "date", "boolean"];
 
       // Mock the processing function
       const processedValues = mockUniqueValues
@@ -184,7 +184,7 @@ describe("AtomicPrimitiveArrayFilter", () => {
 
       dateValues.forEach((dateStr) => {
         const detectedType = detectType(dateStr);
-        expect(detectedType).toBe("fecha");
+        expect(detectedType).toBe("date");
       });
     });
 
@@ -192,7 +192,7 @@ describe("AtomicPrimitiveArrayFilter", () => {
       const mixedArray = ["text", 123, "01/01/2024", true];
       const processedTypes = mixedArray.map(detectType);
 
-      expect(processedTypes).toEqual(["string", "número", "fecha", "boolean"]);
+      expect(processedTypes).toEqual(["string", "number", "date", "boolean"]);
     });
   });
 
@@ -391,8 +391,8 @@ describe("AtomicPrimitiveArrayFilter", () => {
     it("should filter options by selected type", () => {
       const allOptions = [
         { value: "apple", type: "string" },
-        { value: 42, type: "número" },
-        { value: "01/12/2022", type: "fecha" },
+        { value: 42, type: "number" },
+        { value: "01/12/2022", type: "date" },
         { value: true, type: "boolean" },
       ];
 
@@ -401,8 +401,8 @@ describe("AtomicPrimitiveArrayFilter", () => {
       expect(stringOptions).toEqual([{ value: "apple", type: "string" }]);
 
       // Filter by número type
-      const numberOptions = allOptions.filter((opt) => opt.type === "número");
-      expect(numberOptions).toEqual([{ value: 42, type: "número" }]);
+      const numberOptions = allOptions.filter((opt) => opt.type === "number");
+      expect(numberOptions).toEqual([{ value: 42, type: "number" }]);
     });
 
     it('should show all types when "all" is selected', () => {
@@ -433,7 +433,7 @@ describe("AtomicPrimitiveArrayFilter", () => {
 
   describe("Edge Cases", () => {
     it("should handle empty unique values array", () => {
-      const emptyValues: any[] = [];
+      const emptyValues: { value: unknown }[] = [];
       const processedOptions = emptyValues.map((item) => item.value);
 
       expect(processedOptions).toEqual([]);
@@ -457,7 +457,7 @@ describe("AtomicPrimitiveArrayFilter", () => {
       // Simulate processing
       const processed = largeArray.map((val) => ({
         value: val,
-        type: "número",
+        type: "number",
       }));
 
       const elapsed = Date.now() - processingTime;
@@ -468,9 +468,9 @@ describe("AtomicPrimitiveArrayFilter", () => {
 });
 
 // Helper function to detect type (simplified version)
-function detectType(value: any): string {
+function detectType(value: unknown): string {
   if (typeof value === "boolean") return "boolean";
-  if (typeof value === "number") return "número";
+  if (typeof value === "number") return "number";
   if (typeof value === "string") {
     // Enhanced date detection
     const datePatterns = [
@@ -481,15 +481,40 @@ function detectType(value: any): string {
 
     if (datePatterns.some((pattern) => pattern.test(value))) {
       try {
-        const testDate = new Date(value);
+        let testDate: Date | null = null;
+
+        // DD-MM-YYYY, DD/MM/YYYY, DD.MM.YYYY
+        if (/^\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{4}$/.test(value)) {
+          const parts = value.split(/[-\/\.]/);
+          const [day, month, year] = parts.map(Number);
+          if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+            testDate = new Date(year, month - 1, day);
+          }
+        }
+        // YYYY-MM-DD, YYYY/MM/DD
+        else if (/^\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}$/.test(value)) {
+          const parts = value.split(/[-\/\.]/);
+          const [year, month, day] = parts.map(Number);
+          if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+            testDate = new Date(year, month - 1, day);
+          }
+        }
+        // DD Month YYYY
+        else if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(value)) {
+          testDate = new Date(value);
+        }
+
         if (
+          testDate &&
           !isNaN(testDate.getTime()) &&
           testDate.getFullYear() >= 1900 &&
           testDate.getFullYear() <= 2100
         ) {
-          return "fecha";
+          return "date";
         }
-      } catch {}
+      } catch {
+        // not a date
+      }
     }
 
     return "string";

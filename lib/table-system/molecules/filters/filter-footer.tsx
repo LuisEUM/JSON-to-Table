@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -24,9 +25,27 @@ export function FilterFooter({
   showClear = true,
   showSelectAll = false,
 }: FilterFooterProps) {
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onApply();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    },
+    [onApply, onClose]
+  );
+
   return (
     <TooltipProvider>
-      <div className='flex items-center justify-end border-t pt-4 mt-4'>
+      <div
+        className='flex items-center justify-end border-t pt-4 mt-4'
+        role='toolbar'
+        aria-label='Acciones de filtro'
+        onKeyDown={handleKeyDown}
+      >
         <div className='flex gap-2'>
           {onSelectAll && showSelectAll && (
             <Tooltip>
@@ -36,6 +55,7 @@ export function FilterFooter({
                   size='icon'
                   onClick={onSelectAll}
                   className='h-8 w-8'
+                  aria-label='Seleccionar todo'
                 >
                   <CheckSquare className='h-4 w-4' />
                 </Button>
@@ -56,6 +76,7 @@ export function FilterFooter({
                     onClose();
                   }}
                   className='h-8 w-8'
+                  aria-label='Limpiar filtro'
                 >
                   <Trash2 className='h-4 w-4' />
                 </Button>
@@ -73,6 +94,7 @@ export function FilterFooter({
                 size='icon'
                 onClick={onClose}
                 className='h-8 w-8'
+                aria-label='Cerrar'
               >
                 <X className='h-4 w-4' />
               </Button>
@@ -89,6 +111,7 @@ export function FilterFooter({
                 size='icon'
                 onClick={onApply}
                 className='h-8 w-8'
+                aria-label='Aplicar filtro'
               >
                 <Check className='h-4 w-4' />
               </Button>

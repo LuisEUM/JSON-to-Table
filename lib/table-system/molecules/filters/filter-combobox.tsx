@@ -4,17 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Popover,
   PopoverContent,
@@ -29,18 +18,19 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
   Save,
   User,
   Trash,
-  RefreshCw,
   Filter,
   Settings,
   ChevronDown
 } from "lucide-react";
 import { FilterHoverCard } from "./filter-hover-card";
+import { FilterSaveDialog } from "./filter-save-dialog";
+import { FilterManageDialog } from "./filter-manage-dialog";
+import { logger } from "../../core/services/logging-service";
 
 // Tipo para un filtro guardado
 interface View {
@@ -54,9 +44,7 @@ interface View {
 }
 
 interface FilterComboboxProps {
-  // La configuración actual del filtro para guardar
   currentConfig: Record<string, unknown>;
-  // Callback para cargar una configuración guardada
   onLoadView: (config: Record<string, unknown>) => void;
 }
 
@@ -104,44 +92,7 @@ export function FilterCombobox({
     }
   }, [views, searchValue]);
 
-  // Cargar la lista de filtros del usuario (solo los compatibles con la tabla actual)
-  const loadViews = useCallback(async () => {
-    if (!session?.user) return;
-
-    setIsLoading(true);
-    try {
-      // Generar hash de compatibilidad y lista de columnas de la tabla actual
-      const currentColumns = Object.keys(currentConfig.columnVisibility || {});
-      const compatibilityHash = generateTableCompatibilityHash(currentColumns);
-      const columnsParam = currentColumns.join(",");
-
-      // Solicitar solo vistas compatibles
-      const response = await fetch(
-        `/api/views?compatibilityHash=${compatibilityHash}&columns=${columnsParam}`
-      );
-      const data = await response.json();
-
-      if (response.ok) {
-        setViews(data.views);
-
-        // Mostrar información de filtrado si es relevante
-        if (data.filtered && data.totalViews > data.compatibleViews) {
-          console.log(
-            `📊 Filtros filtrados: ${data.compatibleViews}/${data.totalViews} compatibles con esta tabla`
-          );
-        }
-      } else {
-        throw new Error(data.error || "Error al cargar las vistas");
-      }
-    } catch (error) {
-      console.error("Error al cargar filtros:", error);
-      toast.error("No se pudieron cargar los filtros");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [session, setIsLoading, currentConfig]);
-
-  // Función auxiliar para generar hash de compatibilidad (misma lógica que en la API)
+  // Función auxiliar para generar hash de compatibilidad
   const generateTableCompatibilityHash = (columns: string[]): string => {
     const sortedColumns = [...columns].sort();
     const coreColumns = sortedColumns.filter(
@@ -150,33 +101,30 @@ export function FilterCombobox({
     return Buffer.from(coreColumns.join("|")).toString("base64").slice(0, 16);
   };
 
-  // Función auxiliar para extraer tipos de columnas de la configuración actual
+  // Función auxiliar para extraer tipos de columnas
   const extractColumnTypes = (
     config: Record<string, unknown>
   ): Record<string, string> => {
     const columnTypes: Record<string, string> = {};
 
-    // Si hay información de filtros, podemos inferir algunos tipos
     if (config.columnFilters && Array.isArray(config.columnFilters)) {
       config.columnFilters.forEach(
         (filter: { id?: string; value?: unknown }) => {
           if (filter.id && filter.value) {
-            // Inferir tipo basado en el valor del filtro
             if (
               typeof filter.value === "object" &&
               filter.value !== null &&
               "operator" in filter.value
             ) {
-              // Es un filtro complejo, intentar inferir del operador
               const filterValue = filter.value as { operator: string };
               switch (filterValue.operator) {
                 case "greaterThan":
                 case "lessThan":
                 case "between":
-                  columnTypes[filter.id] = "número";
+                  columnTypes[filter.id] = "number";
                   break;
                 case "dateBetween":
-                  columnTypes[filter.id] = "fecha";
+                  columnTypes[filter.id] = "date";
                   break;
                 default:
                   columnTypes[filter.id] = "string";
@@ -189,6 +137,40 @@ export function FilterCombobox({
 
     return columnTypes;
   };
+
+  // Cargar la lista de filtros del usuario
+  const loadViews = useCallback(async () => {
+    if (!session?.user) return;
+
+    setIsLoading(true);
+    try {
+      const currentColumns = Object.keys(currentConfig.columnVisibility || {});
+      const compatibilityHash = generateTableCompatibilityHash(currentColumns);
+      const columnsParam = currentColumns.join(",");
+
+      const response = await fetch(
+        `/api/views?compatibilityHash=${compatibilityHash}&columns=${columnsParam}`
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        setViews(data.views);
+
+        if (data.filtered && data.totalViews > data.compatibleViews) {
+          logger.debug(
+            `Filtros filtrados: ${data.compatibleViews}/${data.totalViews} compatibles con esta tabla`
+          );
+        }
+      } else {
+        throw new Error(data.error || "Error al cargar las vistas");
+      }
+    } catch (error) {
+      logger.error("Error al cargar filtros:", error);
+      toast.error("No se pudieron cargar los filtros");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [session, setIsLoading, currentConfig]);
 
   // Cargar vistas cuando cambie el usuario
   useEffect(() => {
@@ -209,14 +191,6 @@ export function FilterCombobox({
       return;
     }
 
-    // Validar que haya filtros aplicados
-    const hasFilters =
-      (currentConfig.columnFilters &&
-        Array.isArray(currentConfig.columnFilters) &&
-        currentConfig.columnFilters.length > 0) ||
-      (currentConfig.globalFilter &&
-        String(currentConfig.globalFilter).trim() !== "");
-
     if (!hasFilters) {
       toast.error("Debes aplicar al menos un filtro antes de guardarlo");
       return;
@@ -235,7 +209,6 @@ export function FilterCombobox({
           isPublic,
           configuration: {
             ...currentConfig,
-            // Agregar información adicional para mejorar la compatibilidad
             columnTypes: extractColumnTypes(currentConfig),
           },
         }),
@@ -249,12 +222,12 @@ export function FilterCombobox({
         setViewName("");
         setViewDescription("");
         setIsPublic(false);
-        loadViews(); // Recargar la lista de filtros
+        loadViews();
       } else {
         throw new Error(data.error || "Error al guardar el filtro");
       }
     } catch (error) {
-      console.error("Error al guardar filtro:", error);
+      logger.error("Error al guardar filtro:", error);
       toast.error("No se pudo guardar el filtro");
     } finally {
       setIsLoading(false);
@@ -269,23 +242,21 @@ export function FilterCombobox({
       const data = await response.json();
 
       if (response.ok) {
-        // El campo en la DB es 'config', no 'configuration'
         const viewConfig = data.view.config || data.view.configuration;
 
-        // Validar que la configuración existe
         if (!viewConfig) {
           throw new Error("El filtro no tiene configuración válida");
         }
 
         onLoadView(viewConfig);
         toast.success(`"${data.view.name}" se ha cargado correctamente.`);
-        setOpen(false); // Cerrar el combobox
-        setSearchValue(""); // Limpiar búsqueda
+        setOpen(false);
+        setSearchValue("");
       } else {
         throw new Error(data.error || "Error al cargar el filtro");
       }
     } catch (error) {
-      console.error("Error al cargar filtro:", error);
+      logger.error("Error al cargar filtro:", error);
       toast.error("No se pudo cargar el filtro");
     } finally {
       setIsLoading(false);
@@ -307,7 +278,6 @@ export function FilterCombobox({
       });
 
       if (response.ok) {
-        // Actualizar la lista de filtros después de eliminar
         setViews(views.filter((view) => view.id !== viewId));
         toast.success(`"${viewName}" se ha eliminado correctamente.`);
       } else {
@@ -315,7 +285,7 @@ export function FilterCombobox({
         throw new Error(data.error || "Error al eliminar el filtro");
       }
     } catch (error) {
-      console.error("Error al eliminar filtro:", error);
+      logger.error("Error al eliminar filtro:", error);
       toast.error("No se pudo eliminar el filtro");
     } finally {
       setIsLoading(false);
@@ -429,142 +399,29 @@ export function FilterCombobox({
         </PopoverContent>
       </Popover>
 
-      {/* Diálogo de guardar filtro (ahora accesible desde dentro del combobox) */}
-      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Guardar filtro actual</DialogTitle>
-            <DialogDescription>
-              Guarda la configuración actual para acceder a ella más tarde.
-              {!hasFilters && (
-                <span className='text-destructive block mt-2'>
-                  Nota: Debes aplicar al menos un filtro antes de guardarlo.
-                </span>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className='grid gap-4 py-4'>
-            <div className='grid gap-2'>
-              <Label htmlFor='name'>Nombre del filtro</Label>
-              <Input
-                id='name'
-                placeholder='Mi filtro personalizado'
-                value={viewName}
-                onChange={(e) => setViewName(e.target.value)}
-              />
-            </div>
-
-            <div className='grid gap-2'>
-              <Label htmlFor='description'>Descripción (opcional)</Label>
-              <Textarea
-                id='description'
-                placeholder='Este filtro muestra...'
-                value={viewDescription}
-                onChange={(e) => setViewDescription(e.target.value)}
-              />
-            </div>
-
-            <div className='flex items-center space-x-2'>
-              <Checkbox
-                id='public'
-                checked={isPublic}
-                onCheckedChange={(checked) => setIsPublic(checked === true)}
-              />
-              <Label htmlFor='public'>Hacer público este filtro</Label>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant='outline'
-              onClick={() => setShowSaveDialog(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={saveView}
-              disabled={isLoading || !hasFilters || !viewName.trim()}
-              className='gap-2'
-              title={
-                !hasFilters
-                  ? "Aplica filtros primero"
-                  : !viewName.trim()
-                  ? "Ingresa un nombre"
-                  : "Guardar filtro"
-              }
-            >
-              {isLoading && <RefreshCw className='h-4 w-4 animate-spin' />}
-              Guardar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Diálogo de guardar filtro */}
+      <FilterSaveDialog
+        open={showSaveDialog}
+        onOpenChange={setShowSaveDialog}
+        viewName={viewName}
+        onViewNameChange={setViewName}
+        viewDescription={viewDescription}
+        onViewDescriptionChange={setViewDescription}
+        isPublic={isPublic}
+        onIsPublicChange={setIsPublic}
+        hasFilters={hasFilters}
+        isLoading={isLoading}
+        onSave={saveView}
+      />
 
       {/* Diálogo para administrar filtros */}
-      <Dialog open={showManageDialog} onOpenChange={setShowManageDialog}>
-        <DialogContent className='max-w-lg'>
-          <DialogHeader>
-            <DialogTitle>Administrar filtros guardados</DialogTitle>
-            <DialogDescription>
-              Gestiona tus filtros personalizados.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className='max-h-[60vh] overflow-y-auto'>
-            {views.length === 0 ? (
-              <p className='text-center py-4 text-muted-foreground'>
-                No tienes filtros guardados
-              </p>
-            ) : (
-              <div className='space-y-4'>
-                {views.map((view) => (
-                  <div
-                    key={view.id}
-                    className='flex items-center justify-between border p-3 rounded-md'
-                  >
-                    <div>
-                      <h4 className='font-medium'>{view.name}</h4>
-                      {view.description && (
-                        <p className='text-sm text-muted-foreground'>
-                          {view.description}
-                        </p>
-                      )}
-                      <div className='flex items-center mt-1'>
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full ${
-                            view.isPublic
-                              ? "bg-green-100 text-green-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}
-                        >
-                          {view.isPublic ? "Pública" : "Privada"}
-                        </span>
-                      </div>
-                    </div>
-                    <div className='flex items-center gap-2'>
-                      <Button
-                        size='sm'
-                        variant='outline'
-                        onClick={() => loadView(view.id)}
-                      >
-                        Cargar
-                      </Button>
-                      <Button
-                        size='sm'
-                        variant='destructive'
-                        onClick={() => deleteView(view.id, view.name)}
-                      >
-                        Eliminar
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <FilterManageDialog
+        open={showManageDialog}
+        onOpenChange={setShowManageDialog}
+        views={views}
+        onLoadView={loadView}
+        onDeleteView={deleteView}
+      />
     </div>
   );
 }
