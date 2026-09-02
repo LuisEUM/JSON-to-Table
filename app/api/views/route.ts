@@ -14,6 +14,50 @@ function generateTableCompatibilityHash(columns: string[]): string {
   return Buffer.from(coreColumns.join("|")).toString("base64").slice(0, 16);
 }
 
+// Determina si una vista (pública, de otra tabla) es compatible con la tabla actual.
+// Solo se aplica a vistas que NO son del usuario: las propias siempre se muestran.
+function isViewCompatible(
+  view: { config: unknown },
+  compatibilityHash: string | null,
+  currentColumns: string[]
+): boolean {
+  const config = view.config as Record<string, Record<string, unknown> | undefined>;
+  const viewMetadata = (config.tableMetadata || config.columnMetadata) as
+    | Record<string, unknown>
+    | undefined; // Soporte para formato anterior
+
+  if (!viewMetadata) return false; // Sin metadata, no se puede determinar compatibilidad
+
+  // Verificar compatibilidad por hash
+  if (compatibilityHash && viewMetadata.compatibilityHash) {
+    return viewMetadata.compatibilityHash === compatibilityHash;
+  }
+
+  // Verificar compatibilidad por columnas (método de respaldo)
+  if (currentColumns.length > 0 && viewMetadata.availableColumns) {
+    const viewColumns = (viewMetadata.availableColumns as string[]).filter(
+      (col: string) => !["index", "selection", "actions"].includes(col)
+    );
+    const currentCoreColumns = currentColumns.filter(
+      (col) => !["index", "selection", "actions"].includes(col)
+    );
+
+    // Sin columnas reales que comparar: no se puede determinar compatibilidad.
+    // Evita el caso 0 / 0 = NaN (NaN >= 0.7 === false).
+    if (viewColumns.length === 0) return false;
+
+    // Verificar que al menos el 70% de las columnas de la vista estén disponibles
+    const matchingColumns = viewColumns.filter((col: string) =>
+      currentCoreColumns.includes(col)
+    );
+    const compatibilityRatio = matchingColumns.length / viewColumns.length;
+
+    return compatibilityRatio >= 0.7;
+  }
+
+  return false;
+}
+
 // Obtener vistas del usuario y las públicas, con filtrado opcional por compatibilidad
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +71,10 @@ export async function GET(request: NextRequest) {
     // Obtener parámetros de consulta
     const { searchParams } = new URL(request.url);
     const compatibilityHash = searchParams.get("compatibilityHash");
-    const currentColumns = searchParams.get("columns")?.split(",") || [];
+    // Filtrar cadenas vacías: "columns=" produce [""], que no son columnas reales
+    const currentColumns = (searchParams.get("columns")?.split(",") || []).filter(
+      Boolean
+    );
 
     // Obtener todas las vistas del usuario y públicas
     const allViews = await prisma.view.findMany({
@@ -42,49 +89,22 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Si se proporciona hash de compatibilidad o columnas actuales, filtrar vistas compatibles
-    let compatibleViews = allViews;
+    const shouldFilter = !!compatibilityHash || currentColumns.length > 0;
 
-    if (compatibilityHash || currentColumns.length > 0) {
-      compatibleViews = allViews.filter((view) => {
-        const config = view.config as Record<string, Record<string, unknown> | undefined>;
-        const viewMetadata = (config.tableMetadata || config.columnMetadata) as Record<string, unknown> | undefined; // Soporte para formato anterior
-
-        if (!viewMetadata) return false; // Sin metadata, no se puede determinar compatibilidad
-
-        // Verificar compatibilidad por hash
-        if (compatibilityHash && viewMetadata.compatibilityHash) {
-          return viewMetadata.compatibilityHash === compatibilityHash;
-        }
-
-        // Verificar compatibilidad por columnas (método de respaldo)
-        if (currentColumns.length > 0 && viewMetadata.availableColumns) {
-          const viewColumns = (viewMetadata.availableColumns as string[]).filter(
-            (col: string) => !["index", "selection", "actions"].includes(col)
-          );
-          const currentCoreColumns = currentColumns.filter(
-            (col) => !["index", "selection", "actions"].includes(col)
-          );
-
-          // Verificar que al menos el 70% de las columnas de la vista estén disponibles
-          const matchingColumns = viewColumns.filter((col: string) =>
-            currentCoreColumns.includes(col)
-          );
-          const compatibilityRatio =
-            matchingColumns.length / viewColumns.length;
-
-          return compatibilityRatio >= 0.7;
-        }
-
-        return false;
-      });
-    }
+    // El filtro de compatibilidad solo se aplica a vistas públicas de OTROS
+    // usuarios/tablas. Las vistas propias del usuario siempre se muestran: no
+    // deben ocultarse por metadata de columnas incompleta.
+    const compatibleViews = allViews.filter((view) => {
+      if (view.userId === session.user.id) return true; // propias: siempre visibles
+      if (!shouldFilter) return true;
+      return isViewCompatible(view, compatibilityHash, currentColumns);
+    });
 
     return NextResponse.json({
       views: compatibleViews,
       totalViews: allViews.length,
       compatibleViews: compatibleViews.length,
-      filtered: compatibilityHash || currentColumns.length > 0,
+      filtered: shouldFilter,
     });
   } catch (error) {
     console.error("Error al obtener vistas:", error);
